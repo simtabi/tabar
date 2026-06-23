@@ -152,6 +152,15 @@ describe('construction & registry', () => {
     expect(Tabar.get(bar.id)).toBe(bar);
   });
 
+  it('renders a linear bar as a single fill with no leading-edge peg', () => {
+    new Tabar({ position: 'inline' });
+    const el = document.querySelector('[data-tabar]');
+    expect(el.querySelector('[data-bar-tabar]')).toBeTruthy();
+    // The "peg" leading shine was removed — it must never come back.
+    expect(el.querySelector('[data-peg-tabar]')).toBeNull();
+    expect(el.querySelectorAll('.tabar__peg')).toHaveLength(0);
+  });
+
   it('runs many default-option instances without id/class collision', () => {
     const a = new Tabar();
     const b = new Tabar();
@@ -973,5 +982,140 @@ describe('i18n: shipped locales + RTL', () => {
     Tabar.locale = 'ar';
     const ring = new Tabar({ shape: 'circular', trickle: false });
     expect(ring._wrapper.getAttribute('data-rtl-tabar')).toBe('true');
+  });
+});
+
+describe('tooltip', () => {
+  it('creates the tip via setTooltip and flags the wrapper', () => {
+    const bar = new Tabar({ position: 'inline', trickle: false });
+    expect(bar._wrapper.querySelector('[data-tooltip-tabar]')).toBeNull();
+    bar.setTooltip(true);
+    const el = bar._wrapper;
+    expect(el.querySelector('[data-tooltip-tabar]')).toBeTruthy();
+    expect(el.getAttribute('data-tooltip-tabar-on')).toBe('hover');
+    bar.setTooltip('Fixed', { always: true });
+    expect(el.getAttribute('data-tooltip-tabar-on')).toBe('always');
+    bar.setTooltip(false);
+    expect(el.querySelector('[data-tooltip-tabar]')).toBeNull();
+  });
+
+  it('attaches a circular tooltip to the wrapper, not the SVG arc', () => {
+    const bar = new Tabar({ shape: 'circular', trickle: false });
+    bar.setTooltip(true);
+    const tip = bar._wrapper.querySelector('[data-tooltip-tabar]');
+    expect(tip).toBeTruthy();
+    expect(tip.parentNode).toBe(bar._wrapper); // not inside the <svg> bar
+  });
+});
+
+describe('positions & length', () => {
+  it('supports centered edge positions and sets orientation', () => {
+    const top = new Tabar({ position: 'top-center', trickle: false });
+    expect(top._wrapper.getAttribute('data-position-tabar')).toBe('top-center');
+    expect(top._wrapper.getAttribute('data-orientation-tabar')).toBe('horizontal');
+    const left = new Tabar({ position: 'left-center', trickle: false });
+    expect(left._wrapper.getAttribute('data-orientation-tabar')).toBe('vertical');
+  });
+
+  it('reflects length as --tabar-length (number → px, string passthrough)', () => {
+    const a = new Tabar({ position: 'top', length: 320, trickle: false });
+    expect(a._wrapper.style.getPropertyValue('--tabar-length')).toBe('320px');
+    const b = new Tabar({ position: 'top', length: '60%', trickle: false });
+    expect(b._wrapper.style.getPropertyValue('--tabar-length')).toBe('60%');
+    a.setLength('75%');
+    expect(a._wrapper.style.getPropertyValue('--tabar-length')).toBe('75%');
+  });
+
+  it('falls back to top for an unknown position', () => {
+    const bar = new Tabar({ position: 'nope', trickle: false });
+    expect(bar._wrapper.getAttribute('data-position-tabar')).toBe('top');
+  });
+});
+
+describe('multiple colors', () => {
+  it('uses `colors` as a gradient fill (precedence over gradient)', () => {
+    const bar = new Tabar({ position: 'inline', colors: ['#f00', '#0f0', '#00f'], trickle: false });
+    const fill = bar._wrapper.style.getPropertyValue('--tabar-fill');
+    expect(fill).toContain('linear-gradient');
+    expect(fill).toContain('#00f');
+  });
+
+  it('renders hard color bands in bands mode (doubled boundaries)', () => {
+    const bar = new Tabar({ position: 'inline', colors: ['#f00', '#0f0'], colorMode: 'bands', trickle: false });
+    const fill = bar._wrapper.style.getPropertyValue('--tabar-fill');
+    // Each color spans an explicit start% end% block — no smooth interpolation.
+    expect(fill).toContain('#f00 0% 50%');
+    expect(fill).toContain('#0f0 50% 100%');
+  });
+
+  it('flags the animated-multicolor attribute', () => {
+    const bar = new Tabar({ position: 'inline', colors: ['#f00', '#00f'], colorAnimate: true, trickle: false });
+    expect(bar._wrapper.getAttribute('data-multicolor-anim-tabar')).toBe('true');
+    bar.setColorAnimate(false);
+    expect(bar._wrapper.getAttribute('data-multicolor-anim-tabar')).toBeNull();
+  });
+
+  it('addColorStop / removeColorStop edit the stops', () => {
+    const bar = new Tabar({ position: 'inline', colors: ['#f00', '#0f0'], trickle: false });
+    bar.addColorStop('#00f');
+    expect(bar.options.colors).toHaveLength(3);
+    bar.removeColorStop(0);
+    expect(bar.options.colors).toEqual(['#0f0', '#00f']);
+  });
+});
+
+describe('circular config', () => {
+  it('applies trackColor, lineCap, startAngle and clockwise', () => {
+    const bar = new Tabar({ shape: 'circular', trackColor: '#eee', lineCap: 'butt', startAngle: 0, clockwise: false, trickle: false });
+    const el = bar._wrapper;
+    expect(el.style.getPropertyValue('--tabar-track-color')).toBe('#eee');
+    expect(el.style.getPropertyValue('--tabar-start-angle')).toBe('0deg');
+    expect(el.style.getPropertyValue('--tabar-flip')).toBe('-1'); // counter-clockwise
+    expect(bar._bar.getAttribute('stroke-linecap')).toBe('butt');
+    bar.setLineCap('round');
+    expect(bar._bar.getAttribute('stroke-linecap')).toBe('round');
+  });
+});
+
+describe('segments advance (any count)', () => {
+  it('advances added segments beyond the initial three', () => {
+    const bar = new Tabar({ position: 'inline', trickle: false });
+    bar.setSegments([{ id: 'a', value: 0.2 }, { id: 'b', value: 0.2 }, { id: 'c', value: 0.2 }]);
+    bar.addSegment({ id: 'd', value: 0.2 });
+    bar.addSegment({ id: 'e', value: 0.2 });
+    expect(bar.segments).toHaveLength(5);
+    bar.updateSegment('e', { value: 90 }); // absolute on the 0–100 scale
+    expect(bar.segments.find((s) => s.id === 'e').value).toBe(90);
+  });
+});
+
+describe('data-attribute config (plain mount)', () => {
+  it('reads data-tabar-* off the mount element', () => {
+    const host = document.createElement('div');
+    host.id = 'dh';
+    host.setAttribute('data-tabar-tooltip', 'true');
+    host.setAttribute('data-tabar-length', '50%');
+    host.setAttribute('data-tabar-glow', 'true');
+    document.body.appendChild(host);
+    const bar = new Tabar({ position: 'inline', mountTo: host, trickle: false });
+    expect(bar.options.tooltip).toBe(true);
+    expect(bar.options.length).toBe('50%');
+    expect(bar.options.glow).toBe(true);
+  });
+
+  it('lets an explicit JS option win over a data attribute', () => {
+    const host = document.createElement('div');
+    host.setAttribute('data-tabar-color', '#ff0000');
+    document.body.appendChild(host);
+    const bar = new Tabar({ position: 'inline', mountTo: host, color: '#00ff00', trickle: false });
+    expect(bar.options.color).toBe('#00ff00');
+  });
+
+  it('ignores unknown data-tabar-* attributes', () => {
+    const host = document.createElement('div');
+    host.setAttribute('data-tabar-bogus', 'x');
+    document.body.appendChild(host);
+    const bar = new Tabar({ position: 'inline', mountTo: host, trickle: false });
+    expect('bogus' in bar.options).toBe(false);
   });
 });

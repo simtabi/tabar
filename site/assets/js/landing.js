@@ -1,6 +1,6 @@
 // Landing-page behavior. Bundled by scripts/build-site.js (Tabar is inlined).
-import { Tabar } from '../src/tabar.js';
-import { TabarGroup } from '../src/group.js';
+import { Tabar } from '../../../src/tabar.js';
+import { TabarGroup } from '../../../src/group.js';
 
 /* --- Theme toggle (persisted) --------------------------------------------- */
 const root = document.documentElement;
@@ -21,7 +21,7 @@ for (const id of ['ver', 'ver-foot']) {
 /* --- Hero: a looping bar, a ring, and a segmented transfer ---------------- */
 const heroBar = new Tabar({
   position: 'inline', mountTo: '#hero-bar', height: 16, radius: 8, theme: 'gradient',
-  color: '#2299dd', color2: '#7c4dff', trickle: false, showPeg: false,
+  color: '#2299dd', color2: '#7c4dff', trickle: false,
 });
 const heroRing = new Tabar({
   position: 'inline', mountTo: '#hero-ring', shape: 'circular', size: 84, height: 8,
@@ -51,7 +51,7 @@ if (reduceMotion) {
 }
 
 /* --- Shapes showcase ------------------------------------------------------ */
-const scLinear = new Tabar({ position: 'inline', mountTo: '#sc-linear', height: 14, radius: 7, trickle: false, showPeg: false });
+const scLinear = new Tabar({ position: 'inline', mountTo: '#sc-linear', height: 14, radius: 7, trickle: false });
 const scRing = new Tabar({ position: 'inline', mountTo: '#sc-ring', shape: 'circular', size: 110, height: 9, trickle: false, showLabel: true, labelFormat: (p) => `${Math.round(p)}%`, color: '#2299dd' });
 
 const scSegChunks = [

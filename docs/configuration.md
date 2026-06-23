@@ -11,8 +11,14 @@ Pass an options object to `new Tabar(options)`. Every option is optional.
 | `mountTo` | `string \| Element` | `document.body` | Where to mount (selector or element). |
 | `shape` | `'linear' \| 'circular'` | `'linear'` | Linear bar or circular SVG ring. |
 | `size` | `number` | `64` | Circular ring diameter in px (ignored for linear). |
-| `position` | `'top' \| 'bottom' \| 'left' \| 'right' \| 'inline'` | `'top'` | Fixed top/bottom (horizontal), left/right (vertical), or inline in a container. |
+| `position` | `'top' \| 'bottom' \| 'left' \| 'right' \| 'inline'` + `'top-center' \| 'bottom-center' \| 'left-center' \| 'right-center'` | `'top'` | Fixed edge dock (horizontal/vertical), centered along the edge with the `-center` variants, or inline in a container. |
+| `length` | `number \| string` | `'100%'` | Length of a fixed bar along its edge (number → px, string passthrough). |
+| `offset` | `number` | `0` | Inset (px) of a fixed bar from its docked edge. |
 | `direction` | `'ltr' \| 'rtl'` | `'ltr'` | Fill direction (horizontal bars). |
+| `trackColor` | `string` | `null` | Circular track ring color (defaults to a faint neutral). |
+| `lineCap` | `'round' \| 'butt' \| 'square'` | `'round'` | Circular arc stroke cap. |
+| `startAngle` | `number` | `-90` | Circular arc start angle in degrees (-90 = 12 o'clock). |
+| `clockwise` | `boolean` | `true` | Circular sweep direction (false = counter-clockwise). |
 | `color` | `string` | `'#29d'` | Bar fill (any CSS color). |
 | `color2` | `string` | `'#7c4dff'` | Secondary color for the `gradient` theme. |
 | `background` | `string` | `'transparent'` | Track background. |
@@ -22,6 +28,9 @@ Pass an options object to `new Tabar(options)`. Every option is optional.
 | `speed` | `number` | `300` | Transition duration in ms. |
 | `zIndex` | `number` | `1031` | z-index for fixed bars. |
 | `theme` | `'default' \| 'gradient' \| 'rainbow' \| 'stripes' \| 'glow' \| 'minimal'` | `'default'` | Preset look — see [theming](tools/theming.md). |
+| `colors` | `Array<string \| {color, at}>` | `null` | Multi-color stops (alias of `gradient`, takes precedence). |
+| `colorMode` | `'gradient' \| 'bands'` | `'gradient'` | Blended gradient, or hard non-interpolated color bands. |
+| `colorAnimate` | `boolean` | `false` | Animate the multicolor fill (scrolling). |
 | `gradient` | `Array<string \| {color, at}>` | `null` | Color stops → a multicolor gradient fill. Strings or `{color, at}` (position %). |
 | `gradientType` | `linear \| radial \| conic \| repeating-linear \| repeating-radial \| repeating-conic` | `'linear'` | Gradient kind. |
 | `gradientAngle` | `number` | `null` | Angle in degrees (linear/conic); auto by orientation when unset. |
@@ -30,6 +39,7 @@ Pass an options object to `new Tabar(options)`. Every option is optional.
 | `fill` | `string` | `null` | Explicit CSS background for the bar (wins over `gradient`). |
 | `glow` | `boolean` | `false` | Soft glow around the bar (composes with any theme). |
 | `glowColor` | `string` | `null` | Glow color; defaults to the bar color when unset. |
+| `glowSize` | `number` | `8` | Glow radius in px — how far the halo bleeds onto surroundings. |
 | `striped` | `boolean` | `false` | Diagonal stripe overlay. |
 | `stripeAnimate` | `boolean` | `true` | Animate the stripes when `striped`. |
 | `value` | `number` | `null` | Initial value to show on construct (fraction or absolute). |
@@ -37,7 +47,6 @@ Pass an options object to `new Tabar(options)`. Every option is optional.
 | `minimum` | `number` | `0.08` | Floor fraction applied by `start()`. |
 | `trickle` | `boolean` | `true` | Auto-increment while pending. |
 | `trickleSpeed` | `number` | `200` | Ms between trickle ticks. |
-| `showPeg` | `boolean` | `true` | Leading glow at the bar's edge. |
 | `showLabel` | `boolean` | `false` | Render a text label. |
 | `label` | `string` | `''` | Static label text (rendered as plain text). |
 | `labelFormat` | `(percent, bar) => string` | `null` | Live label, recomputed on every change (e.g. `(p) => \`${Math.round(p)}%\``). |
@@ -86,21 +95,25 @@ anywhere in your cascade:
 
 | Variable | Backs |
 |----------|-------|
-| `--tabar-color` | Bar fill + peg glow + label color |
+| `--tabar-color` | Bar fill + label color |
 | `--tabar-color2` | Secondary color for the `gradient` theme |
 | `--tabar-fill` | Bar background (set by `gradient`/`fill` **and the `gradient` theme**; overrides `--tabar-color`) |
 | `--tabar-angle` | Gradient angle |
 | `--tabar-fill-scale` | Set by Tabar to the fill fraction; anchors a gradient to the track (don't set by hand) |
 | `--tabar-bg` | Track background |
 | `--tabar-height` | Bar thickness |
+| `--tabar-length` | Length of a fixed bar along its edge |
+| `--tabar-offset` | Inset of a fixed bar from its docked edge |
 | `--tabar-radius` | Outer corner radius |
 | `--tabar-inner-radius` | Inner corner radius |
 | `--tabar-speed` | Transition duration |
 | `--tabar-z` | z-index of fixed bars |
+| `--tabar-track-color` | Circular track ring color (falls back to `--tabar-bg`) |
+| `--tabar-start-angle` | Circular arc start angle |
 | `--tabar-error` / `--tabar-warning` / `--tabar-success` | State colors (error/warning/success) |
 | `--tabar-seg-color` | Per-segment fill color (set on each segment) |
 | `--tabar-glow` | Glow color (independent of the bar color) |
-| `--tabar-peg` | Color of the leading-edge shine (default a soft white) |
+| `--tabar-glow-size` | Glow radius (how far the halo bleeds) |
 | `--tabar-message-color` / `--tabar-message-align` | Inline message color and alignment |
 
 ```css
@@ -125,16 +138,44 @@ The bare `data-tabar` marker anchors the namespace.
 | `data-position-tabar` | `top` \| `bottom` \| `left` \| `right` \| `inline` |
 | `data-orientation-tabar` | `horizontal` \| `vertical` |
 | `data-theme-tabar` | the active preset (absent when `default`) |
-| `data-glow-tabar` / `data-striped-tabar` / `data-stripe-anim-tabar` | `true` when enabled |
+| `data-glow-tabar` / `data-striped-tabar` / `data-stripe-anim-tabar` / `data-multicolor-anim-tabar` | `true` when enabled |
+| `data-tooltip-tabar-on` | `hover` \| `always` when a tooltip is enabled |
 | `data-rtl-tabar` | `true` when right-to-left (`direction: 'rtl'` or an RTL locale) |
 | `data-segmented-tabar` | `stacked` \| `overlay` when in segment mode |
 | `data-seg-tabar` / `data-seg-id-tabar` / `data-seg-status-tabar` | per-segment hooks |
 | `data-message-tabar` | the inline status-message overlay |
 | `data-shape-tabar` | `linear` \| `circular` |
-| `data-bar-tabar` / `data-peg-tabar` / `data-label-tabar` / `data-tooltip-tabar` | the inner parts |
+| `data-bar-tabar` / `data-label-tabar` / `data-tooltip-tabar` | the inner parts |
 
 ```css
 [data-state-tabar="indeterminate"] .tabar__bar { opacity: .8; }
+```
+
+## Declarative configuration (attributes)
+
+Every option above can be set declaratively, not just in JS. Two paths share one
+coercion layer (`src/attrs.js`), so they never drift. Booleans, numbers, strings,
+comma-separated lists (`gradient`/`colors`) and JSON (`segments`/`messages`/`persist`)
+are all accepted; function options (`labelFormat`, function `tooltip`/`messages`) are
+JS-only.
+
+**Web Component** — bare kebab-case attributes on `<tabar-bar>`:
+
+```html
+<script type="module" src="https://unpkg.com/@simtabi/tabar/dist/tabar-element.js"></script>
+<tabar-bar value="0.6" theme="gradient" tooltip length="60%" line-cap="butt"></tabar-bar>
+```
+
+**Plain mount** — `data-tabar-*` attributes on the element you mount into are read as
+a fallback. An explicit JS option always wins; absent ones fall back to the
+attribute, then the default:
+
+```html
+<div id="bar" data-tabar-color="#e91e63" data-tabar-length="50%" data-tabar-tooltip></div>
+<script type="module">
+  import { Tabar } from '@simtabi/tabar';
+  new Tabar({ position: 'inline', mountTo: '#bar' }); // picks up the data-tabar-* config
+</script>
 ```
 
 ---

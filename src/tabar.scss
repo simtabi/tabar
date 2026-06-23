@@ -46,33 +46,49 @@ $glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$
   &[data-position-tabar="inline"] { --tabar-track: rgba(127, 127, 127, 0.16); }
 
   // --- Horizontal fixed overlays --------------------------------------------
+  // `--tabar-length` runs along the docked edge (default 100%); `--tabar-offset`
+  // insets from that edge. `*-center` variants center the bar along the edge.
+  // Anchoring only one end (right:auto) is what lets a <100% length take effect.
   &[data-position-tabar="top"],
-  &[data-position-tabar="bottom"] {
+  &[data-position-tabar="bottom"],
+  &[data-position-tabar="top-center"],
+  &[data-position-tabar="bottom-center"] {
     @include fixed-overlay;
-    left: 0;
-    right: 0;
-    width: 100%;
+    width: var(--tabar-length, 100%);
+    right: auto;
   }
-  &[data-position-tabar="top"] { top: 0; }
-  &[data-position-tabar="bottom"] { bottom: 0; }
+  &[data-position-tabar="top"],
+  &[data-position-tabar="bottom"] { left: 0; }
+  &[data-position-tabar="top-center"],
+  &[data-position-tabar="bottom-center"] { left: 50%; transform: translateX(-50%); }
+  &[data-position-tabar="top"],
+  &[data-position-tabar="top-center"] { top: var(--tabar-offset, 0); }
+  &[data-position-tabar="bottom"],
+  &[data-position-tabar="bottom-center"] { bottom: var(--tabar-offset, 0); }
 
   // --- Vertical bars (thickness = --tabar-height, fill from the bottom up) ---
   &[data-orientation-tabar="vertical"] {
     width: var(--tabar-height, #{$height});
-    height: 100%;
+    height: var(--tabar-length, 100%);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
   }
   &[data-position-tabar="left"],
-  &[data-position-tabar="right"] {
+  &[data-position-tabar="right"],
+  &[data-position-tabar="left-center"],
+  &[data-position-tabar="right-center"] {
     @include fixed-overlay;
-    top: 0;
-    bottom: 0;
-    height: 100%;
+    bottom: auto;
   }
-  &[data-position-tabar="left"] { left: 0; }
-  &[data-position-tabar="right"] { right: 0; }
+  &[data-position-tabar="left"],
+  &[data-position-tabar="right"] { top: 0; }
+  &[data-position-tabar="left-center"],
+  &[data-position-tabar="right-center"] { top: 50%; transform: translateY(-50%); }
+  &[data-position-tabar="left"],
+  &[data-position-tabar="left-center"] { left: var(--tabar-offset, 0); }
+  &[data-position-tabar="right"],
+  &[data-position-tabar="right-center"] { right: var(--tabar-offset, 0); }
 
   &[hidden] { display: none; }
 
@@ -101,31 +117,6 @@ $glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$
     background-position: center bottom;
   }
   &[data-rtl-tabar="true"] &__bar { margin-left: auto; background-position: right center; }
-
-  // --- Leading shine (a soft highlight at the fill's leading edge) ----------
-  // Color-agnostic and clipped to the fill, so it blends with any solid/gradient
-  // fill at any height — no clashing colored glow, no offset block.
-  &__peg {
-    position: absolute;
-    top: 0;
-    right: 0;
-    height: 100%;
-    width: min(35%, 56px);
-    background: linear-gradient(90deg, transparent, var(--tabar-peg, rgba(255, 255, 255, 0.45)));
-    border-radius: inherit;
-    pointer-events: none;
-  }
-  &[data-rtl-tabar="true"] &__peg {
-    right: auto;
-    left: 0;
-    background: linear-gradient(270deg, transparent, var(--tabar-peg, rgba(255, 255, 255, 0.45)));
-  }
-  &[data-orientation-tabar="vertical"] &__peg {
-    inset: 0 0 auto 0;
-    width: 100%;
-    height: min(35%, 56px);
-    background: linear-gradient(0deg, transparent, var(--tabar-peg, rgba(255, 255, 255, 0.45)));
-  }
 
   // --- Optional label -------------------------------------------------------
   &__label {
@@ -171,8 +162,10 @@ $glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$
   }
 
   // --- Tooltip (rides the leading edge of the fill) -------------------------
-  // The wrapper opts into pointer events only when a tooltip is enabled.
-  &[data-tooltip-tabar-on] { pointer-events: auto; }
+  // The wrapper opts into pointer events only when a tooltip is enabled, and
+  // opens its overflow so the tip (which sits above/beside the bar) isn't
+  // clipped by the wrapper. (A host container must not clip it either.)
+  &[data-tooltip-tabar-on] { pointer-events: auto; overflow: visible; }
   &__tooltip {
     position: absolute;
     right: 0;
@@ -210,14 +203,17 @@ $glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$
   &[data-orientation-tabar="vertical"] &__tooltip::after { display: none; }
 
   // --- Glow (composes with ANY theme; also a standalone 'glow' preset) ------
-  // drop-shadow follows the filled shape; overflow is opened so it isn't clipped.
+  // A layered drop-shadow halo that follows the filled shape and bleeds onto
+  // surroundings. `--tabar-glow-size` scales the bleed; overflow is opened so
+  // the wrapper doesn't clip it (a host container must not clip it either).
   &[data-glow-tabar="true"],
   &[data-theme-tabar="glow"] { overflow: visible; }
   &[data-glow-tabar="true"] &__bar,
   &[data-theme-tabar="glow"] &__bar {
     filter:
-      drop-shadow(0 0 3px #{$glow-color})
-      drop-shadow(0 0 8px #{$glow-color});
+      drop-shadow(0 0 calc(var(--tabar-glow-size, 8px) * 0.4) #{$glow-color})
+      drop-shadow(0 0 var(--tabar-glow-size, 8px) #{$glow-color})
+      drop-shadow(0 0 calc(var(--tabar-glow-size, 8px) * 2) #{$glow-color});
   }
 
   // --- Segments (one bar, many progresses) ----------------------------------
@@ -256,7 +252,15 @@ $glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$
     animation: tabar-rainbow 3s linear infinite;
   }
 
-  &[data-theme-tabar="minimal"] &__peg { display: none; }
+  // Animate ANY multicolor fill (user `colors`/`gradient`) by scrolling it.
+  &[data-multicolor-anim-tabar="true"] &__bar {
+    background-size: 300% 100%;
+    background-repeat: repeat;
+    animation: tabar-rainbow 3s linear infinite;
+  }
+
+  // 'minimal' is a flat solid bar — identical to 'default' now that the bar
+  // carries no leading-edge embellishment. Kept as a recognized theme value.
 
   // --- Stripe overlay (option or theme) ------------------------------------
   &[data-striped-tabar="true"] &__bar::after {
@@ -318,13 +322,13 @@ $glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$
   }
   &__svg {
     display: block;
-    transform: rotate(-90deg); // start the arc at 12 o'clock, sweep clockwise
+    // Start at `--tabar-start-angle` (default 12 o'clock); `--tabar-flip` mirrors
+    // the sweep for counter-clockwise / RTL (computed in JS as clockwise XOR rtl).
+    transform: rotate(var(--tabar-start-angle, -90deg)) scaleX(var(--tabar-flip, 1));
     grid-area: 1 / 1;
   }
-  // RTL: mirror the ring so it sweeps counter-clockwise (label is unaffected).
-  &[data-shape-tabar="circular"][data-rtl-tabar="true"] &__svg { transform: rotate(-90deg) scaleX(-1); }
   &__track {
-    stroke: var(--tabar-bg, rgba(127, 127, 127, 0.2));
+    stroke: var(--tabar-track-color, var(--tabar-bg, rgba(127, 127, 127, 0.2)));
     stroke-width: var(--tabar-height, 6px);
   }
   &[data-shape-tabar="circular"] &__bar {
@@ -346,7 +350,9 @@ $glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$
   }
   &[data-shape-tabar="circular"][data-glow-tabar="true"] &__bar,
   &[data-shape-tabar="circular"][data-theme-tabar="glow"] &__bar {
-    filter: drop-shadow(0 0 3px #{$glow-color});
+    filter:
+      drop-shadow(0 0 calc(var(--tabar-glow-size, 8px) * 0.5) #{$glow-color})
+      drop-shadow(0 0 var(--tabar-glow-size, 8px) #{$glow-color});
   }
   &[data-shape-tabar="circular"][data-state-tabar="indeterminate"] &__svg {
     animation: tabar-spin 0.9s linear infinite;
@@ -392,6 +398,7 @@ $glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$
   .tabar[data-state-tabar="indeterminate"] .tabar__bar { animation: none; width: 100%; }
   .tabar[data-orientation-tabar="vertical"][data-state-tabar="indeterminate"] .tabar__bar { height: 100%; }
   .tabar[data-theme-tabar="rainbow"] .tabar__bar { animation: none; }
+  .tabar[data-multicolor-anim-tabar="true"] .tabar__bar { animation: none; }
   .tabar__bar::after { animation: none !important; }
 }
 

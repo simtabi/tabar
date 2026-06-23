@@ -26,5 +26,9 @@ export declare function renderTerminal(
   options?: TerminalOptions,
 ): { stop: () => void; paint: () => void };
 
-/** Create a headless Tabar already wired to terminal output. */
-export declare function terminalBar(options?: TabarOptions & TerminalOptions): Tabar;
+/**
+ * Create a headless Tabar already wired to terminal output. Terminal rendering
+ * is ANSI text, so `colors` here is the terminal's boolean toggle (not the core
+ * multi-color stops) — hence the `Omit`.
+ */
+export declare function terminalBar(options?: Omit<TabarOptions, 'colors'> & TerminalOptions): Tabar;

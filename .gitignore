@@ -17,6 +17,12 @@ npm-debug.log*
 .vitest/
 coverage/
 
+# Playwright (keep the committed *-snapshots/ baselines; ignore run artifacts)
+test-results/
+playwright-report/
+/playwright/.cache/
+blob-report/
+
 # Editor / OS
 .DS_Store
 .idea/

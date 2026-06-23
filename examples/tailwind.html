@@ -29,7 +29,7 @@
   <script type="module">
     import { Tabar } from '../src/tabar.js';
 
-    const bar = new Tabar({ position: 'inline', mountTo: '#host', trickle: false, showPeg: false });
+    const bar = new Tabar({ position: 'inline', mountTo: '#host', trickle: false });
     bar.show();
 
     document.getElementById('go').addEventListener('click', () => bar.set(0.85));

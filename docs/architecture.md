@@ -9,9 +9,7 @@ Each instance owns its own DOM subtree:
 
 ```html
 <div class="tabar" data-tabar data-id-tabar="tabar-1" role="progressbar" …>
-  <div class="tabar__bar" data-bar-tabar>
-    <div class="tabar__peg" data-peg-tabar></div>
-  </div>
+  <div class="tabar__bar" data-bar-tabar></div>
 </div>
 ```
 

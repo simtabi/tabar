@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tabar — Fixed-position fixture</title>
+    <meta name="robots" content="noindex" />
+    <link rel="stylesheet" href="./assets/css/styles.css" />
+    <style>
+      /* Renders ONE fixed/center bar chosen by URL params, for full-viewport
+         Playwright shots: /visual-fixed.html?pos=top-center&len=60%&val=0.7 */
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; }
+      #label { font: 600 14px system-ui, sans-serif; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <p id="label" data-testid="fixed-label">fixed</p>
+    <script type="module" src="./assets/js/visual-fixed.js"></script>
+  </body>
+</html>

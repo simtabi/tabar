@@ -8,49 +8,11 @@
  * available as `el.bar`, and Tabar's `tabar:*` events bubble out of the element.
  */
 import Tabar from './tabar.js';
-
-const NUMERIC = new Set([
-  'value', 'height', 'size', 'speed', 'min', 'max', 'gradientAngle', 'trickleSpeed',
-  'stallTimeout', 'errorTimeout',
-]);
-const BOOLEAN = new Set(['glow', 'striped', 'trickle', 'showPeg', 'showLabel', 'announce']);
-
-const toCamel = (s) => s.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
-
-const coerceAttr = (key, value) => {
-  if (value == null) return undefined;
-  // persist: a bare/true attribute enables it; a JSON object configures it.
-  if (key === 'persist') {
-    if (value === '' || value === 'true') return true;
-    if (value === 'false') return false;
-    try {
-      return JSON.parse(value); // '{"storage":"session","ttl":3600000}'
-    } catch {
-      return true;
-    }
-  }
-  if (BOOLEAN.has(key)) return value !== 'false';
-  if (NUMERIC.has(key)) return value === '' ? undefined : Number(value); // empty numeric → unset
-  if (key === 'gradient') return value.split(',').map((c) => c.trim()); // "a,b,c"
-  if (key === 'segments') {
-    try {
-      return JSON.parse(value); // '[{"value":0.5,"color":"#f00"}, ...]'
-    } catch {
-      return undefined;
-    }
-  }
-  return value;
-};
+import { ATTR_NAMES, coerceAttr, toCamel } from './attrs.js';
 
 export class TabarElement extends HTMLElement {
   static get observedAttributes() {
-    return [
-      'value', 'color', 'color2', 'background', 'theme', 'position', 'shape', 'size', 'height',
-      'radius', 'inner-radius', 'speed', 'glow', 'striped', 'gradient',
-      'gradient-type', 'gradient-angle', 'gradient-shape', 'gradient-position', 'label',
-      'direction', 'locale', 'persist', 'config-url', 'report-url',
-      'segments', 'segment-mode', 'aggregate', 'announce', 'stall-timeout', 'error-timeout',
-    ];
+    return ATTR_NAMES;
   }
 
   /** Build a config object from the current attributes. */

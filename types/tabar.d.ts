@@ -4,7 +4,12 @@
  */
 
 export type TabarShape = 'linear' | 'circular';
-export type TabarPosition = 'top' | 'bottom' | 'left' | 'right' | 'inline';
+export type TabarPosition =
+  | 'top' | 'bottom' | 'left' | 'right' | 'inline'
+  | 'top-center' | 'bottom-center' | 'left-center' | 'right-center';
+
+export type TabarColorMode = 'gradient' | 'bands';
+export type TabarLineCap = 'round' | 'butt' | 'square';
 export type TabarDirection = 'ltr' | 'rtl';
 export type TabarOrientation = 'horizontal' | 'vertical';
 export type TabarState =
@@ -152,10 +157,26 @@ export interface TabarOptions {
   shape?: TabarShape;
   /** Circular ring diameter in px (ignored for linear). Default: 64. */
   size?: number;
-  /** `top`/`bottom` (horizontal), `left`/`right` (vertical), or `inline`. Default: 'top'. */
+  /**
+   * Edge dock for fixed bars: `top`/`bottom`/`left`/`right`, their centered
+   * `*-center` variants, or `inline`. Default: 'top'.
+   */
   position?: TabarPosition;
+  /** Length of a fixed bar along its edge (number → px, string passthrough). Default: '100%'. */
+  length?: number | string;
+  /** Inset (px) of a fixed bar from its docked edge. Default: 0. */
+  offset?: number;
   /** Fill direction for horizontal bars. Default: 'ltr'. */
   direction?: TabarDirection;
+
+  /** Circular track ring color. Defaults to a faint neutral. */
+  trackColor?: string | null;
+  /** Circular arc stroke-linecap. Default: 'round'. */
+  lineCap?: TabarLineCap;
+  /** Circular arc start angle in degrees (-90 = 12 o'clock). Default: -90. */
+  startAngle?: number;
+  /** Circular sweep direction (false = counter-clockwise). Default: true. */
+  clockwise?: boolean;
 
   /** Bar fill color (any CSS color). Default: '#29d'. */
   color?: string;
@@ -176,6 +197,12 @@ export interface TabarOptions {
 
   /** Preset look. Default: 'default'. */
   theme?: TabarTheme;
+  /** Multi-color stops (alias of `gradient`, takes precedence). Strings or `{ color, at }`. */
+  colors?: TabarGradientStop[] | null;
+  /** Multi-color render mode: 'gradient' (blended) or 'bands' (hard blocks). Default: 'gradient'. */
+  colorMode?: TabarColorMode;
+  /** Animate the multicolor fill (scrolling). Default: false. */
+  colorAnimate?: boolean;
   /** Color stops → a gradient (multicolor) fill. Strings or `{ color, at }` stops. */
   gradient?: TabarGradientStop[] | null;
   /** Gradient type. Default: 'linear'. */
@@ -192,6 +219,8 @@ export interface TabarOptions {
   glow?: boolean;
   /** Glow color; defaults to the bar color when omitted. */
   glowColor?: string | null;
+  /** Glow radius in px (how far the halo bleeds). Default: 8. */
+  glowSize?: number;
   /** Diagonal stripe overlay. Default: false. */
   striped?: boolean;
   /** Animate the stripes when `striped`. Default: true. */
@@ -234,8 +263,6 @@ export interface TabarOptions {
   /** Milliseconds between trickle ticks. Default: 200. */
   trickleSpeed?: number;
 
-  /** Show the leading glow ("peg"). Default: true. */
-  showPeg?: boolean;
   /** Render a text label. Default: false. */
   showLabel?: boolean;
   /** Static label text (rendered as plain text). */
@@ -417,9 +444,21 @@ export declare class Tabar {
   setGradientShape(shape: string | null): this;
   setGradientPosition(position: string | null): this;
   setFill(css: string | null): this;
+  setColors(colors: TabarGradientStop[] | null): this;
+  addColorStop(color: string, at?: number): this;
+  removeColorStop(index: number): this;
+  setColorMode(mode: TabarColorMode): this;
+  setColorAnimate(on?: boolean): this;
   setGlow(on?: boolean, color?: string): this;
   setGlowColor(color: string | null): this;
+  setGlowSize(px: number): this;
   setStriped(on?: boolean): this;
+  setLength(length: number | string): this;
+  setOffset(px: number): this;
+  setTrackColor(color: string | null): this;
+  setLineCap(cap: TabarLineCap): this;
+  setStartAngle(deg: number): this;
+  setClockwise(on?: boolean): this;
   setDebug(on?: boolean): this;
   configure(partial: Partial<TabarOptions> | string): this;
 

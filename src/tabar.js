@@ -10,6 +10,8 @@
 
 // Compiled from src/tabar.scss by `npm run styles`.
 import { BASE_CSS } from './styles.js';
+// Shared declarative-config plumbing (also used by the <tabar-bar> element).
+import { readDataAttrs } from './attrs.js';
 
 /* -- Constants ------------------------------------------------------------- */
 
@@ -36,8 +38,18 @@ const DEFAULTS = Object.freeze({
   mountTo: null, // CSS selector or Element; defaults to <body> for fixed bars
   shape: 'linear', // 'linear' | 'circular'
   size: 64, // circular diameter in px (ignored for linear bars)
-  position: 'top', // 'top' | 'bottom' | 'left' | 'right' | 'inline'
+  // 'top'|'bottom'|'left'|'right'|'inline' plus the centered edge variants
+  // 'top-center'|'bottom-center'|'left-center'|'right-center'.
+  position: 'top',
+  length: '100%', // length of a fixed bar along its edge (number → px, string passthrough)
+  offset: 0, // inset (px) from the docked edge for fixed bars
   direction: 'ltr', // 'ltr' | 'rtl' (horizontal bars only)
+
+  // Circular-only geometry/appearance.
+  trackColor: null, // circular track ring color (defaults to a faint neutral)
+  lineCap: 'round', // circular arc stroke-linecap: 'round' | 'butt' | 'square'
+  startAngle: -90, // circular arc start angle in deg (-90 = 12 o'clock)
+  clockwise: true, // circular sweep direction (false = counter-clockwise)
 
   color: '#29d', // bar fill (solid)
   color2: '#7c4dff', // secondary color used by the 'gradient' theme
@@ -49,6 +61,9 @@ const DEFAULTS = Object.freeze({
   zIndex: 1031,
 
   theme: 'default', // 'default' | 'gradient' | 'rainbow' | 'stripes' | 'glow' | 'minimal'
+  colors: null, // multi-color stops: ['#f00','#0f0','#00f'] or [{color,at}] (alias for `gradient`)
+  colorMode: 'gradient', // 'gradient' (blended) | 'bands' (hard, non-interpolated color blocks)
+  colorAnimate: false, // animate the multicolor fill (scrolling, like the rainbow theme)
   gradient: null, // color stops -> a gradient fill: ['#f00','#00f'] or [{color,at}]
   gradientType: 'linear', // linear|radial|conic|repeating-linear|repeating-radial|repeating-conic
   gradientAngle: null, // angle (linear/conic) in deg; auto by orientation when null
@@ -57,6 +72,7 @@ const DEFAULTS = Object.freeze({
   fill: null, // explicit CSS background for the bar (escape hatch; wins over gradient)
   glow: false, // soft glow around the bar (composes with any theme)
   glowColor: null, // glow color; defaults to the bar color when null
+  glowSize: 8, // glow radius in px (how far the halo bleeds onto surroundings)
   striped: false, // diagonal stripe overlay
   stripeAnimate: true, // animate the stripes when striped
   value: null, // initial value to show on construct (fraction or absolute)
@@ -70,7 +86,6 @@ const DEFAULTS = Object.freeze({
   trickle: true, // auto-increment while pending
   trickleSpeed: 200, // ms between trickle ticks
 
-  showPeg: true, // soft leading-edge shine
   showLabel: false,
   label: '', // static label text
   labelFormat: null, // (percent, bar) => string — live label, updated on every change
@@ -173,8 +188,31 @@ const prefersReducedMotion = () =>
   typeof window.matchMedia === 'function' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+/** Every recognized `position` value. Unknown input falls back to 'top'. */
+const POSITIONS = new Set([
+  'top', 'bottom', 'left', 'right', 'inline',
+  'top-center', 'bottom-center', 'left-center', 'right-center',
+]);
+
 /** Positions whose bar fills along the vertical axis. */
-const VERTICAL_POSITIONS = new Set(['left', 'right']);
+const VERTICAL_POSITIONS = new Set(['left', 'right', 'left-center', 'right-center']);
+
+/** Coerce a `length`-style value: a number → `${n}px`, a string passes through. */
+const toLength = (v) => {
+  if (v == null || v === '') return '100%';
+  if (typeof v === 'number') return Number.isFinite(v) ? `${Math.max(0, v)}px` : '100%';
+  return String(v);
+};
+
+/** Restrict a circular `stroke-linecap` to the valid SVG values. */
+const toLinecap = (v) => (v === 'butt' || v === 'square' ? v : 'round');
+
+/** Resolve a `mountTo` (element or selector) to an Element, or null. */
+const resolveMountEl = (mountTo) => {
+  if (mountTo instanceof Element) return mountTo;
+  if (typeof mountTo === 'string' && mountTo) return document.querySelector(mountTo);
+  return null;
+};
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -309,6 +347,30 @@ const buildGradient = (stops, { type = 'linear', angle = '90deg', shape, positio
   if (type.includes('radial')) return `${fn}(${shape || 'circle'}${at}, ${css})`;
   if (type.includes('conic')) return `${fn}(from ${angle}${at}, ${css})`;
   return `${fn}(${angle}, ${css})`;
+};
+
+/**
+ * Build a hard-stop ("bands") gradient — each color a solid block with no
+ * blending — by doubling each stop's boundary. Equal-width unless a stop carries
+ * an explicit `at`. Always a `linear-gradient` (bands across the bar).
+ * @param {Array<string|{color:string,at?:number}>} stops
+ * @param {{angle?:string}} [opts]
+ */
+const buildBands = (stops, { angle = '90deg' } = {}) => {
+  if (!Array.isArray(stops) || !stops.length) return null;
+  const colors = stops
+    .map((s) => (s && typeof s === 'object' ? { color: String(s.color || '').trim(), at: s.at } : { color: String(s).trim(), at: null }))
+    .filter((s) => s.color);
+  if (!colors.length) return null;
+  if (colors.length === 1) return colors[0].color; // a single band is just a solid fill
+  const n = colors.length;
+  const parts = [];
+  colors.forEach((c, i) => {
+    const start = c.at != null ? toNum(c.at) : (i / n) * 100;
+    const end = colors[i + 1] && colors[i + 1].at != null ? toNum(colors[i + 1].at) : ((i + 1) / n) * 100;
+    parts.push(`${c.color} ${start}% ${end}%`);
+  });
+  return `linear-gradient(${angle}, ${parts.join(', ')})`;
 };
 
 /** Coerce a config input (object or JSON string) into a plain object. */
@@ -519,14 +581,19 @@ class Tabar {
    */
   constructor(options = {}) {
     const raw = coerceConfig(options); // accepts an object or a JSON string
-    const opts = { ...DEFAULTS, ...raw };
+    // Declarative config: when mounting onto an element, read `data-tabar-*`
+    // attributes off it as a fallback — present data-attrs apply, but an
+    // explicit JS option always wins. Skipped for the default <body> mount.
+    const mountEl = isBrowser ? resolveMountEl(raw.mountTo) : null;
+    const dataAttrs = mountEl ? readDataAttrs(mountEl) : {};
+    const opts = { ...DEFAULTS, ...dataAttrs, ...raw };
     opts.classPrefix = sanitizeIdent(opts.classPrefix, 'tabar');
     opts.id = sanitizeIdent(opts.id, `${opts.classPrefix}-${(uid += 1)}`);
 
     // Track which visual options the user actually set, so unset color/background
     // fall back to the scheme-aware stylesheet defaults (and inline bars get a
     // visible track) instead of being pinned to a fixed value.
-    const provided = new Set(Object.keys(raw));
+    const provided = new Set([...Object.keys(dataAttrs), ...Object.keys(raw)]);
 
     // Re-using an id returns the existing instance rather than colliding.
     const existing = registry.get(opts.id);
@@ -644,7 +711,7 @@ class Tabar {
     wrapper.setAttribute('data-tabar', '');
     wrapper.setAttribute('data-id-tabar', this.id);
     wrapper.setAttribute('data-shape-tabar', circular ? 'circular' : 'linear');
-    if (!circular) wrapper.setAttribute('data-position-tabar', this.options.position);
+    if (!circular) wrapper.setAttribute('data-position-tabar', this._position());
     if (this._isRtl()) wrapper.setAttribute('data-rtl-tabar', 'true'); // mirrors fill + circular sweep
     wrapper.setAttribute('role', 'progressbar');
     wrapper.setAttribute('aria-valuemin', '0');
@@ -687,18 +754,12 @@ class Tabar {
     if (host) host.appendChild(wrapper);
   }
 
-  /** Build the linear bar element (a `<div>` fill, optional peg). */
+  /** Build the linear bar element (a single `<div>` fill). */
   _buildLinear(wrapper, p) {
     const bar = document.createElement('div');
     bar.className = `${p}__bar`;
     bar.setAttribute('data-bar-tabar', '');
     wrapper.appendChild(bar);
-    if (this.options.showPeg) {
-      const peg = document.createElement('div');
-      peg.className = `${p}__peg`;
-      peg.setAttribute('data-peg-tabar', '');
-      bar.appendChild(peg);
-    }
     return bar;
   }
 
@@ -730,7 +791,7 @@ class Tabar {
     track.setAttribute('data-track-tabar', '');
     const bar = circle(`${p}__bar`);
     bar.setAttribute('data-bar-tabar', '');
-    bar.setAttribute('stroke-linecap', 'round');
+    bar.setAttribute('stroke-linecap', toLinecap(this.options.lineCap));
     bar.style.strokeDasharray = `${this._circumference}`;
     bar.style.strokeDashoffset = `${this._circumference}`;
 
@@ -768,10 +829,21 @@ class Tabar {
     set('--tabar-inner-radius', cornersToCss(o.innerRadius));
     set('--tabar-speed', `${toNum(o.speed)}ms`);
     set('--tabar-z', String(toNum(o.zIndex)));
+    set('--tabar-length', toLength(o.length));
+    set('--tabar-offset', `${toNum(o.offset)}px`);
+    set('--tabar-glow-size', `${toNum(o.glowSize)}px`);
+    // Circular sweep: rotate to the start angle, and flip when the bar should run
+    // counter-clockwise (clockwise:false XOR RTL) — drives the single SVG transform.
+    set('--tabar-start-angle', `${toNum(o.startAngle)}deg`);
+    set('--tabar-flip', (o.clockwise === false) !== this._isRtl() ? '-1' : '1');
+    if (o.trackColor != null) set('--tabar-track-color', String(o.trackColor));
+    else el.style.removeProperty('--tabar-track-color');
 
     if (o.shape !== 'circular') {
-      el.setAttribute('data-position-tabar', o.position);
+      el.setAttribute('data-position-tabar', this._position());
       el.setAttribute('data-orientation-tabar', this._orientation());
+    } else if (this._bar) {
+      this._bar.setAttribute('stroke-linecap', toLinecap(o.lineCap));
     }
 
     const theme = sanitizeIdent(o.theme, 'default');
@@ -783,15 +855,23 @@ class Tabar {
     if (o.glowColor) set('--tabar-glow', String(o.glowColor));
     else el.style.removeProperty('--tabar-glow');
 
+    if (o.colorAnimate) el.setAttribute('data-multicolor-anim-tabar', 'true');
+    else el.removeAttribute('data-multicolor-anim-tabar');
+
     this._applyStripes();
     this._applyFillVar();
     this._applyMessageStyle();
     this._renderMessage();
   }
 
+  /** The validated position (unknown values fall back to 'top'). */
+  _position() {
+    return POSITIONS.has(this.options.position) ? this.options.position : 'top';
+  }
+
   /** @returns {'horizontal'|'vertical'} */
   _orientation() {
-    return VERTICAL_POSITIONS.has(this.options.position) ? 'vertical' : 'horizontal';
+    return VERTICAL_POSITIONS.has(this._position()) ? 'vertical' : 'horizontal';
   }
 
   /** True when the bar should render right-to-left (explicit option or RTL locale). */
@@ -814,16 +894,19 @@ class Tabar {
    */
   _effectiveStops() {
     const o = this.options;
+    if (Array.isArray(o.colors) && o.colors.length > 1) return o.colors;
     if (Array.isArray(o.gradient) && o.gradient.length > 1) return o.gradient;
     if (o.theme === 'gradient') return [String(o.color), String(o.color2)];
     return null;
   }
 
-  /** Build the bar's CSS background (gradient/multicolor/explicit), or null. */
+  /** Build the bar's CSS background (gradient/bands/explicit), or null. */
   _computeFill() {
     const o = this.options;
     if (o.fill) return String(o.fill);
-    return buildGradient(this._effectiveStops(), {
+    const stops = this._effectiveStops();
+    if (o.colorMode === 'bands') return buildBands(stops, { angle: this._gradientAngle() });
+    return buildGradient(stops, {
       type: o.gradientType,
       angle: this._gradientAngle(),
       shape: o.gradientShape,
@@ -867,13 +950,24 @@ class Tabar {
       grad.setAttribute('y1', `${(0.5 - dy) * 100}%`);
       grad.setAttribute('x2', `${(0.5 + dx) * 100}%`);
       grad.setAttribute('y2', `${(0.5 + dy) * 100}%`);
-      stops.forEach((s, i) => {
+      const bands = this.options.colorMode === 'bands';
+      const addStop = (offset, color) => {
         const stop = document.createElementNS(SVG_NS, 'stop');
-        const color = typeof s === 'object' ? s.color : s;
-        const at = typeof s === 'object' ? s.at : null;
-        stop.setAttribute('offset', at != null ? `${toNum(at)}%` : `${(i / (stops.length - 1)) * 100}%`);
+        stop.setAttribute('offset', `${offset}%`);
         stop.setAttribute('stop-color', String(color));
         grad.appendChild(stop);
+      };
+      const n = stops.length;
+      stops.forEach((s, i) => {
+        const color = typeof s === 'object' ? s.color : s;
+        const at = typeof s === 'object' ? s.at : null;
+        if (bands) {
+          // Doubled boundaries → hard color blocks (no blending).
+          addStop((i / n) * 100, color);
+          addStop(((i + 1) / n) * 100, color);
+        } else {
+          addStop(at != null ? toNum(at) : (i / (n - 1)) * 100, color);
+        }
       });
       defs.appendChild(grad);
       svg.insertBefore(defs, svg.firstChild);
@@ -1679,7 +1773,8 @@ class Tabar {
         tip.className = `${this.options.classPrefix}__tooltip`;
         tip.setAttribute('data-tooltip-tabar', '');
         tip.setAttribute('role', 'tooltip');
-        this._bar.appendChild(tip);
+        // Match _build(): circular tips ride the wrapper, linear tips the fill.
+        (this.options.shape === 'circular' ? this._wrapper : this._bar).appendChild(tip);
         this._tooltip = tip;
       } else if (!value && this._tooltip) {
         this._tooltip.remove();
@@ -1784,6 +1879,94 @@ class Tabar {
   }
 
   /**
+   * Set the multi-color stops (alias of `gradient`, takes precedence over it).
+   * @param {Array<string|{color:string,at?:number}>|null} colors
+   */
+  setColors(colors) {
+    this.options.colors = Array.isArray(colors) ? colors : null;
+    this._applyFillVar();
+    return this;
+  }
+
+  /** Append a color stop to `colors` (seeded from the effective stops if unset). */
+  addColorStop(color, at) {
+    const base = Array.isArray(this.options.colors) ? this.options.colors : this._effectiveStops() || [];
+    this.options.colors = [...base, at != null ? { color, at } : color];
+    this._applyFillVar();
+    return this;
+  }
+
+  /** Remove the color stop at `index` from `colors`. */
+  removeColorStop(index) {
+    if (!Array.isArray(this.options.colors)) return this;
+    this.options.colors = this.options.colors.filter((_, i) => i !== index);
+    this._applyFillVar();
+    return this;
+  }
+
+  /** Set the multi-color render mode: 'gradient' (blended) | 'bands' (hard blocks). */
+  setColorMode(mode) {
+    this.options.colorMode = mode === 'bands' ? 'bands' : 'gradient';
+    this._applyFillVar();
+    return this;
+  }
+
+  /** Toggle the scrolling multicolor animation. */
+  setColorAnimate(on = true) {
+    this.options.colorAnimate = !!on;
+    if (this._wrapper) {
+      if (on) this._wrapper.setAttribute('data-multicolor-anim-tabar', 'true');
+      else this._wrapper.removeAttribute('data-multicolor-anim-tabar');
+    }
+    return this;
+  }
+
+  /** Set the length of a fixed bar along its edge (number → px, string passthrough). */
+  setLength(length) {
+    this.options.length = length;
+    if (this._wrapper) this._wrapper.style.setProperty('--tabar-length', toLength(length));
+    return this;
+  }
+
+  /** Set the inset (px) of a fixed bar from its docked edge. */
+  setOffset(px) {
+    this.options.offset = toNum(px);
+    if (this._wrapper) this._wrapper.style.setProperty('--tabar-offset', `${toNum(px)}px`);
+    return this;
+  }
+
+  /** Set the circular track ring color. `null` reverts to the faint default. */
+  setTrackColor(color) {
+    this.options.trackColor = color || null;
+    if (this._wrapper) {
+      if (color) this._wrapper.style.setProperty('--tabar-track-color', String(color));
+      else this._wrapper.style.removeProperty('--tabar-track-color');
+    }
+    return this;
+  }
+
+  /** Set the circular arc stroke-linecap: 'round' | 'butt' | 'square'. */
+  setLineCap(cap) {
+    this.options.lineCap = cap;
+    if (this._bar && this.options.shape === 'circular') this._bar.setAttribute('stroke-linecap', toLinecap(cap));
+    return this;
+  }
+
+  /** Set the circular arc start angle in degrees (-90 = 12 o'clock). */
+  setStartAngle(deg) {
+    this.options.startAngle = toNum(deg);
+    if (this._wrapper) this._wrapper.style.setProperty('--tabar-start-angle', `${toNum(deg)}deg`);
+    return this;
+  }
+
+  /** Set the circular sweep direction (false = counter-clockwise). */
+  setClockwise(on = true) {
+    this.options.clockwise = !!on;
+    if (this._wrapper) this._wrapper.style.setProperty('--tabar-flip', (!on) !== this._isRtl() ? '-1' : '1');
+    return this;
+  }
+
+  /**
    * Toggle the soft glow. Composes with any theme/style. Optionally set the glow
    * color in the same call.
    * @param {boolean} [on]
@@ -1806,6 +1989,13 @@ class Tabar {
       if (color) this._wrapper.style.setProperty('--tabar-glow', String(color));
       else this._wrapper.style.removeProperty('--tabar-glow');
     }
+    return this;
+  }
+
+  /** Set the glow radius in px (how far the halo bleeds onto surroundings). */
+  setGlowSize(px) {
+    this.options.glowSize = toNum(px);
+    if (this._wrapper) this._wrapper.style.setProperty('--tabar-glow-size', `${toNum(px)}px`);
     return this;
   }
 

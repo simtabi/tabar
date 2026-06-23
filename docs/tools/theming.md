@@ -31,7 +31,7 @@ new Tabar({ theme: 'gradient' }); // color → color2 gradient
 new Tabar({ theme: 'rainbow' });  // animated multicolor
 new Tabar({ theme: 'stripes' });  // animated diagonal stripes
 new Tabar({ theme: 'glow' });     // soft neon glow
-new Tabar({ theme: 'minimal' });  // no peg
+new Tabar({ theme: 'minimal' });  // flat solid bar (same as default)
 ```
 
 | Theme | Effect |
@@ -41,7 +41,7 @@ new Tabar({ theme: 'minimal' });  // no peg
 | `rainbow` | Animated multicolor sweep. |
 | `stripes` | Diagonal stripe overlay (animated unless `stripeAnimate: false`). |
 | `glow` | Soft glow around the bar. |
-| `minimal` | Hides the leading peg. |
+| `minimal` | Flat solid bar with no embellishments (currently identical to `default`). |
 
 `glow` and `striped` are **modifiers** — independent booleans that compose with *any* theme
 or gradient (not just the `glow`/`stripes` presets):
@@ -77,7 +77,7 @@ bar.setFill('repeating-linear-gradient(45deg,#222 0 6px,#333 6px 12px)');
 ```
 
 The fill is applied as the `--tabar-fill` variable, so it works with any theme and never
-touches the solid `--tabar-color` used by the peg/label.
+touches the solid `--tabar-color` used by the label.
 
 `gradientType` accepts **six** kinds: `linear` (default), `radial`, `conic`,
 `repeating-linear`, `repeating-radial`, `repeating-conic`. For radial/conic, `gradientShape`
@@ -99,19 +99,55 @@ Two details Tabar handles for you:
 - **Circular rings render real gradients** — a `gradient` theme (or a `gradient` stops array)
   on a `shape: 'circular'` bar paints an SVG `<linearGradient>` along the ring stroke.
 
-## Positions & orientation
+## Multiple colors
+
+`colors` is a friendly multi-stop alias for `gradient` (and takes precedence over it). Pick
+how the colors render with `colorMode`, and optionally animate them:
 
 ```js
-new Tabar({ position: 'top' });     // fixed top (default)
-new Tabar({ position: 'bottom' });  // fixed bottom
-new Tabar({ position: 'left' });    // fixed vertical bar, fills bottom → top
-new Tabar({ position: 'right' });   // fixed vertical bar
-new Tabar({ position: 'inline', mountTo: '#here' }); // inside your container
+new Tabar({ colors: ['#2299dd', '#7c4dff', '#30d158', '#ff9f0a'] });          // blended gradient
+new Tabar({ colors: ['#2299dd', '#30d158', '#ff9f0a'], colorMode: 'bands' }); // hard color blocks
+new Tabar({ colors: ['#2299dd', '#7c4dff'], colorAnimate: true });            // scrolling animation
+
+const bar = new Tabar({ colors: ['#f00', '#00f'] });
+bar.addColorStop('#0f0').setColorMode('bands').setColorAnimate(true);
 ```
 
-`left`/`right` switch the bar to a vertical orientation
-(`data-orientation-tabar="vertical"`); `height` then sets the bar's **thickness**. Style by
-orientation when needed:
+- **`gradient`** mode blends the stops smoothly.
+- **`bands`** mode paints each color as a solid, non-interpolated block (great for
+  multi-stage / phase bars). Distinct from `segments`, which track independent values.
+- **`colorAnimate`** scrolls the fill (like `theme: 'rainbow'`, but with your colors); it
+  respects `prefers-reduced-motion`.
+
+## Glow
+
+`glow` adds a soft halo that **bleeds onto surrounding elements**. `glowColor` sets its color
+(defaults to the bar color) and `glowSize` (px) controls how far it spreads:
+
+```js
+new Tabar({ glow: true, glowColor: '#00e5ff', glowSize: 16 });
+```
+
+Note: a glowing (or tooltip-bearing) bar needs its container **not** to clip overflow — give
+the wrapper room (`overflow: visible`) so the halo/tooltip can show.
+
+## Positions, orientation & length
+
+```js
+new Tabar({ position: 'top' });            // fixed top (default)
+new Tabar({ position: 'bottom' });         // fixed bottom
+new Tabar({ position: 'left' });           // fixed vertical bar, fills bottom → top
+new Tabar({ position: 'right' });          // fixed vertical bar
+new Tabar({ position: 'top-center', length: '60%' });  // centered along the edge, 60% wide
+new Tabar({ position: 'left-center', length: 320 });   // centered vertically, 320px tall
+new Tabar({ position: 'inline', mountTo: '#here' });   // inside your container
+```
+
+`left`/`right` (and their `-center` variants) switch the bar to a vertical orientation
+(`data-orientation-tabar="vertical"`); `height` then sets the bar's **thickness**. The
+`*-center` positions center the bar along its edge, and `length` (default `100%`; a number
+is px, a string passes through) sets how far it runs — with `offset` insetting it from the
+edge. Style by orientation when needed:
 
 ```css
 [data-orientation-tabar="vertical"] .tabar__bar { /* vertical-only tweaks */ }
@@ -128,7 +164,14 @@ new Tabar({ shape: 'circular', size: 96, height: 9, color: '#29d',
 
 `size` is the diameter and `height` is the ring thickness. Rings are fully themeable —
 solid `color`, `gradient` (rendered as an SVG gradient), `glow`, and a centered live label.
-The track color follows `background`. Set `position`/`direction` don't apply to rings.
+Ring-specific options:
+
+- **`trackColor`** — the unfilled ring color (falls back to `background`, then a faint default).
+- **`lineCap`** — `'round'` (default), `'butt'` or `'square'` arc ends.
+- **`startAngle`** — where the arc begins, in degrees (`-90` = 12 o'clock).
+- **`clockwise`** — sweep direction (`false` runs counter-clockwise; composes with RTL).
+
+`position`/`direction` don't apply to rings.
 
 ## State-based styling
 

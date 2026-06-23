@@ -4,8 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Tabar — Playground</title>
-    <meta name="description" content="Interactive playground for Tabar: shapes, themes, transfers, segments, groups, states and events." />
-    <link rel="stylesheet" href="./styles.css" />
+    <meta name="description" content="Interactive playground for Tabar: a full live configurator plus shapes, themes, transfers, segments, groups, states and events." />
+    <link rel="stylesheet" href="./assets/css/styles.css" />
   </head>
   <body>
     <header class="nav">
@@ -22,17 +22,21 @@
 
     <div class="wrap pg-head">
       <h1>Playground</h1>
-      <p>Every control drives a real Tabar instance. The <strong>Events</strong> panel (last)
-        logs everything — including the bars constructed at page load.</p>
+      <p>Every control drives a real Tabar instance. Start with the
+        <strong>Configurator</strong> — it exposes the whole option surface and shows the
+        matching code. The <strong>Events</strong> panel (last) logs everything.</p>
       <div class="pg-toolbar">
         <label class="field"><span>Language (i18n)</span>
-          <select id="lang" aria-label="Language">
+          <select id="lang" aria-label="Language" data-testid="lang">
             <option value="en">English</option>
             <option value="es">Español</option>
             <option value="fr">Français</option>
             <option value="de">Deutsch</option>
+            <option value="it">Italiano</option>
+            <option value="pt">Português</option>
             <option value="ja">日本語</option>
             <option value="zh">中文</option>
+            <option value="ko">한국어</option>
             <option value="ar">العربية (RTL)</option>
           </select>
         </label>
@@ -42,11 +46,14 @@
 
     <div class="wrap pg-layout">
       <nav class="pg-toc" aria-label="Sections">
+        <span class="group">Build</span>
+        <a href="#configurator">Configurator</a>
         <span class="group">Basics</span>
         <a href="#top">Top bar</a>
         <a href="#inline">Inline &amp; color</a>
         <span class="group">Shapes</span>
         <a href="#circular">Circular</a>
+        <a href="#positions">Positions</a>
         <span class="group">Styling</span>
         <a href="#themes">Themes &amp; gradient</a>
         <span class="group">Data</span>
@@ -65,6 +72,36 @@
       </nav>
 
       <div class="panels">
+        <section class="panel" id="configurator">
+          <h2>Configurator — every option, live</h2>
+          <p>Tweak any option below and the preview rebuilds instantly. The generated
+            <code>new Tabar({…})</code> snippet shows exactly the non-default options you've set.</p>
+          <div class="stage cfg-stage stage--bleed"><div class="demo-track bleed" id="cfg-host" data-testid="cfg-host" style="width:100%;min-height:34px"></div></div>
+          <div class="row cfg-actions" id="cfg-actions" data-testid="cfg-actions" style="margin-top:14px">
+            <button class="mini-btn solid" data-act="cfg-start">start()</button>
+            <button class="mini-btn" data-act="cfg-inc">inc()</button>
+            <button class="mini-btn" data-act="cfg-set">set 50%</button>
+            <button class="mini-btn" data-act="cfg-done">done()</button>
+            <button class="mini-btn" data-act="cfg-reset">reset()</button>
+            <button class="mini-btn" data-act="cfg-ind">indeterminate()</button>
+            <button class="mini-btn" data-act="cfg-error">error()</button>
+            <button class="mini-btn" data-act="cfg-warn">warn()</button>
+            <button class="mini-btn" data-act="cfg-succeed">succeed()</button>
+            <button class="mini-btn" data-act="cfg-retry">retry()</button>
+            <button class="mini-btn" data-act="cfg-show">show()</button>
+            <button class="mini-btn" data-act="cfg-hide">hide()</button>
+            <button class="mini-btn" data-act="cfg-rebuild">rebuild</button>
+          </div>
+          <div class="cfg-grid" id="cfg-controls" data-testid="cfg-controls"></div>
+          <div class="code cfg-codeblock">
+            <div class="code__head">
+              <span>new Tabar({ … })</span>
+              <button class="mini-btn" data-act="cfg-copy" data-testid="cfg-copy">Copy</button>
+            </div>
+            <pre><code id="cfg-code" data-testid="cfg-code"></code></pre>
+          </div>
+        </section>
+
         <section class="panel" id="top">
           <h2>Top page bar</h2>
           <p>The classic NProgress-style bar. <code>start()</code> shows + trickles; <code>done()</code> glides to 100% then hides.</p>
@@ -79,11 +116,11 @@
         <section class="panel" id="inline">
           <h2>Inline &amp; live color</h2>
           <p>Mount into your own container; recolor live with <code>setColor()</code>.</p>
-          <div class="stage"><div class="demo-track" id="inline-host" style="min-height:16px"></div></div>
+          <div class="stage"><div class="demo-track" id="inline-host" data-testid="inline-host" style="min-height:16px"></div></div>
           <div class="swatches" id="swatches"></div>
           <div class="row" style="margin-top:14px">
             <label class="field" style="flex:1"><span>Value <output id="inline-val">40%</output></span>
-              <input type="range" id="inline-slider" min="0" max="100" value="40" style="width:100%" /></label>
+              <input type="range" id="inline-slider" data-testid="inline-slider" min="0" max="100" value="40" style="width:100%" /></label>
           </div>
         </section>
 
@@ -98,10 +135,35 @@
           </div>
         </section>
 
+        <section class="panel" id="positions">
+          <h2>Positions — fixed overlays &amp; length</h2>
+          <p>Bars can dock to any viewport edge, optionally <strong>centered</strong>, with a
+            configurable <code>length</code> (default 100%). Each button mounts a real fixed bar
+            that fills to 80% then clears itself.</p>
+          <div class="row">
+            <button class="mini-btn solid" data-act="pos-top">Top</button>
+            <button class="mini-btn" data-act="pos-bottom">Bottom</button>
+            <button class="mini-btn" data-act="pos-left">Left</button>
+            <button class="mini-btn" data-act="pos-right">Right</button>
+            <label class="field"><span>Length</span>
+              <select id="pos-length" data-testid="pos-length">
+                <option value="100%">100%</option>
+                <option value="60%" selected>60%</option>
+                <option value="320px">320px</option>
+              </select></label>
+          </div>
+          <div class="row" style="margin-top:12px">
+            <button class="mini-btn" data-act="pos-top-center">Top-center</button>
+            <button class="mini-btn" data-act="pos-bottom-center">Bottom-center</button>
+            <button class="mini-btn" data-act="pos-left-center">Left-center</button>
+            <button class="mini-btn" data-act="pos-right-center">Right-center</button>
+          </div>
+        </section>
+
         <section class="panel" id="themes">
           <h2>Themes &amp; gradient editor</h2>
           <p>Edit colors, angle and type live; toggle glow, stripes and a tooltip.</p>
-          <div class="stage"><div class="demo-track" id="theme-host" style="width:100%;min-height:32px"></div></div>
+          <div class="stage stage--bleed"><div class="demo-track bleed" id="theme-host" data-testid="theme-host" style="width:100%;min-height:32px"></div></div>
           <div class="row" style="margin-top:14px">
             <label class="field"><span>Color A</span><input type="color" id="grad-a" value="#f12711" /></label>
             <label class="field"><span>Color B</span><input type="color" id="grad-b" value="#f5af19" /></label>
@@ -112,6 +174,9 @@
                 <option value="linear">linear</option>
                 <option value="radial">radial</option>
                 <option value="conic">conic</option>
+                <option value="repeating-linear">repeating-linear</option>
+                <option value="repeating-radial">repeating-radial</option>
+                <option value="repeating-conic">repeating-conic</option>
               </select></label>
           </div>
           <div class="row" style="margin-top:12px">
@@ -124,10 +189,11 @@
         <section class="panel" id="transfer">
           <h2>Upload / download &amp; ETA</h2>
           <p>Drive from a byte transfer with <code>setProgress(loaded, total)</code>; the label shows live speed &amp; a smoothed ETA from <code>bar.stats</code> (localized).</p>
-          <div class="stage"><div class="demo-track" id="xfer-host" style="width:100%;min-height:32px"></div></div>
+          <div class="stage"><div class="demo-track" id="xfer-host" data-testid="xfer-host" style="width:100%;min-height:32px"></div></div>
           <div class="row" style="margin-top:14px">
             <button class="mini-btn solid" data-act="xfer-start">Simulate download</button>
             <button class="mini-btn" data-act="xfer-stall">Throttle</button>
+            <button class="mini-btn" data-act="xfer-fetch">Track fetch()</button>
             <button class="mini-btn" data-act="xfer-fail">Fail</button>
             <button class="mini-btn" data-act="xfer-reset">Reset</button>
           </div>
@@ -136,10 +202,10 @@
         <section class="panel" id="reactivity">
           <h2>Reactivity</h2>
           <p>Bind to any value source with <code>bind(getter, { event, target })</code>.</p>
-          <div class="stage"><div class="demo-track" id="react-host" style="width:100%;min-height:32px"></div></div>
+          <div class="stage"><div class="demo-track" id="react-host" data-testid="react-host" style="width:100%;min-height:32px"></div></div>
           <div class="row" style="margin-top:14px">
             <label class="field" style="flex:1"><span>Value <output id="react-val">0%</output></span>
-              <input type="range" id="react-slider" min="0" max="100" value="0" style="width:100%" /></label>
+              <input type="range" id="react-slider" data-testid="react-slider" min="0" max="100" value="0" style="width:100%" /></label>
           </div>
         </section>
 
@@ -148,35 +214,48 @@
           <p>Construct or reconfigure from a JSON object/string with <code>configure()</code>.</p>
           <textarea id="json-config" rows="5" spellcheck="false" style="width:100%;font-family:ui-monospace,Menlo,monospace;font-size:13px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);padding:12px"></textarea>
           <div class="row" style="margin-top:12px"><button class="mini-btn solid" data-act="json-apply">Apply</button></div>
-          <div class="stage" style="margin-top:14px"><div class="demo-track" id="json-host" style="width:100%;min-height:16px"></div></div>
+          <p class="hint" id="json-status" style="margin:10px 0 0;font-size:13px;color:var(--muted)"></p>
+          <div class="stage" style="margin-top:14px"><div class="demo-track" id="json-host" data-testid="json-host" style="width:100%;min-height:16px"></div></div>
         </section>
 
         <section class="panel" id="segments">
           <h2>Segments — one bar, many progresses</h2>
           <p><strong>Stacked</strong> chunks tile a bar; <strong>overlay</strong> layers values (buffered vs played).</p>
           <p style="margin-bottom:6px"><strong>Stacked</strong></p>
-          <div class="demo-track" id="seg-stacked" style="min-height:16px"></div>
+          <div class="demo-track" id="seg-stacked" data-testid="seg-stacked" style="min-height:16px"></div>
           <p style="margin:14px 0 6px"><strong>Overlay</strong></p>
-          <div class="demo-track" id="seg-overlay" style="min-height:16px"></div>
-          <div class="row" style="margin-top:14px"><button class="mini-btn solid" data-act="seg-advance">Advance a chunk</button></div>
+          <div class="demo-track" id="seg-overlay" data-testid="seg-overlay" style="min-height:16px"></div>
+          <div class="row" style="margin-top:14px">
+            <button class="mini-btn solid" data-act="seg-advance">Advance a chunk</button>
+            <button class="mini-btn" data-act="seg-add">Add segment</button>
+            <button class="mini-btn" data-act="seg-remove">Remove last</button>
+          </div>
         </section>
 
         <section class="panel" id="group">
           <h2>Group — a parent task with child bars</h2>
           <p><code>TabarGroup</code> aggregates child bars into an overall.</p>
           <div id="group-host"></div>
-          <div class="row" style="margin-top:14px"><button class="mini-btn solid" data-act="group-add">Add a download</button></div>
+          <div class="row" style="margin-top:14px">
+            <button class="mini-btn solid" data-act="group-add">Add a download</button>
+            <button class="mini-btn" data-act="group-clear">Clear</button>
+          </div>
         </section>
 
         <section class="panel" id="feedback">
           <h2>States &amp; feedback</h2>
-          <p>Themeable error / warning / success, <code>retry()</code> with an attempt counter, and aria-live announcements.</p>
-          <div class="stage"><div class="demo-track" id="feedback-host" style="width:100%;min-height:16px"></div></div>
+          <p>Themeable error / warning / success, <code>retry()</code> with an attempt counter, and aria-live announcements. The color pickers set the <code>--tabar-*</code> state variables.</p>
+          <div class="stage"><div class="demo-track" id="feedback-host" data-testid="feedback-host" style="width:100%;min-height:16px"></div></div>
           <div class="row" style="margin-top:14px">
             <button class="mini-btn" data-act="fb-warn">Warn</button>
             <button class="mini-btn" data-act="fb-error">Error</button>
             <button class="mini-btn solid" data-act="fb-retry">Retry</button>
             <button class="mini-btn" data-act="fb-succeed">Succeed</button>
+          </div>
+          <div class="row" style="margin-top:12px">
+            <label class="field"><span>Error</span><input type="color" id="fb-error-color" value="#e5484d" /></label>
+            <label class="field"><span>Warning</span><input type="color" id="fb-warning-color" value="#f5a623" /></label>
+            <label class="field"><span>Success</span><input type="color" id="fb-success-color" value="#30a46c" /></label>
           </div>
           <p class="hint" style="margin-top:10px;font-size:13px;color:var(--muted)">Attempts: <output id="fb-attempts">0</output></p>
         </section>
@@ -191,11 +270,16 @@
         <section class="panel" id="persistence">
           <h2>Persistence</h2>
           <p>Save to storage and restore on reload (<code>persist</code>).</p>
-          <div class="stage"><div class="demo-track" id="persist-host" style="width:100%;min-height:16px"></div></div>
+          <div class="stage"><div class="demo-track" id="persist-host" data-testid="persist-host" style="width:100%;min-height:16px"></div></div>
           <div class="row" style="margin-top:14px">
             <button class="mini-btn solid" data-act="persist-set">Set 60%</button>
             <button class="mini-btn" data-act="persist-clear">Clear</button>
             <button class="mini-btn" data-act="reload">Reload page</button>
+            <label class="field"><span>Storage</span>
+              <select id="persist-storage" data-testid="persist-storage">
+                <option value="local">localStorage</option>
+                <option value="session">sessionStorage</option>
+              </select></label>
           </div>
         </section>
 
@@ -203,7 +287,7 @@
           <h2>Events</h2>
           <p>Listeners fire on the instance, a global bus and as DOM <code>tabar:*</code> events.</p>
           <div class="log-meta"><span id="log-count">0 events</span><button class="mini-btn" data-act="evt-clear">Clear</button></div>
-          <div class="log" id="event-log" aria-live="off"></div>
+          <div class="log" id="event-log" data-testid="event-log" aria-live="off"></div>
         </section>
       </div>
     </div>
@@ -219,6 +303,6 @@
       </div>
     </footer>
 
-    <script type="module" src="./playground.js"></script>
+    <script type="module" src="./assets/js/playground.js"></script>
   </body>
 </html>

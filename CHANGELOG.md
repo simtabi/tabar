@@ -6,6 +6,59 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+- **Tooltips now show.** The wrapper opened `overflow` only for the glow, so the
+  tooltip (rendered above the bar) was clipped — `[data-tooltip-tabar-on]` now opens
+  overflow too, and `setTooltip()` attaches the tip to the wrapper for circular rings
+  (it was wrongly appended to the SVG arc).
+- **Glow actually bleeds** onto surrounding elements — a layered, `--tabar-glow-size`
+  driven halo instead of a faint fixed shadow.
+- **Segments advance past three chunks** — the playground's "Advance" now operates on
+  the bar's live segments (0–100 scale) instead of three hardcoded ones. (The core
+  segment API was already correct.)
+
+### Added
+- **`*-center` positions + configurable `length`** — `top-center`/`bottom-center`/
+  `left-center`/`right-center` dock a bar centered along an edge; `length` (default
+  `100%`; number → px) sizes it and `offset` insets it. New `--tabar-length`/
+  `--tabar-offset` vars and `setLength`/`setOffset`.
+- **Multiple-color modes** — a `colors` multi-stop alias plus `colorMode: 'gradient' |
+  'bands'` (hard, non-interpolated color blocks) and `colorAnimate` (scrolling), with
+  `setColors`/`addColorStop`/`removeColorStop`/`setColorMode`/`setColorAnimate`.
+- **More circular options** — `trackColor`, `lineCap`, `startAngle`, `clockwise`
+  (`--tabar-track-color`/`--tabar-start-angle`/`--tabar-flip`) and a configurable
+  `glowSize`.
+- **Data-attribute configuration** — the `<tabar-bar>` Web Component now covers the
+  full option surface, and plain `new Tabar({ mountTo })` reads `data-tabar-*` off the
+  mount element as a fallback (explicit JS options win). Coercion is shared via
+  `src/attrs.js` so the two paths can't drift.
+- **Playground**: a live multi-color stop editor, color-mode/animate/glow-size/circular
+  controls, all eight positions with a length picker; demo stages no longer clip glow
+  or tooltips. Site assets are grouped under `assets/{css,js,img}`.
+- **Tests**: unit coverage for the above plus Playwright tiles for glow-bleed, tooltip,
+  bands, animated multicolor and circular variants, and a fixed-position fixture for
+  the centered positions.
+
+### Removed
+- **The leading-edge "peg" shine is gone.** The `showPeg` option, the `__peg`
+  element (`data-peg-tabar`), the `--tabar-peg` variable and the related SCSS were
+  removed — bars now end in a clean, crisp edge. The `minimal` theme (whose only
+  job was hiding the peg) remains a recognized value, rendering identically to
+  `default`.
+
+### Added
+- **Full live configurator in the playground** — a schema-driven panel that drives
+  one preview bar across the entire option surface (geometry, color, gradients,
+  themes, labels/messages, behavior, segments, i18n, persistence) and generates the
+  matching `new Tabar({…})` snippet. The demo sections gained the missing controls
+  (gradient types, segment add/remove, fixed-position overlays, state-color
+  variables, `localStorage`/`sessionStorage` choice, `trackResponse` demo) and every
+  button is now exercised by tests.
+- **Playwright browser tests** — a deterministic visual-regression gallery
+  (`site/visual.html`) plus a functional click-through of every playground control,
+  run on both light and dark schemes (`npm run test:e2e`). A CI job runs them in the
+  official Playwright Linux container against committed baselines.
+
 ## [0.6.0] - 2026-06-23
 
 A major capability release: Tabar now runs in the **terminal** as well as the web, models

@@ -88,6 +88,8 @@
     "pretest": "npm run styles",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:update": "playwright test --update-snapshots",
     "lint": "eslint src test scripts bin",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "prepublishOnly": "npm run build"
@@ -102,6 +104,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
+    "@playwright/test": "^1.61.0",
     "@testing-library/react": "^16.3.2",
     "esbuild": "^0.23.0",
     "eslint": "^9.9.0",

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tabar — Visual fixture</title>
+    <meta name="robots" content="noindex" />
+    <link rel="stylesheet" href="./assets/css/styles.css" />
+    <style>
+      /* A deterministic, animation-free gallery used by the Playwright visual
+         specs. Fixed values, no trickle, no timers — stable pixels. */
+      body { padding: 24px; }
+      .vgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; max-width: 880px; margin: 0 auto; }
+      .vtile { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 18px 22px; }
+      .vtile h3 { font-size: 13px; margin: 0 0 14px; color: var(--muted); font-weight: 600; }
+      .vtile .host { min-height: 28px; }
+      .vtile .host.ring { min-height: 120px; display: grid; place-items: center; }
+      h1 { font-size: 20px; text-align: center; margin: 0 0 22px; }
+    </style>
+  </head>
+  <body>
+    <h1>Tabar visual fixture</h1>
+    <div class="vgrid" id="grid" data-testid="visual-grid"></div>
+    <script type="module" src="./assets/js/visual.js"></script>
+  </body>
+</html>
