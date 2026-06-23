@@ -1,7 +1,7 @@
 {
   "name": "@simtabi/tabar",
-  "version": "0.5.0",
-  "description": "Dependency-free, framework-agnostic progress bar with concurrent instances, state persistence, and CSS-variable theming.",
+  "version": "0.6.0",
+  "description": "Dependency-free progress bar for web & CLI: linear/circular/segmented, multi-progress, uploads & ETA, themes, events/API, i18n. Zero dependencies.",
   "type": "module",
   "license": "MIT",
   "author": "Simtabi LLC <opensource@simtabi.com>",

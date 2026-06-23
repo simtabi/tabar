@@ -166,6 +166,8 @@
         <a href="#vertical">Vertical</a>
         <a href="#themes">Themes</a>
         <a href="#transfer">Upload / ETA</a>
+        <a href="#multi">Multi-progress</a>
+        <a href="#feedback">Feedback</a>
         <a href="#reactivity">Reactivity</a>
         <a href="#json">JSON / API</a>
         <a href="#concurrency">Concurrency</a>
@@ -311,6 +313,41 @@
         <button type="button" data-act="xfer-fail">Simulate failure</button>
         <button type="button" data-act="xfer-reset">Reset</button>
       </div>
+    </section>
+
+    <!-- 6b · Multi-progress: segments + group -->
+    <section id="multi">
+      <h2><span class="n">6+</span> Multi-progress</h2>
+      <p>One task, many progresses. <strong>Stacked</strong> segments tile a bar (chunked
+        uploads / multi-stage); <strong>overlay</strong> layers values (buffered vs played); a
+        <code>TabarGroup</code> holds child bars with an auto-aggregated overall.</p>
+      <p style="margin-bottom:6px"><strong>Stacked</strong> — <code>setSegments([...])</code></p>
+      <div class="demo-track" id="seg-stacked" style="min-height:16px"></div>
+      <p style="margin:14px 0 6px"><strong>Overlay</strong> — buffered / played</p>
+      <div class="demo-track" id="seg-overlay" style="min-height:16px"></div>
+      <p style="margin:14px 0 6px"><strong>Group</strong> — parallel downloads</p>
+      <div id="group-host"></div>
+      <div class="row" style="margin-top:16px">
+        <button type="button" data-act="seg-advance" class="solid">Advance a chunk</button>
+        <button type="button" data-act="group-add">Add a download</button>
+      </div>
+    </section>
+
+    <!-- 6c · Feedback: states + retry + stall -->
+    <section id="feedback">
+      <h2><span class="n">6++</span> States &amp; feedback</h2>
+      <p>Themeable <code>error</code> / <code>warning</code> / <code>success</code> states,
+        <code>retry()</code> with an attempt counter, stall detection, and screen-reader
+        announcements via a shared <code>aria-live</code> region.</p>
+      <div class="demo-track" id="feedback-host" style="min-height:32px"></div>
+      <div class="row" style="margin-top:16px">
+        <button type="button" data-act="fb-warn">Warn</button>
+        <button type="button" data-act="fb-error">Error</button>
+        <button type="button" data-act="fb-retry" class="solid">Retry</button>
+        <button type="button" data-act="fb-succeed">Succeed</button>
+      </div>
+      <p class="hint" style="margin-top:10px">Attempts: <output id="fb-attempts">0</output> ·
+        also available in the terminal — <code>npx tabar --demo</code></p>
     </section>
 
     <!-- 7 · Reactivity -->

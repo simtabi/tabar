@@ -1,6 +1,7 @@
 // Demo behavior — external module so the page can run under a strict
 // `script-src 'self'` CSP (no inline scripts). Serve over HTTP (`npm run demo`).
 import { Tabar } from '../src/tabar.js';
+import { TabarGroup } from '../src/group.js';
 
 const pct = (p) => `${Math.round(p)}%`;
 
@@ -132,6 +133,51 @@ react.bind(() => Number(reactSlider.value) / 100, { event: 'input', target: reac
 reactSlider.addEventListener('input', () => { reactVal.textContent = `${reactSlider.value}%`; });
 
 // ---------------------------------------------------------------------------
+// Multi-progress: segments (stacked + overlay) and a group of child bars
+// ---------------------------------------------------------------------------
+const segChunks = [
+  { id: 'fonts', value: 1, color: '#0a84ff', weight: 1 },
+  { id: 'images', value: 0.4, color: '#30d158', weight: 3 },
+  { id: 'video', value: 0, color: '#ff9f0a', weight: 6 },
+];
+let segNext = 1;
+const segStacked = new Tabar({ position: 'inline', mountTo: '#seg-stacked', height: 16, radius: 8 });
+segStacked.setSegments(segChunks.map((c) => ({ ...c })));
+
+const segOverlay = new Tabar({ position: 'inline', mountTo: '#seg-overlay', height: 16, radius: 8, segmentMode: 'overlay' });
+segOverlay.setSegments([
+  { id: 'buffered', value: 0.8, color: '#c7c7cc' },
+  { id: 'played', value: 0.35, color: '#0a84ff' },
+]);
+
+const group = new TabarGroup({ mountTo: '#group-host' });
+let groupN = 0;
+function addGroupChild() {
+  const bar = group.add({ label: `file-${(groupN += 1)}.zip`, height: 14, radius: 7 });
+  const total = 1e6 + Math.random() * 4e6;
+  let loaded = 0;
+  const t = setInterval(() => {
+    loaded = Math.min(total, loaded + total * (0.04 + Math.random() * 0.06));
+    bar.setProgress(loaded, total);
+    if (loaded >= total) { clearInterval(t); bar.done(true); }
+  }, 220);
+}
+addGroupChild();
+addGroupChild();
+
+// ---------------------------------------------------------------------------
+// Feedback: error / warning / success states, retry, attempts
+// ---------------------------------------------------------------------------
+const feedback = new Tabar({
+  position: 'inline', mountTo: '#feedback-host', height: 16, radius: 8,
+  showLabel: true, labelFormat: pct, trickle: false,
+});
+feedback.set(0.45, { animate: false });
+feedback.retryWith(() => feedback.set(0.6));
+const fbAttempts = document.getElementById('fb-attempts');
+feedback.on('retry', (n) => { fbAttempts.textContent = String(n); });
+
+// ---------------------------------------------------------------------------
 // Gradient editor + modifiers (section 3)
 // ---------------------------------------------------------------------------
 const gradA = document.getElementById('grad-a');
@@ -239,6 +285,18 @@ const actions = {
   'xfer-stall': () => { xferChunk = xferChunk > 300 * 1024 ? 120 * 1024 : 900 * 1024; },
   'xfer-fail': () => { stopXfer(); xfer.error('network error'); },
   'xfer-reset': () => { stopXfer(); xfer.reset(); xfer.show(); },
+
+  'seg-advance': () => {
+    const c = segChunks[segNext % segChunks.length];
+    segStacked.updateSegment(c.id, { value: Math.min(1, (c.value += 0.25)) });
+    segNext += 1;
+  },
+  'group-add': () => addGroupChild(),
+  'fb-warn': () => feedback.warn('slow connection'),
+  'fb-error': () => feedback.error('upload failed'),
+  'fb-retry': () => feedback.retry(),
+  'fb-succeed': () => feedback.succeed('verified'),
+
   'evt-clear': () => { logEl.textContent = ''; logCount = 0; logCountEl.textContent = '0 events'; },
   reload: () => location.reload(),
 };

@@ -19,11 +19,16 @@ bar.done();                 // glide to 100%, then hide
   one shared stylesheet.
 - **Style it anywhere** — every visual is a CSS custom property; works with Tailwind,
   Bootstrap, or no framework at all.
+- **Web *and* CLI** — the same API renders in the browser (DOM/SVG) and in the **terminal**
+  (ANSI via `@simtabi/tabar/node` + a `tabar` CLI), all from one headless core.
 - **Shapes & themes** — linear bars (top/bottom/left/right/inline) *and* circular SVG rings,
   preset themes (`gradient`, `rainbow`, `stripes`, `glow`, `minimal`), gradient & multicolor
   fills, glow, stripes and tooltips.
-- **Transfers** — drive from uploads/downloads (`setProgress`, `trackXHR`, `trackResponse`)
-  with smoothed **speed & ETA**, and bind reactively to any value source.
+- **One task, many progresses** — multi-segment bars (stacked chunks or overlay layers) and a
+  `TabarGroup` of child bars with an auto-aggregated overall.
+- **Transfers & feedback** — drive from uploads/downloads (`setProgress`, `trackXHR`,
+  `trackResponse`) with smoothed **speed & ETA**; error/warning/success states, `retry()`,
+  stall detection and screen-reader announcements; bind reactively to any value source.
 - **Stateful** — optionally save progress to `localStorage`/`sessionStorage` and restore
   on load; resume named long-running tasks.
 - **Controllable** — events, an instance registry, a global bus and DOM `tabar:*` events
@@ -58,6 +63,18 @@ There's also a drop-in Web Component build (`<tabar-bar>`):
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@simtabi/tabar/dist/tabar-element.min.js"></script>
 <tabar-bar value="0.4" color="#e91e63" theme="gradient"></tabar-bar>
+```
+
+In the terminal (Node):
+
+```js
+import { terminalBar } from '@simtabi/tabar/node';
+const bar = terminalBar({ label: 'Downloading' });
+bar.trackResponse(await fetch(url)); // live ANSI bar with speed + ETA
+```
+
+```bash
+printf '30 100\n80 100\n100 100\n' | npx tabar --total 100 --label Build
 ```
 
 See [docs/installation.md](docs/installation.md) for ESM, CJS, CDN (pinning + SRI) and CSP setups.
@@ -175,6 +192,7 @@ More in [docs/tools/events.md](docs/tools/events.md).
 | [Release](docs/release.md) | Versioning and publishing. |
 | [Theming](docs/tools/theming.md) | Themes, gradients, positions, circular rings, recipes. |
 | [Uploads, downloads, ETA & reactivity](docs/tools/progress.md) | Transfers, speed/ETA, `bind`. |
+| [Multi-progress, CLI & feedback](docs/tools/multi-and-cli.md) | Segments, groups, terminal/CLI, error states, i18n/RTL. |
 | [Events & control](docs/tools/events.md) | Listeners, global bus, DOM events, two-way control, debug. |
 | [Integration](docs/tools/integration.md) | JSON config, AJAX/API load & report, Web Component, React hook. |
 | [Persistence](docs/tools/persistence.md) | Value-restore and task-resume modes. |

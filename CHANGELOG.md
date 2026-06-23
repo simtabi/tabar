@@ -6,6 +6,33 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-06-23
+
+A major capability release: Tabar now runs in the **terminal** as well as the web, models
+**one task with many progresses**, and ships richer feedback and localization.
+
+### Added
+- **Terminal renderer + CLI** — the same Tabar API drives a live ANSI bar in Node via
+  `terminalBar()`/`renderTerminal()` (TTY redraw, non-TTY lines for CI, spinner, color, width),
+  and a `tabar` CLI bin that renders progress piped on stdin (`--total`, `--label`, `--demo`).
+  New entries `@simtabi/tabar/node` and `@simtabi/tabar/terminal`.
+- **Segments (one bar, many progresses)** — `segments` + `segmentMode` (`stacked` for chunked
+  uploads/multi-stage, `overlay` for buffered-vs-played) with `setSegments`/`addSegment`/
+  `updateSegment`/`removeSegment` and mode-aware aggregation (`weighted`/`sum`/`avg`/`max`/
+  `primary`). `set()` returns to single-value mode.
+- **TabarGroup** — a parent task holding many child bars with an auto-aggregated overall bar
+  and bubbling `child:*` events (`@simtabi/tabar/group`). Ideal for parallel uploads/downloads.
+- **Error UX** — `warn()`/`succeed()` states, `retry()`/`retryWith()` + `attempts`, a
+  `stallTimeout` detector emitting `stall`, `errorTimeout` auto-clear, and a shared `aria-live`
+  region announcing localized state changes. `trackXHR`/`trackResponse` accept `{ retry }`.
+- **i18n + RTL** — ten built-in locales (EN, ES, FR, DE, PT, IT, JA, ZH, KO, AR) with localized
+  units/announcements; RTL-aware linear fill and circular ring sweep (e.g. Arabic).
+- A `complete` getter and the `warning`/`success`/`retry`/`stall` events.
+
+### Fixed
+- `goto()`/`set()`/`setProgress()` no longer required a DOM element, so the value/state
+  machinery (and stats/ETA) works fully headless in Node.
+
 ## [0.5.0] - 2026-06-23
 
 First public release.
@@ -59,5 +86,6 @@ First public release.
 - No `innerHTML`, inline event handlers, or string-built CSS; identifiers are sanitized,
   labels/tooltips use `textContent`, and persisted state is validated and clamped before use.
 
-[Unreleased]: https://github.com/simtabi/tabar/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/simtabi/tabar/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/simtabi/tabar/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/simtabi/tabar/releases/tag/v0.5.0
