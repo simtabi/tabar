@@ -70,11 +70,18 @@ const DEFAULTS = Object.freeze({
   trickle: true, // auto-increment while pending
   trickleSpeed: 200, // ms between trickle ticks
 
-  showPeg: true, // NProgress-style leading glow
+  showPeg: true, // soft leading-edge shine
   showLabel: false,
   label: '', // static label text
   labelFormat: null, // (percent, bar) => string — live label, updated on every change
   autoShow: true, // show the bar automatically when its value goes above 0
+
+  // Inline status messages shown ON the bar, keyed by state. Each value is a
+  // string or (percent, bar) => string; `default` covers states without a key.
+  // e.g. { active: 'Uploading…', error: 'Failed', done: 'Complete', default: p => `${p|0}%` }
+  messages: null,
+  messageAlign: 'center', // 'start' | 'center' | 'end'
+  messageColor: null, // CSS color for the inline message (defaults to white + shadow)
 
   tooltip: false, // false | true | string | (percent, bar) => string
   tooltipAlways: false, // keep the tooltip visible instead of showing it on hover/focus
@@ -674,6 +681,7 @@ class Tabar {
 
     this._applyTooltipState();
     this._renderTooltip(this._progress);
+    this._renderMessage();
 
     const host = this._resolveHost();
     if (host) host.appendChild(wrapper);
@@ -777,6 +785,8 @@ class Tabar {
 
     this._applyStripes();
     this._applyFillVar();
+    this._applyMessageStyle();
+    this._renderMessage();
   }
 
   /** @returns {'horizontal'|'vertical'} */
@@ -893,6 +903,7 @@ class Tabar {
   _setState(state, el = this._wrapper) {
     this._state = state;
     if (el) el.setAttribute('data-state-tabar', state);
+    this._renderMessage(); // inline status text can depend on the state
   }
 
   /** Paint the fill to `pct` (linear width/height or circular dash offset). */
@@ -918,6 +929,50 @@ class Tabar {
     }
     this._renderLabel(pct);
     this._renderTooltip(pct);
+    this._renderMessage();
+  }
+
+  /** Resolve the inline message for the current state (string, or '' when none). */
+  _resolveMessage() {
+    const m = this.options.messages;
+    if (!m || typeof m !== 'object') return '';
+    const entry = m[this._state] != null ? m[this._state] : m.default;
+    if (entry == null) return '';
+    try {
+      return String(typeof entry === 'function' ? entry(this._progress, this) : entry);
+    } catch (err) {
+      if (this._debugEnabled()) console.error(`[tabar:${this.id}] message threw`, err);
+      return '';
+    }
+  }
+
+  /** Render the inline status message overlay (created lazily; hidden when empty). */
+  _renderMessage() {
+    if (!this._wrapper) return;
+    const text = this._resolveMessage();
+    if (!text) {
+      if (this._messageEl) this._messageEl.hidden = true;
+      return;
+    }
+    if (!this._messageEl) {
+      const el = document.createElement('div');
+      el.className = `${this.options.classPrefix}__message`;
+      el.setAttribute('data-message-tabar', '');
+      this._wrapper.appendChild(el); // overlays the fill; circular shares the centered grid cell
+      this._messageEl = el;
+      this._applyMessageStyle();
+    }
+    this._messageEl.hidden = false;
+    this._messageEl.textContent = text; // textContent only: no HTML injection
+  }
+
+  /** Apply message alignment/color CSS from options. */
+  _applyMessageStyle() {
+    if (!this._messageEl) return;
+    const align = { start: 'flex-start', end: 'flex-end' }[this.options.messageAlign] || 'center';
+    this._messageEl.style.setProperty('--tabar-message-align', align);
+    if (this.options.messageColor) this._messageEl.style.setProperty('--tabar-message-color', String(this.options.messageColor));
+    else this._messageEl.style.removeProperty('--tabar-message-color');
   }
 
   /** Refresh a live label from `labelFormat`, if both are configured. */
@@ -1192,6 +1247,7 @@ class Tabar {
     if (this._wrapper) this._wrapper.setAttribute('aria-valuenow', String(Math.round(pct)));
     this._renderLabel(pct);
     this._renderTooltip(pct);
+    this._renderMessage();
     if (pct !== previous) {
       this._save();
       this._emit('change', pct);
@@ -1481,6 +1537,7 @@ class Tabar {
     this._bar = null;
     this._label = null;
     this._tooltip = null;
+    this._messageEl = null;
     this._gradDef = null;
     this._segLayer = null;
     registry.delete(this.id);
@@ -1579,6 +1636,32 @@ class Tabar {
     this.options.label = text;
     if (this._label) this._label.textContent = String(text == null ? '' : text); // no HTML injection
     return this;
+  }
+
+  /**
+   * Set the inline status messages map (replaces the current one). Each value is
+   * a string or `(percent, bar) => string`; a `default` key covers any state
+   * without its own entry. Chainable.
+   * @param {Object<string, string|((p:number,bar:Tabar)=>string)>|null} map
+   */
+  setMessages(map) {
+    this.options.messages = map && typeof map === 'object' ? { ...map } : null;
+    this._applyMessageStyle();
+    this._renderMessage();
+    return this;
+  }
+
+  /** Set (or clear, with `null`) the message for a single state. Chainable. */
+  setMessage(state, value) {
+    const map = { ...(this.options.messages || {}) };
+    if (value == null) delete map[state];
+    else map[state] = value;
+    return this.setMessages(map);
+  }
+
+  /** The currently-displayed inline message for this state (`''` when none). */
+  get message() {
+    return this._resolveMessage();
   }
 
   /**

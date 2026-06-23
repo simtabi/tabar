@@ -87,6 +87,36 @@ new Tabar({ stallTimeout: 8000, errorTimeout: 4000 }); // flag stalls; auto-clea
 `{ retry }`. State changes are announced (localized) through a shared `aria-live` region
 (disable with `announce: false`).
 
+## Inline status messages
+
+Show text **on** the bar that changes with the state — and anything else you want — via
+`messages`. Each value is a string or `(percent, bar) => string`; a `default` key covers any
+state without its own entry:
+
+```js
+const bar = new Tabar({
+  height: 24,
+  messageAlign: 'start',         // 'start' | 'center' | 'end'
+  messages: {
+    active:        (p, b) => `${Math.round(p)}% · ${Tabar.formatBytes(b.stats.speed)}/s`,
+    indeterminate: 'Connecting…',
+    warning:       'Slow connection',
+    error:         'Upload failed — retry?',
+    success:       'Verified ✓',
+    done:          'Complete',
+    default:       (p) => `${Math.round(p)}%`,
+  },
+});
+
+bar.setMessage('error', 'Network error');  // set one state's message
+bar.setMessages({ done: 'All set' });       // replace the whole map (null clears it)
+bar.message;                                 // the message currently shown
+```
+
+The message overlays the bar (above the fill). Style it with `messageColor` (or the
+`--tabar-message-color` / `--tabar-message-align` CSS variables); the text is rendered with
+`textContent`, so user/locale strings are never interpreted as HTML.
+
 ## i18n & RTL
 
 Ten locales ship built-in (EN, ES, FR, DE, PT, IT, JA, ZH, KO, AR). `Tabar.locale = 'ja'`

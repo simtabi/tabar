@@ -206,6 +206,18 @@ export interface TabarOptions {
   /** How segments aggregate into the bar's value. Default by mode. */
   aggregate?: TabarAggregate;
 
+  /**
+   * Inline status messages shown ON the bar, keyed by state (`active`, `done`,
+   * `error`, `warning`, `success`, `indeterminate`, `idle`). Each value is a
+   * string or `(percent, bar) => string`; a `default` key covers any state
+   * without its own entry.
+   */
+  messages?: Record<string, string | ((percent: number, bar: Tabar) => string)> | null;
+  /** Inline message alignment. Default: 'center'. */
+  messageAlign?: 'start' | 'center' | 'end';
+  /** CSS color for the inline message (defaults to white + shadow). */
+  messageColor?: string | null;
+
   /** Announce state changes to screen readers (shared aria-live region). Default: true. */
   announce?: boolean;
   /** Ms with no progress while active before `stall` + warning. 0 = off. */
@@ -309,6 +321,8 @@ export declare class Tabar {
   readonly stats: TabarStats;
   /** Current segments (empty when not in segment mode). */
   readonly segments: TabarSegment[];
+  /** The inline message currently shown for this state (`''` when none). */
+  readonly message: string;
 
   static get(id: string): Tabar | undefined;
   static readonly instances: Tabar[];
@@ -378,6 +392,15 @@ export declare class Tabar {
   setRadius(...args: Array<number | number[] | object>): this;
   setInnerRadius(...args: Array<number | number[] | object>): this;
   setLabel(text: string): this;
+  /** Replace the inline status messages map (`null` clears it). */
+  setMessages(
+    map: Record<string, string | ((percent: number, bar: Tabar) => string)> | null,
+  ): this;
+  /** Set (or clear, with `null`) the inline message for a single state. */
+  setMessage(
+    state: string,
+    value: string | ((percent: number, bar: Tabar) => string) | null,
+  ): this;
   setTooltip(
     value: boolean | string | ((percent: number, bar: Tabar) => string),
     opts?: { always?: boolean },

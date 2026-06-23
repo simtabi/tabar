@@ -49,6 +49,9 @@ Pass an options object to `new Tabar(options)`. Every option is optional.
 | `segments` | `Array<{id?,value,color?,label?,weight?,status?}>` | `null` | Multi-progress on one bar — see [multi-progress](tools/multi-and-cli.md). |
 | `segmentMode` | `'stacked' \| 'overlay'` | `'stacked'` | Chunks tile the bar, or layered values (buffered/played). |
 | `aggregate` | `'weighted' \| 'sum' \| 'avg' \| 'max' \| 'primary'` | by mode | How segments roll up into the bar's value. |
+| `messages` | `Record<state, string \| (pct, bar) => string>` | `null` | Inline status text on the bar, keyed by state; a `default` key covers the rest. |
+| `messageAlign` | `'start' \| 'center' \| 'end'` | `'center'` | Inline message alignment. |
+| `messageColor` | `string` | `null` | Inline message color (defaults to white + a legibility shadow). |
 | `announce` | `boolean` | `true` | Announce state changes to screen readers (shared `aria-live` region). |
 | `stallTimeout` | `number` | `0` | Ms with no progress while active → `stall` event + warning. `0` = off. |
 | `errorTimeout` | `number` | `0` | Ms after which an error auto-clears. `0` = off. |
@@ -97,6 +100,8 @@ anywhere in your cascade:
 | `--tabar-error` / `--tabar-warning` / `--tabar-success` | State colors (error/warning/success) |
 | `--tabar-seg-color` | Per-segment fill color (set on each segment) |
 | `--tabar-glow` | Glow color (independent of the bar color) |
+| `--tabar-peg` | Color of the leading-edge shine (default a soft white) |
+| `--tabar-message-color` / `--tabar-message-align` | Inline message color and alignment |
 
 ```css
 [data-id-tabar="my-bar"] {
@@ -124,6 +129,7 @@ The bare `data-tabar` marker anchors the namespace.
 | `data-rtl-tabar` | `true` when right-to-left (`direction: 'rtl'` or an RTL locale) |
 | `data-segmented-tabar` | `stacked` \| `overlay` when in segment mode |
 | `data-seg-tabar` / `data-seg-id-tabar` / `data-seg-status-tabar` | per-segment hooks |
+| `data-message-tabar` | the inline status-message overlay |
 | `data-shape-tabar` | `linear` \| `circular` |
 | `data-bar-tabar` / `data-peg-tabar` / `data-label-tabar` / `data-tooltip-tabar` | the inner parts |
 

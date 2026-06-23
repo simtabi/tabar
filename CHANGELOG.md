@@ -28,11 +28,17 @@ A major capability release: Tabar now runs in the **terminal** as well as the we
 - **i18n + RTL** — ten built-in locales (EN, ES, FR, DE, PT, IT, JA, ZH, KO, AR) with localized
   units/announcements; RTL-aware linear fill and circular ring sweep (e.g. Arabic).
 - A `complete` getter and the `warning`/`success`/`retry`/`stall` events.
+- **Inline status messages** — `messages` maps each state (and a `default`) to a string or
+  `(percent, bar) => string` shown on the bar; `setMessages`/`setMessage`, a `message` getter,
+  and `messageAlign`/`messageColor` (plus `--tabar-message-*` CSS vars).
 - A redesigned marketing site — an Apple-style landing page plus an interactive playground —
   built from `site/` to `site/dist/` (`npm run demo`); new `cli.js` and `multi-progress.html`
   examples.
 
 ### Fixed
+- The leading **peg** is redesigned as a soft, color-agnostic leading-edge shine (clipped to
+  the fill) instead of a fixed-width colored box-shadow with a `rotate(2deg)` tilt — it no
+  longer renders as a clashing, offset rectangle on tall or gradient bars (`--tabar-peg`).
 - `goto()`/`set()`/`setProgress()`/`indeterminate()` no longer require a DOM element, so the
   value/state machinery (and stats/ETA) works fully headless in Node.
 - **Gradients**: the `gradient` theme now honors `setGradientType`/`setGradientShape`/

@@ -93,6 +93,18 @@ void group.children.length;
 const tbar = terminalBar({ label: 'DL', colors: false });
 renderTerminal(tbar, { width: 40 }).stop();
 
+// inline messages
+const msgBar = new Tabar({
+  messages: { active: 'Uploading…', error: 'Failed', default: (p) => `${Math.round(p)}%` },
+  messageAlign: 'center',
+  messageColor: '#fff',
+});
+msgBar.setMessages({ done: 'Complete' });
+msgBar.setMessage('warning', (p, b) => `${p} on ${b.id}`);
+msgBar.setMessage('warning', null);
+const currentMsg: string = msgBar.message;
+void currentMsg;
+
 // promises
 bar.goto(0.5).then((b) => b.done());
 void bar.set(50, { duration: 100, animate: true });

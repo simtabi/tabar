@@ -102,27 +102,29 @@ $glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$
   }
   &[data-rtl-tabar="true"] &__bar { margin-left: auto; background-position: right center; }
 
-  // --- Leading peg ----------------------------------------------------------
+  // --- Leading shine (a soft highlight at the fill's leading edge) ----------
+  // Color-agnostic and clipped to the fill, so it blends with any solid/gradient
+  // fill at any height — no clashing colored glow, no offset block.
   &__peg {
     position: absolute;
     top: 0;
     right: 0;
     height: 100%;
-    width: 100px;
-    box-shadow:
-      0 0 10px var(--tabar-color, var(--tabar-default-color, #{$color})),
-      0 0 6px var(--tabar-color, var(--tabar-default-color, #{$color}));
-    opacity: 0.55;
-    transform: rotate(2deg) translateY(-2px);
+    width: min(35%, 56px);
+    background: linear-gradient(90deg, transparent, var(--tabar-peg, rgba(255, 255, 255, 0.45)));
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  &[data-rtl-tabar="true"] &__peg {
+    right: auto;
+    left: 0;
+    background: linear-gradient(270deg, transparent, var(--tabar-peg, rgba(255, 255, 255, 0.45)));
   }
   &[data-orientation-tabar="vertical"] &__peg {
-    top: 0;
-    bottom: auto;
-    left: 0;
-    right: 0;
+    inset: 0 0 auto 0;
     width: 100%;
-    height: 100px;
-    transform: none;
+    height: min(35%, 56px);
+    background: linear-gradient(0deg, transparent, var(--tabar-peg, rgba(255, 255, 255, 0.45)));
   }
 
   // --- Optional label -------------------------------------------------------
@@ -139,6 +141,33 @@ $glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$
     right: auto;
     left: 0.5em;
     writing-mode: vertical-rl;
+  }
+
+  // --- Inline status message (overlays the bar) -----------------------------
+  &__message {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: var(--tabar-message-align, center);
+    gap: 6px;
+    padding: 0 10px;
+    font: 600 12px/1 system-ui, sans-serif;
+    color: var(--tabar-message-color, #fff);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45); // legibility over colored fills
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+    z-index: 2;
+  }
+  &__message[hidden] { display: none; }
+  // Circular: center the message in the ring's grid cell.
+  &[data-shape-tabar="circular"] &__message {
+    position: static;
+    grid-area: 1 / 1;
+    inset: auto;
+    justify-content: center;
   }
 
   // --- Tooltip (rides the leading edge of the fill) -------------------------

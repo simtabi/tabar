@@ -911,6 +911,53 @@ describe('audit fixes', () => {
   });
 });
 
+describe('inline messages', () => {
+  const msgEl = (bar) => bar._wrapper.querySelector('[data-message-tabar]');
+
+  it('shows a state-specific message, falling back to default', async () => {
+    const bar = new Tabar({
+      trickle: false,
+      messages: { error: 'Failed', done: 'Complete', default: (p) => `${Math.round(p)}%` },
+    });
+    bar.setProgress(40, 100); // active -> no 'active' key -> default
+    expect(msgEl(bar).textContent).toBe('40%');
+    expect(bar.message).toBe('40%');
+    bar.error('x');
+    expect(msgEl(bar).textContent).toBe('Failed');
+    bar.warn('y'); // no 'warning' key -> default (uses current progress)
+    expect(msgEl(bar).textContent).toBe('40%');
+    await bar.done(true);
+    expect(msgEl(bar).textContent).toBe('Complete');
+  });
+
+  it('updates live via setMessages/setMessage and clears with null', () => {
+    const bar = new Tabar({ trickle: false });
+    expect(msgEl(bar)).toBeNull(); // no element until a message resolves
+    bar.setMessages({ default: 'Ready' });
+    expect(msgEl(bar).hidden).toBe(false);
+    expect(msgEl(bar).textContent).toBe('Ready');
+    bar.setMessage('error', 'Boom');
+    bar.error('x');
+    expect(msgEl(bar).textContent).toBe('Boom');
+    bar.setMessages(null);
+    expect(msgEl(bar).hidden).toBe(true);
+  });
+
+  it('applies alignment and color options', () => {
+    const bar = new Tabar({ trickle: false, messages: { default: 'Hi' }, messageAlign: 'start', messageColor: '#123456' });
+    const el = msgEl(bar);
+    expect(el.style.getPropertyValue('--tabar-message-align')).toBe('flex-start');
+    expect(el.style.getPropertyValue('--tabar-message-color')).toBe('#123456');
+  });
+
+  it('escapes message content (textContent, no HTML injection)', () => {
+    const bar = new Tabar({ trickle: false, messages: { default: '<img src=x onerror=alert(1)>' } });
+    const el = msgEl(bar);
+    expect(el.querySelector('img')).toBeNull();
+    expect(el.textContent).toContain('<img');
+  });
+});
+
 describe('i18n: shipped locales + RTL', () => {
   afterEach(() => { Tabar.locale = 'en'; });
 

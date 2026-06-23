@@ -78,11 +78,20 @@ const addGroupChild = () => {
 addGroupChild();
 
 const XFER_TOTAL = 12 * 1024 * 1024;
-const scXfer = new Tabar({ position: 'inline', mountTo: '#sc-xfer', height: 16, radius: 8, trickle: false, showLabel: true, labelFormat: (p) => `${Math.round(p)}%` });
+const scXfer = new Tabar({
+  position: 'inline', mountTo: '#sc-xfer', height: 22, radius: 9, trickle: false, messageAlign: 'start',
+  messages: {
+    active: (p, bar) => (bar.stats.speed > 0 && p < 100 ? `${Math.round(p)}% · ${Tabar.formatBytes(bar.stats.speed)}/s` : `Downloading… ${Math.round(p)}%`),
+    done: 'Complete', error: 'Failed — retry', default: (p) => `${Math.round(p)}%`,
+  },
+});
 let xferTimer = null;
 const stopXfer = () => { if (xferTimer) { clearInterval(xferTimer); xferTimer = null; } };
 
-const scState = new Tabar({ position: 'inline', mountTo: '#sc-state', height: 16, radius: 8, trickle: false, showLabel: true, labelFormat: (p) => `${Math.round(p)}%` });
+const scState = new Tabar({
+  position: 'inline', mountTo: '#sc-state', height: 22, radius: 9, trickle: false,
+  messages: { warning: 'Slow', error: 'Failed', success: 'Verified ✓', done: 'Done', default: (p) => `${Math.round(p)}%` },
+});
 scState.set(0.5, { animate: false });
 scState.retryWith(() => scState.set(0.7));
 

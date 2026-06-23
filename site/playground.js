@@ -98,11 +98,19 @@ $('#tooltip-toggle').addEventListener('change', (e) => themed.setTooltip(e.targe
 const XFER_TOTAL = 24 * 1024 * 1024;
 const xfer = new Tabar({
   id: 'xfer', position: 'inline', mountTo: '#xfer-host', height: 28, radius: 10, trickle: false,
-  showLabel: true, color: '#2299dd',
-  labelFormat: (p, bar) => {
-    const s = bar.stats;
-    if (s.speed > 0 && p < 100) return `${pct(p)} · ${Tabar.formatBytes(s.speed)}/s · ${Tabar.formatDuration(s.eta)}`;
-    return pct(p);
+  color: '#2299dd', messageAlign: 'start',
+  // Inline status text driven by the live transfer stats + state.
+  messages: {
+    active: (p, bar) => {
+      const s = bar.stats;
+      return s.speed > 0 && p < 100
+        ? `${pct(p)} · ${Tabar.formatBytes(s.speed)}/s · ${Tabar.formatDuration(s.eta)} left`
+        : `Downloading… ${pct(p)}`;
+    },
+    indeterminate: 'Connecting…',
+    done: 'Download complete',
+    error: 'Download failed — click Reset',
+    default: (p) => `${pct(p)}`,
   },
 });
 let xferTimer = null;
@@ -154,7 +162,17 @@ addGroupChild();
 addGroupChild();
 
 /* --- Feedback ------------------------------------------------------------- */
-const feedback = new Tabar({ id: 'feedback', position: 'inline', mountTo: '#feedback-host', height: 16, radius: 8, showLabel: true, labelFormat: pct, trickle: false });
+const feedback = new Tabar({
+  id: 'feedback', position: 'inline', mountTo: '#feedback-host', height: 24, radius: 8, trickle: false,
+  // Inline message that reflects the state/status.
+  messages: {
+    warning: 'Slow connection',
+    error: 'Upload failed',
+    success: 'Verified ✓',
+    done: 'Complete',
+    default: (p) => `${pct(p)}`,
+  },
+});
 feedback.set(0.45, { animate: false });
 feedback.retryWith(() => feedback.set(0.7));
 const fbAttempts = $('#fb-attempts');
