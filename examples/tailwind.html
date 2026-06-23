@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tabar — Tailwind</title>
+  <!--
+    Tailwind Play CDN for demo only. In production install Tailwind locally and
+    add Subresource Integrity (integrity + crossorigin) to any external script.
+  -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="max-w-2xl mx-auto my-16 px-5 font-sans text-slate-800">
+  <h1 class="text-3xl font-bold mb-2">With Tailwind</h1>
+  <p class="text-slate-500 mb-6">Tabar uses its own <code>data-*</code> hooks, so it never
+    clashes with Tailwind's utilities. Theme it with CSS variables via an arbitrary-value
+    class, or a tiny <code>&lt;style&gt;</code>.</p>
+
+  <!-- Tailwind arbitrary properties set Tabar's CSS variables directly. -->
+  <div id="host"
+       class="my-6 [&_[data-bar-tabar]]:!rounded-full"
+       style="--tabar-color:#0ea5e9; --tabar-height:10px; --tabar-radius:9999px;"></div>
+
+  <div class="flex gap-2">
+    <button id="go" class="rounded-lg bg-sky-500 px-4 py-2 font-semibold text-white">Animate</button>
+    <button id="reset" class="rounded-lg border border-slate-300 px-4 py-2 font-semibold">Reset</button>
+  </div>
+
+  <script type="module">
+    import { Tabar } from '../src/tabar.js';
+
+    const bar = new Tabar({ position: 'inline', mountTo: '#host', trickle: false, showPeg: false });
+    bar.show();
+
+    document.getElementById('go').addEventListener('click', () => bar.set(0.85));
+    document.getElementById('reset').addEventListener('click', () => bar.set(0, { animate: false }).show());
+  </script>
+</body>
+</html>

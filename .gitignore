@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Generated from src/tabar.scss by `npm run styles`
+src/styles.js
+
+# Logs
+*.log
+npm-debug.log*
+
+# Caches / tooling
+.eslintcache
+.vitest/
+coverage/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
