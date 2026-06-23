@@ -23,6 +23,10 @@ All notable changes to this project are documented here. The format is based on
 - The demo "bottom border" is gone — playground bars now **fill their track** so no
   grey strip shows below a shorter bar; the configurator section and its action
   buttons were redesigned into grouped clusters with a cleaner layout.
+- **`TabarGroup` children no longer auto-hide/reset.** A completed child kept its
+  reserved row but hid its bar — leaving a growing stack of empty white rows — and
+  the auto-reset dropped the aggregate. Children now default to `autoHide: false`,
+  so they persist at their final value (opt back in per-child with `autoHide: true`).
 
 ### Added
 - **`*-center` positions + configurable `length`** — `top-center`/`bottom-center`/

@@ -45,6 +45,16 @@ describe('TabarGroup', () => {
     group.destroy();
   });
 
+  it('keeps a completed child visible (no auto-hide/reset leaving an empty row)', async () => {
+    const group = new TabarGroup({ mountTo: '#g' });
+    const a = group.add({ label: 'file' });
+    await a.done(true);
+    expect(a.visible).toBe(true);   // stays shown
+    expect(a.value).toBe(100);      // and at its final value (no reset to 0)
+    expect(group.overall.value).toBeCloseTo(100, 1);
+    group.destroy();
+  });
+
   it('emits done exactly once when all children complete (latched)', async () => {
     const group = new TabarGroup({ mountTo: '#g' });
     let done = 0;

@@ -77,6 +77,10 @@ export class TabarGroup {
     const child = new Tabar({
       showLabel: true,
       labelFormat: (p) => `${Math.round(p)}%`,
+      // Group children persist at their final value: auto-hiding would reset a
+      // completed child to 0 (dropping the aggregate) and leave an empty reserved
+      // row. Opt back in per-child with `autoHide: true` if you really want that.
+      autoHide: false,
       ...(this.options.child || {}),
       ...rest,
       position: 'inline',
