@@ -10,7 +10,7 @@
 
 /** Option keys whose attribute value is parsed as a Number (empty → unset). */
 export const NUMERIC = new Set([
-  'value', 'height', 'size', 'speed', 'zIndex', 'min', 'max', 'minimum',
+  'value', 'height', 'size', 'speed', 'zIndex', 'max', 'minimum',
   'gradientAngle', 'trickleSpeed', 'stallTimeout', 'errorTimeout', 'autoHideDelay',
   'offset', 'glowSize', 'startAngle',
 ]);
@@ -18,7 +18,7 @@ export const NUMERIC = new Set([
 /** Option keys treated as booleans (any value except the string `"false"` → true). */
 export const BOOLEAN = new Set([
   'glow', 'striped', 'stripeAnimate', 'trickle', 'showLabel', 'announce',
-  'autoShow', 'autoHide', 'tooltipAlways', 'colorAnimate', 'clockwise',
+  'autoShow', 'autoHide', 'tooltipAlways', 'colorAnimate', 'clockwise', 'debug',
 ]);
 
 export const toCamel = (s) => s.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
@@ -72,10 +72,10 @@ export const ATTR_NAMES = [
   'gradient', 'gradient-type', 'gradient-angle', 'gradient-shape', 'gradient-position', 'fill',
   'colors', 'color-mode', 'color-animate', 'track-color', 'line-cap', 'start-angle', 'clockwise',
   'length', 'offset', 'label', 'show-label', 'direction', 'locale', 'aria-label',
-  'minimum', 'trickle', 'trickle-speed', 'auto-show', 'auto-hide', 'auto-hide-delay',
+  'max', 'minimum', 'trickle', 'trickle-speed', 'auto-show', 'auto-hide', 'auto-hide-delay',
   'tooltip', 'tooltip-always', 'message-align', 'message-color', 'messages',
   'persist', 'config-url', 'report-url', 'segments', 'segment-mode', 'aggregate',
-  'announce', 'stall-timeout', 'error-timeout',
+  'announce', 'stall-timeout', 'error-timeout', 'debug',
 ];
 
 /** camelCase option keys that may be set via attribute / data-attribute. */

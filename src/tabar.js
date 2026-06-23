@@ -210,7 +210,13 @@ const toLinecap = (v) => (v === 'butt' || v === 'square' ? v : 'round');
 /** Resolve a `mountTo` (element or selector) to an Element, or null. */
 const resolveMountEl = (mountTo) => {
   if (mountTo instanceof Element) return mountTo;
-  if (typeof mountTo === 'string' && mountTo) return document.querySelector(mountTo);
+  if (typeof mountTo === 'string' && mountTo) {
+    try {
+      return document.querySelector(mountTo);
+    } catch {
+      return null; // invalid selector — fall back to the default mount
+    }
+  }
   return null;
 };
 
@@ -802,11 +808,10 @@ class Tabar {
 
   _resolveHost() {
     const { mountTo } = this.options;
-    if (mountTo instanceof Element) return mountTo;
-    if (typeof mountTo === 'string' && mountTo) {
-      const el = document.querySelector(mountTo);
-      if (el) return el;
-      if (this.options.debug) console.warn(`[tabar] mountTo "${mountTo}" not found; using <body>.`);
+    const el = resolveMountEl(mountTo);
+    if (el) return el;
+    if (typeof mountTo === 'string' && mountTo && this.options.debug) {
+      console.warn(`[tabar] mountTo "${mountTo}" not found; using <body>.`);
     }
     // Fixed (top/bottom/left/right) overlays and unmatched mounts default to <body>.
     return document.body;
@@ -1962,7 +1967,8 @@ class Tabar {
   /** Set the circular sweep direction (false = counter-clockwise). */
   setClockwise(on = true) {
     this.options.clockwise = !!on;
-    if (this._wrapper) this._wrapper.style.setProperty('--tabar-flip', (!on) !== this._isRtl() ? '-1' : '1');
+    // Same formula as _applyTheme: flip when counter-clockwise XOR RTL.
+    if (this._wrapper) this._wrapper.style.setProperty('--tabar-flip', (this.options.clockwise === false) !== this._isRtl() ? '-1' : '1');
     return this;
   }
 

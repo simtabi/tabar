@@ -16,6 +16,10 @@ All notable changes to this project are documented here. The format is based on
 - **Segments advance past three chunks** — the playground's "Advance" now operates on
   the bar's live segments (0–100 scale) instead of three hardcoded ones. (The core
   segment API was already correct.)
+- An invalid `mountTo` selector no longer throws from the constructor — it falls back
+  to the default mount.
+- Attribute consistency: `max` and `debug` are now settable via the `<tabar-bar>`
+  element and `data-tabar-*`; dropped a dead `min` coercion key.
 
 ### Added
 - **`*-center` positions + configurable `length`** — `top-center`/`bottom-center`/

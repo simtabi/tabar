@@ -1119,3 +1119,19 @@ describe('data-attribute config (plain mount)', () => {
     expect('bogus' in bar.options).toBe(false);
   });
 });
+
+describe('robustness', () => {
+  it('does not throw when mountTo is an invalid selector (falls back to body)', () => {
+    expect(() => new Tabar({ position: 'inline', mountTo: 'div[bad>>sel', trickle: false })).not.toThrow();
+  });
+
+  it('reads data-tabar-max and data-tabar-debug off the mount element', () => {
+    const host = document.createElement('div');
+    host.setAttribute('data-tabar-max', '50');
+    host.setAttribute('data-tabar-debug', 'true');
+    document.body.appendChild(host);
+    const bar = new Tabar({ position: 'inline', mountTo: host, trickle: false });
+    expect(bar.options.max).toBe(50);
+    expect(bar.options.debug).toBe(true);
+  });
+});

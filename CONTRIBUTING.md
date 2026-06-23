@@ -96,7 +96,7 @@ docker run --rm -v "$PWD:/work" -v /work/node_modules -w /work \
 ```
 
 (The `-v /work/node_modules` anonymous volume keeps your host `node_modules`
-untouched.) When you add a new visual state, give it a tile in `site/visual.js` and
+untouched.) When you add a new visual state, give it a tile in `site/assets/js/visual.js` and
 regenerate the baselines. If you bump `@playwright/test`, update the image tag here
 and in `.github/workflows/ci.yml`.
 
