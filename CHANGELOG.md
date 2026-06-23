@@ -47,6 +47,10 @@ A major capability release: Tabar now runs in the **terminal** as well as the we
   `--total` is treated as a percentage instead of snapping to 100%.
 - `<tabar-bar>`: an empty numeric attribute is treated as unset (no forced `0`), and `persist`
   accepts a JSON object. `useTabar` re-renders on error/warning/success and exposes `complete`.
+- `toJSON()` (and config export/`fromJSON` round-trips) works in Node — it no longer references
+  the browser-only `Element` global unguarded. `TabarGroup` emits `done` exactly once per
+  completion (re-arming when a new child is added), and `bind({ interval })` is cleaned up with
+  `clearInterval` on `destroy()`.
 
 ## [0.5.0] - 2026-06-23
 

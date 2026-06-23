@@ -1750,7 +1750,8 @@ class Tabar {
     for (const [key, val] of Object.entries(this.options)) {
       if (typeof val === 'function') continue; // drop callbacks
       if (/^on[A-Z]/.test(key)) continue; // drop event-handler slots (even when null)
-      if (key === 'mountTo' && (val instanceof Element || val == null)) continue;
+      // Drop a non-serializable mount target. Guard `Element` — it doesn't exist in Node.
+      if (key === 'mountTo' && (val == null || (typeof Element !== 'undefined' && val instanceof Element))) continue;
       out[key] = val;
     }
     out.value = this._progress;
@@ -1937,8 +1938,9 @@ class Tabar {
       opts.target.addEventListener(opts.event, apply);
       teardown = () => opts.target.removeEventListener(opts.event, apply);
     } else if (opts.interval) {
+      // Not _track()ed: destroy() runs the unbinds (below) first, which clears
+      // this interval with clearInterval — the correct clearer for an interval.
       const id = setInterval(apply, opts.interval);
-      this._track(id);
       teardown = () => clearInterval(id);
     }
     apply();

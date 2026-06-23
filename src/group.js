@@ -28,6 +28,7 @@ export class TabarGroup {
     this._children = new Map();
     this._emitter = new Emitter();
     this._childList = null;
+    this._completed = false; // latch so 'done' fires once per completion
 
     if (isBrowser) {
       const host =
@@ -85,12 +86,20 @@ export class TabarGroup {
     if (Number.isFinite(weight) && weight > 0) child._groupWeight = weight;
     if (isBrowser) child.show();
     this._children.set(child.id, child);
+    this._completed = false; // a fresh, incomplete child re-arms the 'done' latch
     // Re-aggregate and bubble child lifecycle as `child:<event>`.
     ['change', 'progress', 'done', 'error', 'reset'].forEach((e) =>
       child.on(e, (payload) => {
         this._sync();
         this._emitter.emit(`child:${e}`, payload, child);
-        if (e === 'done' && this._allDone()) this._emitter.emit('done', 100, this);
+        if (this._allDone()) {
+          if (!this._completed) {
+            this._completed = true;
+            this._emitter.emit('done', 100, this); // fire exactly once per completion
+          }
+        } else {
+          this._completed = false; // a child dropped below 100% — re-arm
+        }
       }),
     );
     this._sync();

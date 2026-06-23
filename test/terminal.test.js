@@ -55,3 +55,32 @@ describe('terminal renderer (Node env)', () => {
     expect(lines).toBeLessThanOrEqual(2); // one paint, not a flood
   });
 });
+
+describe('headless core (no DOM)', () => {
+  // These would throw in Node if a method touched a browser global unguarded.
+  it('runs every lifecycle method without a DOM', () => {
+    const bar = new Tabar({ trickle: false, mountTo: '#nope' });
+    expect(bar._wrapper).toBeFalsy();
+    bar.start();
+    bar.set(0.5, { animate: false });
+    bar.indeterminate(true); // regressed once: touched this._bar.style with no guard
+    bar.indeterminate(false);
+    bar.setProgress(50, 100);
+    bar.warn('x');
+    bar.succeed();
+    bar.error('x');
+    bar.setTheme('gradient').setGradientType('radial').setColor('#f00');
+    bar.setSegments([{ value: 0.3 }, { value: 0.6 }]);
+    expect(bar.value).toBeGreaterThan(0);
+    bar.destroy();
+  });
+
+  it('toJSON() works headless (guards the browser-only Element global)', () => {
+    const bar = new Tabar({ trickle: false, mountTo: '#nope', color: '#abc' });
+    bar.set(0.4, { animate: false });
+    const json = bar.toJSON(); // regressed once: `val instanceof Element` threw ReferenceError
+    expect(() => JSON.stringify(json)).not.toThrow();
+    expect(json.color).toBe('#abc');
+    expect(typeof json.mountTo).not.toBe('object');
+  });
+});

@@ -45,15 +45,20 @@ describe('TabarGroup', () => {
     group.destroy();
   });
 
-  it('emits done when all children complete', async () => {
+  it('emits done exactly once when all children complete (latched)', async () => {
     const group = new TabarGroup({ mountTo: '#g' });
-    let done = false;
-    group.on('done', () => { done = true; });
+    let done = 0;
+    group.on('done', () => { done += 1; });
     const a = group.add({ autoHide: false });
     const b = group.add({ autoHide: false });
     await a.done(true);
     await b.done(true);
-    expect(done).toBe(true);
+    await b.done(true); // re-completing must NOT re-emit
+    expect(done).toBe(1);
+    // a new incomplete child re-arms the latch
+    const c = group.add({ autoHide: false });
+    await c.done(true);
+    expect(done).toBe(2);
     group.destroy();
   });
 });
