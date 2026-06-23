@@ -35,8 +35,11 @@ export function useTabar(options = {}) {
     const bar = new Tabar({ ...options, position: options.position || 'inline', mountTo: ref.current });
     barRef.current = bar;
 
-    const sync = () => setSnapshot({ value: bar.value, state: bar.state, stats: bar.stats });
-    ['change', 'progress', 'reset', 'done', 'indeterminate'].forEach((e) => bar.on(e, sync));
+    const sync = () =>
+      setSnapshot({ value: bar.value, state: bar.state, stats: bar.stats, complete: bar.complete });
+    ['change', 'progress', 'reset', 'done', 'indeterminate', 'error', 'warning', 'success'].forEach(
+      (e) => bar.on(e, sync),
+    );
     sync();
 
     return () => {
@@ -52,6 +55,7 @@ export function useTabar(options = {}) {
     value: snapshot.value,
     state: snapshot.state,
     stats: snapshot.stats,
+    complete: snapshot.complete,
   };
 }
 

@@ -84,6 +84,21 @@ touches the solid `--tabar-color` used by the peg/label.
 sets the shape/size (`circle`, `ellipse`, `circle 60px`) and `gradientPosition` sets the
 center (`center`, `50% 50%`, `left top`).
 
+The **`gradient` theme** is a two-color shortcut driven by `color` + `color2` — and it honors
+the same `setGradientType`/`setGradientShape`/`setGradientPosition`/`setGradientAngle` controls:
+
+```js
+const bar = new Tabar({ theme: 'gradient', color: '#2299dd', color2: '#7c4dff' });
+bar.setGradientType('radial');   // switch the two-color theme to a radial fill
+```
+
+Two details Tabar handles for you:
+
+- **The gradient is anchored to the track**, not the fill box — its colors stay put as the bar
+  grows instead of compressing/shifting (Tabar sets `--tabar-fill-scale` for this).
+- **Circular rings render real gradients** — a `gradient` theme (or a `gradient` stops array)
+  on a `shape: 'circular'` bar paints an SVG `<linearGradient>` along the ring stroke.
+
 ## Positions & orientation
 
 ```js

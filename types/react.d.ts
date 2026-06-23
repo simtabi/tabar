@@ -17,6 +17,7 @@ export declare function useTabar(options?: TabarOptions): {
   value: number;
   state: TabarState;
   stats: TabarStats | null;
+  complete: boolean;
 };
 
 export default useTabar;

@@ -742,6 +742,16 @@ describe('web component <tabar-bar>', () => {
     el.remove(); // disconnectedCallback destroys the bar
     expect(el.bar).toBeNull();
   });
+
+  it('accepts segments as a JSON attribute', async () => {
+    await import('../src/element.js');
+    const el = document.createElement('tabar-bar');
+    el.setAttribute('segments', JSON.stringify([{ value: 0.2 }, { value: 0.8 }]));
+    document.body.appendChild(el);
+    expect(el.bar.segments).toHaveLength(2);
+    expect(el.querySelectorAll('[data-seg-tabar]')).toHaveLength(2);
+    el.remove();
+  });
 });
 
 describe('segments', () => {
@@ -828,6 +838,36 @@ describe('error UX', () => {
     await new Promise((r) => setTimeout(r, 60));
     expect(stalled).toBe(true);
     expect(bar.state).toBe('warning');
+  });
+});
+
+describe('gradients', () => {
+  it("theme:'gradient' builds a fill so type/shape/position apply", () => {
+    const bar = new Tabar({ theme: 'gradient', color: '#f00', color2: '#00f', trickle: false });
+    const fill = () => bar._wrapper.style.getPropertyValue('--tabar-fill');
+    expect(fill()).toMatch(/^linear-gradient\(/);
+    bar.setGradientType('radial');
+    expect(fill()).toMatch(/^radial-gradient\(/);
+    bar.setGradientType('conic');
+    expect(fill()).toMatch(/^conic-gradient\(/);
+  });
+
+  it('anchors the gradient to the track via --tabar-fill-scale', () => {
+    const bar = new Tabar({ theme: 'gradient', color: '#f00', color2: '#00f', trickle: false });
+    bar.set(0.5, { animate: false });
+    expect(bar._bar.style.getPropertyValue('--tabar-fill-scale')).toBe('0.5');
+  });
+
+  it('renders a real SVG gradient stroke for a circular gradient ring', () => {
+    const ring = new Tabar({ shape: 'circular', theme: 'gradient', color: '#0f0', color2: '#00f', trickle: false });
+    expect(ring._wrapper.querySelector('linearGradient')).toBeTruthy();
+    expect(ring._wrapper.querySelectorAll('linearGradient stop')).toHaveLength(2);
+    expect(ring._bar.style.stroke).toContain('url(#');
+  });
+
+  it('still honors an explicit gradient stops array', () => {
+    const bar = new Tabar({ gradient: ['#f00', '#0f0', '#00f'], trickle: false });
+    expect(bar._wrapper.style.getPropertyValue('--tabar-fill')).toMatch(/^linear-gradient\(/);
   });
 });
 

@@ -788,11 +788,24 @@ class Tabar {
     return this._orientation() === 'vertical' ? '0deg' : '90deg';
   }
 
+  /**
+   * The gradient stops actually in effect: an explicit `gradient` array, or the
+   * two-stop `[color, color2]` of the 'gradient' theme, else null. This lets the
+   * gradient TYPE/shape/position (and the circular SVG gradient) honor the theme
+   * preset, not only an explicit stops array.
+   */
+  _effectiveStops() {
+    const o = this.options;
+    if (Array.isArray(o.gradient) && o.gradient.length > 1) return o.gradient;
+    if (o.theme === 'gradient') return [String(o.color), String(o.color2)];
+    return null;
+  }
+
   /** Build the bar's CSS background (gradient/multicolor/explicit), or null. */
   _computeFill() {
     const o = this.options;
     if (o.fill) return String(o.fill);
-    return buildGradient(o.gradient, {
+    return buildGradient(this._effectiveStops(), {
       type: o.gradientType,
       angle: this._gradientAngle(),
       shape: o.gradientShape,
@@ -822,7 +835,7 @@ class Tabar {
       this._gradDef.remove();
       this._gradDef = null;
     }
-    const stops = this.options.gradient;
+    const stops = this._effectiveStops();
     if (svg && Array.isArray(stops) && stops.length > 1) {
       const id = `tabar-grad-${this.id}`;
       const defs = document.createElementNS(SVG_NS, 'defs');
@@ -880,12 +893,17 @@ class Tabar {
     if (durationMs != null) this._bar.style.transitionDuration = `${toNum(durationMs)}ms`;
     if (this.options.shape === 'circular') {
       this._bar.style.strokeDashoffset = `${this._circumference * (1 - pct / 100)}`;
-    } else if (this._orientation() === 'vertical') {
-      this._bar.style.removeProperty('width');
-      this._bar.style.height = `${pct}%`;
     } else {
-      this._bar.style.removeProperty('height');
-      this._bar.style.width = `${pct}%`;
+      // Anchor any gradient fill to the full track (not the fill box) so its
+      // colors don't shift/compress as the bar grows. SCSS reads this scale.
+      this._bar.style.setProperty('--tabar-fill-scale', String(pct / 100));
+      if (this._orientation() === 'vertical') {
+        this._bar.style.removeProperty('width');
+        this._bar.style.height = `${pct}%`;
+      } else {
+        this._bar.style.removeProperty('height');
+        this._bar.style.width = `${pct}%`;
+      }
     }
     if (this._wrapper && this._state !== 'indeterminate') {
       this._wrapper.setAttribute('aria-valuenow', String(Math.round(pct)));

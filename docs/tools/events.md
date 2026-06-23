@@ -18,6 +18,9 @@ observable four ways, and every instance is reachable through the registry.
 | `theme` | theme name | `setTheme()` runs |
 | `progress` | `stats` object | `setProgress`/`trackXHR`/`trackResponse` updates |
 | `error` | message/detail | `error()` runs (or a tracked transfer fails) |
+| `warning` / `success` | message/detail | `warn()` / `succeed()` runs |
+| `retry` | attempt number | `retry()` runs |
+| `stall` | `stats` object | no progress for `stallTimeout` ms while active |
 | `config` / `report` | config / posted body | `loadConfig` / `report` |
 | `destroy` | the instance id | `destroy()` is called (before teardown) |
 
@@ -106,18 +109,24 @@ bar.error('network error'); // keeps the current value, turns red
 
 ## Localization (i18n)
 
-Built-in strings (byte/duration units, the default `aria-label`) are localizable. Register a
-locale and switch globally, or per instance:
+**Ten locales ship built-in** — English (`en`), Spanish (`es`), French (`fr`), German (`de`),
+Portuguese (`pt`), Italian (`it`), Japanese (`ja`), Chinese (`zh`), Korean (`ko`) and Arabic
+(`ar`, right-to-left). They cover byte/duration units, the default `aria-label`, and the
+screen-reader announcement strings (`complete`/`error`/`stalled`/`loading`). Switch globally
+or per instance, and register your own:
 
 ```js
-Tabar.addLocale('de', { bytes: ['B', 'KB', 'MB', 'GB', 'TB'], min: 'Min', sec: 'Sek', progress: 'Fortschritt' });
-Tabar.locale = 'de';                       // app-wide
-new Tabar({ locale: 'de' });               // one instance
+Tabar.locale = 'ja';                       // app-wide
+new Tabar({ locale: 'fr' });               // one instance
 
-Tabar.formatBytes(1536);                    // "1.5 KB" — uses the active locale
+Tabar.formatBytes(1536);                    // localized — e.g. "1.5 Ko" in French
 Tabar.formatDuration(75, 'de');            // force a locale
+
+// Add or override a locale:
+Tabar.addLocale('sw', { bytes: ['B', 'KB', 'MB', 'GB', 'TB'], min: 'd', sec: 's', progress: 'Maendeleo' });
 ```
 
+An RTL locale (like `ar`) mirrors the linear fill and the circular ring sweep automatically.
 `Tabar.getLocale(code)` returns a locale's dictionary; assigning an unknown `Tabar.locale` is
 ignored.
 

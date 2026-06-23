@@ -9,8 +9,11 @@
  */
 import Tabar from './tabar.js';
 
-const NUMERIC = new Set(['value', 'height', 'size', 'speed', 'min', 'max', 'gradientAngle', 'trickleSpeed']);
-const BOOLEAN = new Set(['glow', 'striped', 'trickle', 'showPeg', 'showLabel', 'persist']);
+const NUMERIC = new Set([
+  'value', 'height', 'size', 'speed', 'min', 'max', 'gradientAngle', 'trickleSpeed',
+  'stallTimeout', 'errorTimeout',
+]);
+const BOOLEAN = new Set(['glow', 'striped', 'trickle', 'showPeg', 'showLabel', 'persist', 'announce']);
 
 const toCamel = (s) => s.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
 
@@ -19,6 +22,13 @@ const coerceAttr = (key, value) => {
   if (BOOLEAN.has(key)) return value !== 'false';
   if (NUMERIC.has(key)) return Number(value);
   if (key === 'gradient') return value.split(',').map((c) => c.trim()); // "a,b,c"
+  if (key === 'segments') {
+    try {
+      return JSON.parse(value); // '[{"value":0.5,"color":"#f00"}, ...]'
+    } catch {
+      return undefined;
+    }
+  }
   return value;
 };
 
@@ -27,7 +37,9 @@ export class TabarElement extends HTMLElement {
     return [
       'value', 'color', 'color2', 'background', 'theme', 'position', 'shape', 'size', 'height',
       'radius', 'inner-radius', 'speed', 'glow', 'striped', 'gradient',
-      'gradient-type', 'gradient-angle', 'label', 'persist', 'config-url', 'report-url',
+      'gradient-type', 'gradient-angle', 'gradient-shape', 'gradient-position', 'label',
+      'direction', 'locale', 'persist', 'config-url', 'report-url',
+      'segments', 'segment-mode', 'aggregate', 'announce', 'stall-timeout', 'error-timeout',
     ];
   }
 
@@ -59,8 +71,10 @@ export class TabarElement extends HTMLElement {
   attributeChangedCallback(name, oldValue, newValue) {
     if (!this._bar || oldValue === newValue) return;
     const key = toCamel(name);
-    if (key === 'value') this._bar.set(coerceAttr('value', newValue));
-    else this._bar.configure({ [key]: coerceAttr(key, newValue) });
+    const coerced = coerceAttr(key, newValue);
+    if (key === 'value') this._bar.set(coerced);
+    else if (key === 'segments') this._bar.setSegments(coerced || []);
+    else this._bar.configure({ [key]: coerced });
   }
 
   /** The underlying Tabar instance (full API). */

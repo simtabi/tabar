@@ -46,6 +46,12 @@ Pass an options object to `new Tabar(options)`. Every option is optional.
 | `tooltipAlways` | `boolean` | `false` | Keep the tooltip visible instead of showing on hover/focus. |
 | `autoHide` | `boolean` | `true` | Hide + reset after `done()`. |
 | `autoHideDelay` | `number` | `350` | Ms to linger at 100% before hiding. |
+| `segments` | `Array<{id?,value,color?,label?,weight?,status?}>` | `null` | Multi-progress on one bar — see [multi-progress](tools/multi-and-cli.md). |
+| `segmentMode` | `'stacked' \| 'overlay'` | `'stacked'` | Chunks tile the bar, or layered values (buffered/played). |
+| `aggregate` | `'weighted' \| 'sum' \| 'avg' \| 'max' \| 'primary'` | by mode | How segments roll up into the bar's value. |
+| `announce` | `boolean` | `true` | Announce state changes to screen readers (shared `aria-live` region). |
+| `stallTimeout` | `number` | `0` | Ms with no progress while active → `stall` event + warning. `0` = off. |
+| `errorTimeout` | `number` | `0` | Ms after which an error auto-clears. `0` = off. |
 | `locale` | `string` | `null` | Override the global `Tabar.locale` for this instance — see [i18n](tools/events.md#localization-i18n). |
 | `ariaLabel` | `string` | `null` | Accessible name; defaults to the locale's "progress" string. |
 | `ariaLabelledBy` | `string` | `null` | Id of a labelling element (wins over `ariaLabel`). |
@@ -55,7 +61,10 @@ Pass an options object to `new Tabar(options)`. Every option is optional.
 | `reportOn` | `string[]` | `['change','done']` | Events that trigger an auto-report. |
 | `fetchOptions` | `object` | `null` | Extra `fetch` options for config/report (headers, credentials…). |
 | `debug` | `boolean` | `false` | Verbose `console.debug` logging (also `Tabar.debug` for all bars). |
-| `onStart` `onChange` `onDone` `onReset` `onResume` `onShow` `onHide` `onIndeterminate` `onTheme` `onDestroy` `onConfig` `onReport` `onProgress` `onError` | `function` | `null` | Lifecycle callbacks — see [events](tools/events.md). |
+| `onStart` `onChange` `onDone` `onReset` `onResume` `onShow` `onHide` `onIndeterminate` `onTheme` `onDestroy` `onConfig` `onReport` `onProgress` `onError` `onWarning` `onSuccess` `onStall` `onRetry` | `function` | `null` | Lifecycle callbacks — see [events](tools/events.md). |
+
+> The retry **handler** (what `retry()` runs) is set with `retryWith(fn)` or the `{ retry }`
+> option on `trackXHR`/`trackResponse`; `onRetry` is the *event* fired when `retry()` runs.
 
 > **Defaults note:** inline bars (`position: 'inline'`) show a subtle, scheme-aware track by
 > default so they're always visible on load. When you don't set `color`/`background`, the bar
@@ -76,14 +85,18 @@ anywhere in your cascade:
 |----------|-------|
 | `--tabar-color` | Bar fill + peg glow + label color |
 | `--tabar-color2` | Secondary color for the `gradient` theme |
-| `--tabar-fill` | Bar background (set by `gradient`/`fill`; overrides `--tabar-color`) |
+| `--tabar-fill` | Bar background (set by `gradient`/`fill` **and the `gradient` theme**; overrides `--tabar-color`) |
 | `--tabar-angle` | Gradient angle |
+| `--tabar-fill-scale` | Set by Tabar to the fill fraction; anchors a gradient to the track (don't set by hand) |
 | `--tabar-bg` | Track background |
 | `--tabar-height` | Bar thickness |
 | `--tabar-radius` | Outer corner radius |
 | `--tabar-inner-radius` | Inner corner radius |
 | `--tabar-speed` | Transition duration |
 | `--tabar-z` | z-index of fixed bars |
+| `--tabar-error` / `--tabar-warning` / `--tabar-success` | State colors (error/warning/success) |
+| `--tabar-seg-color` | Per-segment fill color (set on each segment) |
+| `--tabar-glow` | Glow color (independent of the bar color) |
 
 ```css
 [data-id-tabar="my-bar"] {
@@ -103,13 +116,16 @@ The bare `data-tabar` marker anchors the namespace.
 |-----------|--------|
 | `data-tabar` | present on every wrapper (namespace marker) |
 | `data-id-tabar` | the instance id |
-| `data-state-tabar` | `idle` \| `active` \| `done` \| `indeterminate` |
+| `data-state-tabar` | `idle` \| `active` \| `done` \| `indeterminate` \| `error` \| `warning` \| `success` |
 | `data-position-tabar` | `top` \| `bottom` \| `left` \| `right` \| `inline` |
 | `data-orientation-tabar` | `horizontal` \| `vertical` |
 | `data-theme-tabar` | the active preset (absent when `default`) |
 | `data-glow-tabar` / `data-striped-tabar` / `data-stripe-anim-tabar` | `true` when enabled |
-| `data-rtl-tabar` | `true` when `direction: 'rtl'` |
-| `data-bar-tabar` / `data-peg-tabar` / `data-label-tabar` | the inner parts |
+| `data-rtl-tabar` | `true` when right-to-left (`direction: 'rtl'` or an RTL locale) |
+| `data-segmented-tabar` | `stacked` \| `overlay` when in segment mode |
+| `data-seg-tabar` / `data-seg-id-tabar` / `data-seg-status-tabar` | per-segment hooks |
+| `data-shape-tabar` | `linear` \| `circular` |
+| `data-bar-tabar` / `data-peg-tabar` / `data-label-tabar` / `data-tooltip-tabar` | the inner parts |
 
 ```css
 [data-state-tabar="indeterminate"] .tabar__bar { opacity: .8; }

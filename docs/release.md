@@ -28,7 +28,7 @@ Pushing the tag triggers `.github/workflows/release.yml`, which:
 2. Create a `npm` GitHub Environment.
 3. Configure the npm trusted publisher for `@simtabi/tabar` pointing at this repo and the
    `release.yml` workflow.
-4. Cut `v0.5.0`.
+4. Push the first tag (e.g. `v0.6.0`) to trigger the workflow.
 
 Every release **must** carry a human-readable description sourced from the CHANGELOG — never
 a bare "see changelog" stub.

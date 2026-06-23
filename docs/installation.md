@@ -18,6 +18,41 @@ bar.start();
 
 `createTabar(options)` is a factory equivalent to `new Tabar(options)`.
 
+### Entry points
+
+The package exposes several subpath exports, each with its own types:
+
+| Import | What you get |
+|--------|--------------|
+| `@simtabi/tabar` | `Tabar`, `createTabar`, `Emitter` (browser DOM/SVG renderer). |
+| `@simtabi/tabar/node` | `Tabar` + `terminalBar`, `renderTerminal`, `TabarGroup` for Node. |
+| `@simtabi/tabar/terminal` | Just the terminal renderer (`terminalBar`, `renderTerminal`). |
+| `@simtabi/tabar/group` | `TabarGroup` — a parent task with child bars. |
+| `@simtabi/tabar/element` | Registers the `<tabar-bar>` Web Component. |
+| `@simtabi/tabar/react` | The `useTabar` React hook (React is a peer dep). |
+| `@simtabi/tabar/css` | The standalone stylesheet (for strict CSP — see below). |
+
+## Node / terminal / CLI
+
+The same API drives a live bar in the terminal — no DOM required:
+
+```js
+import { terminalBar } from '@simtabi/tabar/node';
+
+const bar = terminalBar({ label: 'Downloading' });
+bar.trackResponse(await fetch(url)); // or bar.setProgress(loaded, total)
+```
+
+The package also installs a `tabar` CLI that renders progress piped on stdin:
+
+```bash
+printf '30 100\n80 100\n100 100\n' | npx tabar --total 100 --label Build
+some-job | awk '{ print $1, $2 }' | npx tabar --total 1000
+npx tabar --demo
+```
+
+See [Multi-progress, CLI & feedback](tools/multi-and-cli.md) for the full terminal API.
+
 ## CDN / drop-in `<script>`
 
 The minified IIFE build is a single, ready-to-use file that exposes a global `Tabar` — no
@@ -35,7 +70,7 @@ build step, no bundler:
 ```
 
 Pin a version (and add Subresource Integrity) in production, e.g.
-`https://cdn.jsdelivr.net/npm/@simtabi/tabar@0.5.0/dist/tabar.min.js`.
+`https://cdn.jsdelivr.net/npm/@simtabi/tabar@0.6.0/dist/tabar.min.js`.
 
 The `<tabar-bar>` Web Component has its own drop-in build:
 
@@ -55,8 +90,8 @@ For native ESM without a bundler:
 
 ## TypeScript
 
-Type declarations ship in the package (`types/tabar.d.ts`) and are wired through the
-`exports` map — no `@types` package needed.
+Type declarations ship in the package (`types/*.d.ts`, one per entry point) and are wired
+through the `exports` map — no `@types` package needed.
 
 ```ts
 import { Tabar, type TabarOptions } from '@simtabi/tabar';
@@ -77,8 +112,10 @@ sufficient.
 
 ## Server-side rendering
 
-Constructing a bar in a non-browser environment is a safe no-op — it stores options without
-touching the DOM. Create and use bars on the client (e.g. in `useEffect`, `onMount`, etc.).
+Constructing a bar outside the browser never touches the DOM, so it's safe in SSR. Its
+value/state/stats machinery still runs headlessly — that's exactly how the terminal renderer
+drives it. For **DOM** rendering, create and use bars on the client (e.g. in `useEffect`,
+`onMount`, etc.); for **terminal** output in Node, use `@simtabi/tabar/node`.
 
 ---
 
