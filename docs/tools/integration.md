@@ -55,17 +55,49 @@ new Tabar({ reportUrl: '/api/progress', fetchOptions: { headers: { Authorization
 
 > All of the above no-op gracefully when `fetch` is unavailable (e.g. SSR).
 
-## Web Component — `<tabar-bar>`
+## Declarative configuration (attributes)
+
+Two ways to configure a bar without writing JS — both share one coercion layer
+(`src/attrs.js`), so they never drift. Values may be booleans (a bare attribute or `"true"`
+is true; `"false"` is false), numbers, strings, comma-separated lists (`gradient`, `colors`),
+or JSON (`segments`, `messages`, an object `persist`). **Function** options (`labelFormat`, a
+function `tooltip`/`messages`) are JS-only.
+
+### Web Component — `<tabar-bar>`
 
 ```html
 <script type="module">import '@simtabi/tabar/element';</script>
 
-<tabar-bar value="0.4" color="#e91e63" theme="gradient" height="8"></tabar-bar>
+<tabar-bar value="0.6" theme="gradient" height="100%" tooltip line-cap="butt"
+           colors="#2299dd,#7c4dff,#30d158" color-mode="bands"></tabar-bar>
 ```
 
-Attributes map to options (kebab-case → camelCase); `gradient` accepts a comma-separated list
-(`gradient="#f00,#00f"`). The full instance is `el.bar`, and Tabar's `tabar:*` events bubble
-out of the element. The bar is created on connect and destroyed on disconnect.
+Attributes map to options (kebab-case → camelCase) and cover the whole option surface —
+geometry (`height`, `length`, `offset`, `size`, `radius`, `inner-radius`), position
+(incl. `top-center`/`left-center`/…), color (`color`, `colors`, `color-mode`,
+`color-animate`, `gradient*`, `fill`, `track-color`), `glow`/`glow-color`/`glow-size`,
+circular `line-cap`/`start-angle`/`clockwise`, `tooltip`/`tooltip-always`, `messages`/
+`message-align`/`message-color`, `segments`/`segment-mode`/`aggregate`, `persist`,
+`config-url`/`report-url`, `locale`, `aria-label`, `max`, `minimum`, `trickle*`,
+`auto-show`/`auto-hide*`, `announce`, `stall-timeout`/`error-timeout`, and `debug`. The full
+instance is `el.bar`, and Tabar's `tabar:*` events bubble out of the element. The bar is
+created on connect, reconfigured live as attributes change, and destroyed on disconnect.
+
+### Plain mount — `data-tabar-*`
+
+For a plain `new Tabar({ mountTo })`, any `data-tabar-*` attribute on the mount element is read
+as a fallback. An explicit JS option always wins; absent ones fall back to the attribute, then
+the default — so the same markup works with or without per-instance JS:
+
+```html
+<div id="bar" data-tabar-color="#e91e63" data-tabar-height="100%" data-tabar-tooltip></div>
+<script type="module">
+  import { Tabar } from '@simtabi/tabar';
+  new Tabar({ position: 'inline', mountTo: '#bar' }); // picks up the data-tabar-* config
+</script>
+```
+
+Only recognized keys are read; unrelated `data-tabar-*` attributes are ignored.
 
 ## React — `useTabar`
 

@@ -22,6 +22,10 @@ Or set them live from JS (chainable):
 bar.setColor('#16a34a').setHeight(6).setRadius(9999).setInnerRadius(9999);
 ```
 
+`height` defaults to **6px** and accepts a number (px) or any CSS length — use `'0.5rem'` to
+scale with type, or `'100%'` to fill a sized inline container. See
+[height units](../configuration.md#height-units).
+
 ## Preset themes
 
 Pick a ready-made look with the `theme` option (or `setTheme(...)` at runtime):

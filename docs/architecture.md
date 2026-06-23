@@ -31,6 +31,15 @@ Live instances are tracked in a module-level `Map` keyed by id. `Tabar.get(id)` 
 `Tabar.instances` read from it. Constructing with an id that already exists returns the
 existing instance instead of creating a conflicting one.
 
+## Declarative configuration
+
+`src/attrs.js` is the single coercion layer shared by both attribute paths — the `<tabar-bar>`
+Web Component and plain `new Tabar({ mountTo })` reading `data-tabar-*` off the mount element.
+It owns the attribute list and the number/boolean/CSV/JSON coercion, so the two paths can't
+drift. For a plain mount, attributes are merged **under** the explicit JS options
+(`{ ...defaults, ...dataAttrs, ...userOptions }`), so code always wins. See
+[integration](tools/integration.md).
+
 ## State machine
 
 `data-state-tabar` reflects the lifecycle: `idle → active → done`, plus `indeterminate`.

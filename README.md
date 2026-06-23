@@ -21,9 +21,11 @@ bar.done();                 // glide to 100%, then hide
   Bootstrap, or no framework at all.
 - **Web *and* CLI** — the same API renders in the browser (DOM/SVG) and in the **terminal**
   (ANSI via `@simtabi/tabar/node` + a `tabar` CLI), all from one headless core.
-- **Shapes & themes** — linear bars (top/bottom/left/right/inline) *and* circular SVG rings,
-  preset themes (`gradient`, `rainbow`, `stripes`, `glow`, `minimal`), gradient & multicolor
-  fills, glow, stripes and tooltips.
+- **Shapes & themes** — linear bars (top/bottom/left/right + centered variants, inline) with a
+  configurable `length`, *and* circular SVG rings (track color, line cap, start angle,
+  direction); preset themes (`gradient`, `rainbow`, `stripes`, `glow`, `minimal`), multi-color
+  fills (blended, hard **bands**, or animated), a glow that bleeds onto its surroundings,
+  stripes and tooltips. `height` takes px or any CSS length (`rem`/`em`/`%`).
 - **One task, many progresses** — multi-segment bars (stacked chunks or overlay layers) and a
   `TabarGroup` of child bars with an auto-aggregated overall.
 - **Transfers & feedback** — drive from uploads/downloads (`setProgress`, `trackXHR`,
@@ -35,8 +37,9 @@ bar.done();                 // glide to 100%, then hide
   let any tool or service drive and observe a bar both ways. Built-in debug logging, an
   `error()` state, and **localizable** strings (`Tabar.locale` / `addLocale`).
 - **Integrable** — configure from a JSON object/string, load config from an API
-  (`configUrl`), report progress back (`reportUrl`), and use the `<tabar-bar>` Web Component
-  or the `useTabar` React hook.
+  (`configUrl`), report progress back (`reportUrl`), drive it declaratively via the
+  `<tabar-bar>` Web Component or `data-tabar-*` attributes on a mount element, and use the
+  `useTabar` React hook.
 - **Accessible & responsive** — real `role="progressbar"` with live `aria-valuenow`, honors
   `prefers-reduced-motion`, RTL-aware, and stays visible on small/touch screens.
 - **Secure** — no `innerHTML`, no string-built CSS, no inline handlers; stored state is
@@ -169,9 +172,11 @@ More in [docs/tools/events.md](docs/tools/events.md).
 | `reset()` / `error(info?)` | Reset to 0, or flip to the red error state (emits `error`). |
 | `show()` / `hide()` | Toggle visibility (`bar.visible`). |
 | `destroy()` | Remove DOM, timers and listeners; release the shared stylesheet. |
-| `setColor/​setColor2/​setBackground/​setHeight/​setSpeed/​setRadius/​setInnerRadius/​setLabel/​setTooltip` | Chainable live setters. |
+| `setColor/​setColor2/​setBackground/​setHeight/​setSpeed/​setRadius/​setInnerRadius/​setLabel/​setTooltip` | Chainable live setters (`setHeight` accepts px or any CSS length). |
+| `setLength/​setOffset/​setTrackColor/​setLineCap/​setStartAngle/​setClockwise` | Fixed-bar length/inset and circular ring geometry. |
 | `setTheme/​setGradient/​setGradientStops/​setColorAt/​setGradientAngle/​setGradientType/​setGradientShape/​setGradientPosition/​setFill` | Edit look, gradient colors/stops/angle/type/shape/center, or any CSS fill. |
-| `setGlow(on, color?)/​setGlowColor/​setStriped` | Glow & stripe modifiers that compose with any theme. |
+| `setColors/​addColorStop/​removeColorStop/​setColorMode/​setColorAnimate` | Multi-color stops, `gradient` vs hard `bands`, and the scrolling animation. |
+| `setGlow(on, color?)/​setGlowColor/​setGlowSize/​setStriped` | Glow (with bleed size) & stripe modifiers that compose with any theme. |
 | `configure(opts)` | Merge options (object or JSON string) and re-apply theme. |
 | `toJSON()` / `loadConfig(url)` / `report(url)` | Serialize config, fetch config from an API, POST state back. |
 | `on(name, fn)` / `once(name, fn)` / `off(name?, fn?)` | Subscribe to events (chainable). |
