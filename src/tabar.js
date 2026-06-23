@@ -233,11 +233,15 @@ const normalizeValue = (n, max) => {
   return clamp(onScale, 0, 100);
 };
 
+let segUid = 0;
+
 /** Normalize a segment descriptor; `value` is stored as a percentage [0,100]. */
-const normalizeSegment = (seg, max, index) => {
+const normalizeSegment = (seg, max) => {
   const s = seg && typeof seg === 'object' ? seg : { value: seg };
   return {
-    id: s.id != null ? String(s.id) : `seg-${index}`,
+    // A monotonic id (not the array index) so auto-ids never collide across
+    // add/remove cycles. Existing segments keep their already-assigned id.
+    id: s.id != null ? String(s.id) : `seg-${(segUid += 1)}`,
     value: normalizeValue(s.value, max) ?? 0,
     color: s.color != null ? String(s.color) : null,
     label: s.label != null ? String(s.label) : null,
@@ -400,6 +404,10 @@ function releaseBaseStyle() {
   if (styleRefCount === 0 && isBrowser) {
     const style = document.getElementById(BASE_STYLE_ID);
     if (style) style.remove();
+    // The shared aria-live region is created lazily; drop it with the last bar
+    // so nothing is orphaned in the DOM (matches the stylesheet's lifecycle).
+    const live = document.getElementById(LIVE_REGION_ID);
+    if (live) live.remove();
   }
 }
 
@@ -1112,7 +1120,7 @@ class Tabar {
   setSegments(arr) {
     if (this._destroyed) return this;
     if (!Array.isArray(arr) || !arr.length) return this._exitSegmentMode();
-    this._segments = arr.map((s, i) => normalizeSegment(s, this.options.max, i));
+    this._segments = arr.map((s) => normalizeSegment(s, this.options.max));
     if (this._wrapper) this._wrapper.setAttribute('data-segmented-tabar', this._segmentMode());
     this.show();
     if (this._state === 'idle') this._setState('active');
@@ -1123,7 +1131,7 @@ class Tabar {
   /** Add a segment. Chainable. */
   addSegment(seg) {
     const next = this._segments ? this._segments.slice() : [];
-    next.push(normalizeSegment(seg, this.options.max, next.length));
+    next.push(normalizeSegment(seg, this.options.max));
     return this.setSegments(next);
   }
 
@@ -1276,11 +1284,13 @@ class Tabar {
       this._stopTrickle();
       this._setState('indeterminate');
       if (this._wrapper) this._wrapper.removeAttribute('aria-valuenow');
-      this._bar.style.transitionDuration = '0ms';
-      // Clear inline sizing so the stylesheet's indeterminate animation takes effect.
-      this._bar.style.removeProperty('width');
-      this._bar.style.removeProperty('height');
-      this._bar.style.removeProperty('stroke-dashoffset');
+      if (this._bar) {
+        this._bar.style.transitionDuration = '0ms';
+        // Clear inline sizing so the stylesheet's indeterminate animation takes effect.
+        this._bar.style.removeProperty('width');
+        this._bar.style.removeProperty('height');
+        this._bar.style.removeProperty('stroke-dashoffset');
+      }
     } else {
       this._setState('active');
       if (this._wrapper) {
@@ -2011,9 +2021,12 @@ class Tabar {
       writeState(this._store, this._valueKey(), { value: this._progress });
       return;
     }
-    this._saveTimer = setTimeout(() => {
-      writeState(this._store, this._valueKey(), { value: this._progress });
-    }, this._persist.debounce);
+    this._saveTimer = this._track(
+      setTimeout(() => {
+        if (this._destroyed) return; // don't write after teardown
+        writeState(this._store, this._valueKey(), { value: this._progress });
+      }, this._persist.debounce),
+    );
   }
 
   /** Flush any pending debounced value write immediately. */
@@ -2040,7 +2053,7 @@ class Tabar {
       const saved = readState(this._store, this._valueKey(), ttl);
       if (saved && saved.value > 0) {
         this.show();
-        this._setState('active');
+        this._setState(saved.value >= 100 ? 'done' : 'active'); // keep a completed bar's state
         this.goto(saved.value / 100, { animate: false });
       }
     }

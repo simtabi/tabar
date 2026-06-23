@@ -44,4 +44,14 @@ describe('terminal renderer (Node env)', () => {
     bar.setProgress(25, 100);
     expect(bar.value).toBe(25);
   });
+
+  it('does not flood a non-TTY stream when indeterminate (no spinner loop)', async () => {
+    const stream = makeStream(false);
+    const bar = new Tabar({ trickle: false });
+    renderTerminal(bar, { stream });
+    bar.indeterminate(true);
+    await new Promise((r) => setTimeout(r, 120)); // a TTY would have spun several frames
+    const lines = stream.text.split('\n').filter(Boolean).length;
+    expect(lines).toBeLessThanOrEqual(2); // one paint, not a flood
+  });
 });

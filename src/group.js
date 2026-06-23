@@ -60,7 +60,11 @@ export class TabarGroup {
     }
   }
 
-  /** Add a child bar (its own progress/status). Returns the child Tabar. */
+  /**
+   * Add a child bar (its own progress/status). Returns the child Tabar.
+   * `childOpts.weight` (a positive number) weights it in the overall aggregate;
+   * otherwise children are weighted by their transfer `total`, else equally.
+   */
   add(childOpts = {}) {
     let mount;
     if (isBrowser) {
@@ -68,15 +72,17 @@ export class TabarGroup {
       mount.className = 'tabar-group__child';
       this._childList.appendChild(mount);
     }
+    const { weight, ...rest } = childOpts;
     const child = new Tabar({
       showLabel: true,
       labelFormat: (p) => `${Math.round(p)}%`,
       ...(this.options.child || {}),
-      ...childOpts,
+      ...rest,
       position: 'inline',
       mountTo: mount,
       trickle: false,
     });
+    if (Number.isFinite(weight) && weight > 0) child._groupWeight = weight;
     if (isBrowser) child.show();
     this._children.set(child.id, child);
     // Re-aggregate and bubble child lifecycle as `child:<event>`.
@@ -146,7 +152,7 @@ export class TabarGroup {
       return;
     }
     const strategy = this.options.aggregate;
-    const weight = (c) => c.stats.total || c.options.weight || 1;
+    const weight = (c) => c._groupWeight || c.stats.total || 1;
     let pct;
     if (strategy === 'max') pct = Math.max(...kids.map((c) => c.value));
     else if (strategy === 'sum') pct = Math.min(100, kids.reduce((a, c) => a + c.value, 0));

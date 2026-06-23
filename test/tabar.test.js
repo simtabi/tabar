@@ -752,6 +752,15 @@ describe('web component <tabar-bar>', () => {
     expect(el.querySelectorAll('[data-seg-tabar]')).toHaveLength(2);
     el.remove();
   });
+
+  it('treats an empty numeric attribute as unset (no forced 0)', async () => {
+    await import('../src/element.js');
+    const el = document.createElement('tabar-bar');
+    el.setAttribute('height', ''); // empty → should NOT collapse the bar to 0px
+    document.body.appendChild(el);
+    expect(el.bar._wrapper.style.getPropertyValue('--tabar-height')).not.toBe('0px');
+    el.remove();
+  });
 });
 
 describe('segments', () => {
@@ -868,6 +877,37 @@ describe('gradients', () => {
   it('still honors an explicit gradient stops array', () => {
     const bar = new Tabar({ gradient: ['#f00', '#0f0', '#00f'], trickle: false });
     expect(bar._wrapper.style.getPropertyValue('--tabar-fill')).toMatch(/^linear-gradient\(/);
+  });
+});
+
+describe('audit fixes', () => {
+  it('mints unique segment ids (no collision after remove + add)', () => {
+    const bar = new Tabar({ trickle: false });
+    bar.setSegments([{ value: 0 }, { value: 0 }, { value: 0 }]);
+    const first = bar.segments.map((s) => s.id);
+    bar.removeSegment(first[1]);
+    bar.addSegment({ value: 0.5 });
+    const ids = bar.segments.map((s) => s.id);
+    expect(new Set(ids).size).toBe(ids.length); // all unique
+  });
+
+  it('removes the shared aria-live region when the last bar is destroyed', async () => {
+    destroyAll(); // start from a clean ref-count
+    const bar = new Tabar({ trickle: false });
+    await bar.done(true); // creates #tabar-live
+    expect(document.getElementById('tabar-live')).toBeTruthy();
+    bar.destroy();
+    expect(document.getElementById('tabar-live')).toBeNull();
+  });
+
+  it('restores a completed (100%) persisted bar as done, not active', () => {
+    localStorage.setItem(
+      'tabar:keepme',
+      JSON.stringify({ v: 1, ts: Date.now(), value: 100 }),
+    );
+    const bar = new Tabar({ id: 'keepme', persist: { storage: 'local' }, trickle: false });
+    expect(bar.value).toBe(100);
+    expect(bar.state).toBe('done');
   });
 });
 

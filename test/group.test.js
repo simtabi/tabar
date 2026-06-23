@@ -35,6 +35,16 @@ describe('TabarGroup', () => {
     group.destroy();
   });
 
+  it('weights the overall by an explicit per-child weight', () => {
+    const group = new TabarGroup({ mountTo: '#g', aggregate: 'weighted' });
+    const a = group.add({ weight: 3 });
+    const b = group.add({ weight: 1 });
+    a.set(1, { animate: false }); // 100%
+    b.set(0, { animate: false }); // 0%
+    expect(group.overall.value).toBeCloseTo(75, 1); // (3*100 + 1*0) / 4
+    group.destroy();
+  });
+
   it('emits done when all children complete', async () => {
     const group = new TabarGroup({ mountTo: '#g' });
     let done = false;

@@ -13,14 +13,24 @@ const NUMERIC = new Set([
   'value', 'height', 'size', 'speed', 'min', 'max', 'gradientAngle', 'trickleSpeed',
   'stallTimeout', 'errorTimeout',
 ]);
-const BOOLEAN = new Set(['glow', 'striped', 'trickle', 'showPeg', 'showLabel', 'persist', 'announce']);
+const BOOLEAN = new Set(['glow', 'striped', 'trickle', 'showPeg', 'showLabel', 'announce']);
 
 const toCamel = (s) => s.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
 
 const coerceAttr = (key, value) => {
   if (value == null) return undefined;
+  // persist: a bare/true attribute enables it; a JSON object configures it.
+  if (key === 'persist') {
+    if (value === '' || value === 'true') return true;
+    if (value === 'false') return false;
+    try {
+      return JSON.parse(value); // '{"storage":"session","ttl":3600000}'
+    } catch {
+      return true;
+    }
+  }
   if (BOOLEAN.has(key)) return value !== 'false';
-  if (NUMERIC.has(key)) return Number(value);
+  if (NUMERIC.has(key)) return value === '' ? undefined : Number(value); // empty numeric → unset
   if (key === 'gradient') return value.split(',').map((c) => c.trim()); // "a,b,c"
   if (key === 'segments') {
     try {

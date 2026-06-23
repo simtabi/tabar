@@ -86,8 +86,11 @@ export function renderTerminal(bar, options = {}) {
     if (isTTY) {
       stream.write(`\r${color ? ANSI.clearLine : ''}${line}`);
     } else {
+      // Non-TTY (CI/pipe): throttle everything but the final 100% so an active
+      // OR indeterminate bar can't flood the log with thousands of lines.
       const now = Date.now();
-      if (now - lastWrite < 200 && bar.value < 100 && bar.state === 'active') return; // throttle
+      const ongoing = bar.value < 100 && bar.state !== 'done';
+      if (now - lastWrite < 200 && ongoing) return;
       lastWrite = now;
       stream.write(`${line}\n`);
     }
@@ -100,15 +103,16 @@ export function renderTerminal(bar, options = {}) {
     }
   };
   const spin = () => {
-    if (stopped || bar.state !== 'indeterminate') return stopSpinner();
+    if (stopped || !isTTY || bar.state !== 'indeterminate') return stopSpinner();
     frame += 1;
     paint();
     spinTimer = setTimeout(spin, 90);
+    if (spinTimer && typeof spinTimer.unref === 'function') spinTimer.unref(); // don't hold the event loop open
   };
 
   const onUpdate = () => {
     paint();
-    if (bar.state === 'indeterminate' && !spinTimer) spin();
+    if (bar.state === 'indeterminate' && isTTY && !spinTimer) spin();
     else if (bar.state !== 'indeterminate') stopSpinner();
   };
   const onDone = () => {
@@ -124,7 +128,7 @@ export function renderTerminal(bar, options = {}) {
   bar.on('done', onDone);
   bar.on('destroy', () => stop());
   paint();
-  if (bar.state === 'indeterminate') spin();
+  if (bar.state === 'indeterminate' && isTTY) spin();
 
   function stop() {
     if (stopped) return;

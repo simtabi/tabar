@@ -33,8 +33,20 @@ A major capability release: Tabar now runs in the **terminal** as well as the we
   examples.
 
 ### Fixed
-- `goto()`/`set()`/`setProgress()` no longer required a DOM element, so the value/state
-  machinery (and stats/ETA) works fully headless in Node.
+- `goto()`/`set()`/`setProgress()`/`indeterminate()` no longer require a DOM element, so the
+  value/state machinery (and stats/ETA) works fully headless in Node.
+- **Gradients**: the `gradient` theme now honors `setGradientType`/`setGradientShape`/
+  `setGradientPosition` (previously a no-op); circular `gradient` rings render a real SVG
+  gradient stroke instead of solid; and gradient fills are anchored to the track so their
+  colors no longer shift/compress as the bar grows.
+- The shared `aria-live` region is now removed with the last bar (no orphaned DOM node);
+  debounced persistence can't write after `destroy()`; auto-segment ids are monotonic (no
+  collision after remove + add); a completed (100%) persisted bar restores as `done`.
+- Terminal: a non-TTY (CI/pipe) bar no longer floods the log when active or indeterminate, and
+  the spinner timer no longer keeps the Node process alive. CLI: a bare number with no
+  `--total` is treated as a percentage instead of snapping to 100%.
+- `<tabar-bar>`: an empty numeric attribute is treated as unset (no forced `0`), and `persist`
+  accepts a JSON object. `useTabar` re-renders on error/warning/success and exposes `complete`.
 
 ## [0.5.0] - 2026-06-23
 

@@ -33,7 +33,8 @@ Usage:
   <stream> | tabar [--total N] [--label TEXT] [--width N] [--no-color]
   tabar --demo
 
-Stdin: one update per line — "loaded total", "loaded" (with --total), or "NN%".
+Stdin: one update per line — "loaded total", "loaded" (with --total), "NN%",
+or a bare number (0-100) treated as a percentage when no --total is given.
 `);
   process.exit(0);
 }
@@ -63,7 +64,7 @@ if (demo) {
     if (Number.isFinite(loaded)) {
       const tot = Number.isFinite(total) ? total : opts.total;
       if (Number.isFinite(tot) && tot > 0) bar.setProgress(loaded, tot);
-      else bar.set(loaded);
+      else bar.set(loaded / 100); // no total -> treat the number as a percentage (0-100)
     }
   });
   rl.on('close', () => {
