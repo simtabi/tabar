@@ -1137,13 +1137,20 @@ describe('robustness', () => {
 });
 
 describe('flexible height', () => {
-  it('accepts a CSS length so a linear bar can fill its host', () => {
+  it('defaults to 6px', () => {
+    const bar = new Tabar({ position: 'inline', trickle: false });
+    expect(bar._wrapper.style.getPropertyValue('--tabar-height')).toBe('6px');
+  });
+
+  it('accepts any CSS length (px / rem / em / %) so a linear bar can scale or fill', () => {
     const bar = new Tabar({ position: 'inline', height: '100%', trickle: false });
     expect(bar._wrapper.style.getPropertyValue('--tabar-height')).toBe('100%');
     bar.setHeight(24);
     expect(bar._wrapper.style.getPropertyValue('--tabar-height')).toBe('24px');
     bar.setHeight('2rem');
     expect(bar._wrapper.style.getPropertyValue('--tabar-height')).toBe('2rem');
+    bar.setHeight('1.5em');
+    expect(bar._wrapper.style.getPropertyValue('--tabar-height')).toBe('1.5em');
   });
 
   it('keeps circular height numeric (ring stroke), ignoring a string', () => {

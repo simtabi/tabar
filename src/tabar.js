@@ -54,7 +54,10 @@ const DEFAULTS = Object.freeze({
   color: '#29d', // bar fill (solid)
   color2: '#7c4dff', // secondary color used by the 'gradient' theme
   background: 'transparent', // track background
-  height: 3, // px — bar thickness (height for horizontal, width for vertical)
+  // Bar thickness (height for horizontal, width for vertical). A number is px;
+  // a CSS length string (e.g. '0.5rem', '100%') is honored verbatim for linear
+  // bars. Circular treats it as the ring stroke (numeric px).
+  height: 6,
   radius: 0, // outer radius: number | [tl,tr,bl,br] | {topLeft,...}
   innerRadius: 0, // bar radius: same shapes as `radius`
   speed: 300, // transition duration in ms
@@ -842,7 +845,7 @@ class Tabar {
     set('--tabar-color2', String(o.color2));
     // Linear `height` may be any CSS length (e.g. '100%' to fill the host);
     // circular `height` is the ring stroke thickness, so keep it numeric px.
-    set('--tabar-height', o.shape === 'circular' ? `${toNum(o.height) || 6}px` : toCssSize(o.height, '3px'));
+    set('--tabar-height', o.shape === 'circular' ? `${toNum(o.height) || 6}px` : toCssSize(o.height, '6px'));
     set('--tabar-radius', cornersToCss(o.radius));
     set('--tabar-inner-radius', cornersToCss(o.innerRadius));
     set('--tabar-speed', `${toNum(o.speed)}ms`);
@@ -1715,7 +1718,7 @@ class Tabar {
   setHeight(px) {
     this.options.height = px;
     if (this._wrapper) {
-      const css = this.options.shape === 'circular' ? `${toNum(px) || 6}px` : toCssSize(px, '3px');
+      const css = this.options.shape === 'circular' ? `${toNum(px) || 6}px` : toCssSize(px, '6px');
       this._wrapper.style.setProperty('--tabar-height', css);
     }
     return this;

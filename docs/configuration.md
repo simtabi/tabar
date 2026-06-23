@@ -22,7 +22,7 @@ Pass an options object to `new Tabar(options)`. Every option is optional.
 | `color` | `string` | `'#29d'` | Bar fill (any CSS color). |
 | `color2` | `string` | `'#7c4dff'` | Secondary color for the `gradient` theme. |
 | `background` | `string` | `'transparent'` | Track background. |
-| `height` | `number \| string` | `3` | Bar thickness — px when a number; a CSS length (e.g. `'100%'`) lets a linear bar fill its host. Circular: ring stroke thickness (px). |
+| `height` | `number \| string` | `6` | Bar thickness — px when a number; any CSS length string (`'0.5rem'`, `'100%'`, `'2vh'`, `calc(...)`) is honored for linear bars. Circular: ring stroke thickness (px). See [units](#height-units). |
 | `radius` | `number \| [tl,tr,bl,br] \| {topLeft,…}` | `0` | Outer (track) corner radius. |
 | `innerRadius` | same as `radius` | `0` | Inner (bar) corner radius. |
 | `speed` | `number` | `300` | Transition duration in ms. |
@@ -87,6 +87,30 @@ Pass an options object to `new Tabar(options)`. Every option is optional.
 `goto`/`set`/`inc` accept either a **fraction** in `[0, 1]` (e.g. `0.5` → 50%) or an
 **absolute value** on the `max` scale (e.g. `75` with default `max: 100` → 75%). Values are
 clamped to the valid range; non-finite input is ignored.
+
+## Height units
+
+The default `height` is **6px**. A linear bar's `height` accepts **any CSS length** — a
+number is taken as px, and a string passes through verbatim:
+
+```js
+new Tabar({ height: 6 });        // 6px (default)
+new Tabar({ height: '0.5rem' }); // scales with the root font size
+new Tabar({ height: '100%' });   // fills a sized host (e.g. an inline container)
+new Tabar({ height: '2vh' });    // viewport-relative
+```
+
+Which to use?
+
+- **`px` (default)** — most predictable for fixed UI chrome like a top loading bar; it
+  won't change if the user bumps their font size. This is why the default is a number.
+- **`rem`** — best when you *want* the bar to scale with the user's typography (good for
+  accessibility/zoom). `em` scales with the local font size instead of the root.
+- **`%` / `vh`** — use `'100%'` to fill a container you've sized (see the inline demos), or
+  viewport units for a thickness relative to the screen.
+
+All are supported for **linear** bars. **Circular** rings use `height` as the ring stroke
+and need a numeric px value — a non-px string falls back to the `6px` default there.
 
 ## CSS variables
 

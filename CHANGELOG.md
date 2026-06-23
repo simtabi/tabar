@@ -32,9 +32,12 @@ All notable changes to this project are documented here. The format is based on
 - **Multiple-color modes** — a `colors` multi-stop alias plus `colorMode: 'gradient' |
   'bands'` (hard, non-interpolated color blocks) and `colorAnimate` (scrolling), with
   `setColors`/`addColorStop`/`removeColorStop`/`setColorMode`/`setColorAnimate`.
-- **Flexible `height`** — a linear bar's `height` now accepts any CSS length, so
-  `height: '100%'` makes it fill its host container (number values stay px). Circular
-  `height` remains the ring stroke thickness.
+- **Flexible `height`** — a linear bar's `height` now accepts any CSS length
+  (`'0.5rem'`, `'100%'`, `'2vh'`, `calc(...)`), so it can scale with type or fill its
+  host; number values stay px. Circular `height` remains the ring stroke thickness.
+
+### Changed
+- The default `height` is now **6px** (was 3px) for a more visible bar out of the box.
 - **More circular options** — `trackColor`, `lineCap`, `startAngle`, `clockwise`
   (`--tabar-track-color`/`--tabar-start-angle`/`--tabar-flip`) and a configurable
   `glowSize`.

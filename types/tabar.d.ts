@@ -186,8 +186,10 @@ export interface TabarOptions {
   background?: string;
   /**
    * Bar thickness — height for horizontal bars, width for vertical. A number is
-   * px; a CSS length string (e.g. `'100%'`) lets a linear bar fill its host.
-   * For circular bars this is the ring stroke thickness (px). Default: 3.
+   * px; a CSS length string (`'0.5rem'`, `'100%'`, `'2vh'`, `calc(...)`) is
+   * honored verbatim, so a linear bar can scale with type (`rem`/`em`) or fill
+   * its host (`'100%'`). For circular bars this is the ring stroke thickness
+   * (numeric px). Default: 6.
    */
   height?: number | string;
   /** Outer (track) corner radius. */
