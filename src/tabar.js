@@ -61,6 +61,10 @@ const DEFAULTS = Object.freeze({
   stripeAnimate: true, // animate the stripes when striped
   value: null, // initial value to show on construct (fraction or absolute)
 
+  segments: null, // [{ id?, value, color?, label?, weight?, status? }] -> multi-progress bar
+  segmentMode: 'stacked', // 'stacked' (chunks tile the bar) | 'overlay' (layered, e.g. buffered/played)
+  aggregate: null, // 'weighted'|'sum'|'avg'|'max'|'primary'; default by mode (stacked=weighted, overlay=primary)
+
   max: 100, // value scale; `set(max)` === 100%
   minimum: 0.08, // floor (fraction) applied by start()
   trickle: true, // auto-increment while pending
@@ -77,6 +81,10 @@ const DEFAULTS = Object.freeze({
 
   autoHide: true, // hide + reset after done()
   autoHideDelay: 350, // ms to linger at 100% before hiding
+
+  announce: true, // announce state changes to screen readers via a shared aria-live region
+  stallTimeout: 0, // ms with no progress while active -> 'stall' event + warning state (0 = off)
+  errorTimeout: 0, // ms after which an error auto-clears (0 = off)
 
   locale: null, // override the global Tabar.locale for this instance
   ariaLabel: null, // accessible name; defaults to the locale's "progress" string
@@ -106,6 +114,10 @@ const DEFAULTS = Object.freeze({
   onReport: null,
   onProgress: null,
   onError: null,
+  onWarning: null,
+  onSuccess: null,
+  onStall: null,
+  onRetry: null, // fired when retry() runs (the retry HANDLER is set via retryWith()/{retry})
 });
 
 /** Events Tabar emits. Each has a matching `on<Name>` option callback. */
@@ -124,6 +136,10 @@ const EVENTS = Object.freeze([
   'report',
   'progress',
   'error',
+  'warning',
+  'success',
+  'retry',
+  'stall',
 ]);
 
 /* --------------------------------------------------------------------------
@@ -158,8 +174,19 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 /* -- Localization ---------------------------------------------------------- */
 
 // Built-in strings; extend with Tabar.addLocale(code, {...}) and switch via Tabar.locale.
+// `rtl: true` marks right-to-left locales (mirrors fills + circular sweep).
+const KB = ['B', 'KB', 'MB', 'GB', 'TB'];
 const locales = {
-  en: { bytes: ['B', 'KB', 'MB', 'GB', 'TB'], hour: 'h', min: 'm', sec: 's', lessThan: '<1s', progress: 'Progress' },
+  en: { bytes: KB, hour: 'h', min: 'm', sec: 's', lessThan: '<1s', progress: 'Progress', complete: 'Complete', error: 'Error', stalled: 'Stalled', loading: 'Loading' },
+  es: { bytes: KB, hour: 'h', min: 'm', sec: 's', lessThan: '<1s', progress: 'Progreso', complete: 'Completado', error: 'Error', stalled: 'Estancado', loading: 'Cargando' },
+  fr: { bytes: ['o', 'Ko', 'Mo', 'Go', 'To'], hour: 'h', min: 'min', sec: 's', lessThan: '<1s', progress: 'Progression', complete: 'Terminé', error: 'Erreur', stalled: 'Bloqué', loading: 'Chargement' },
+  de: { bytes: KB, hour: 'Std', min: 'Min', sec: 'Sek', lessThan: '<1Sek', progress: 'Fortschritt', complete: 'Fertig', error: 'Fehler', stalled: 'Angehalten', loading: 'Lädt' },
+  pt: { bytes: KB, hour: 'h', min: 'm', sec: 's', lessThan: '<1s', progress: 'Progresso', complete: 'Concluído', error: 'Erro', stalled: 'Parado', loading: 'Carregando' },
+  it: { bytes: KB, hour: 'h', min: 'm', sec: 's', lessThan: '<1s', progress: 'Avanzamento', complete: 'Completato', error: 'Errore', stalled: 'Bloccato', loading: 'Caricamento' },
+  ja: { bytes: KB, hour: '時間', min: '分', sec: '秒', lessThan: '1秒未満', progress: '進捗', complete: '完了', error: 'エラー', stalled: '停止', loading: '読み込み中' },
+  zh: { bytes: KB, hour: '小时', min: '分', sec: '秒', lessThan: '<1秒', progress: '进度', complete: '完成', error: '错误', stalled: '已停滞', loading: '加载中' },
+  ko: { bytes: KB, hour: '시간', min: '분', sec: '초', lessThan: '1초 미만', progress: '진행', complete: '완료', error: '오류', stalled: '정체됨', loading: '로딩 중' },
+  ar: { rtl: true, bytes: ['بايت', 'ك.ب', 'م.ب', 'ج.ب', 'ت.ب'], hour: 'س', min: 'د', sec: 'ث', lessThan: '<1ث', progress: 'التقدم', complete: 'اكتمل', error: 'خطأ', stalled: 'متوقف', loading: 'جارٍ التحميل' },
 };
 let activeLocale = 'en';
 
@@ -204,6 +231,19 @@ const normalizeValue = (n, max) => {
   if (!Number.isFinite(v)) return null;
   const onScale = v >= 0 && v <= 1 ? v * 100 : (v / max) * 100;
   return clamp(onScale, 0, 100);
+};
+
+/** Normalize a segment descriptor; `value` is stored as a percentage [0,100]. */
+const normalizeSegment = (seg, max, index) => {
+  const s = seg && typeof seg === 'object' ? seg : { value: seg };
+  return {
+    id: s.id != null ? String(s.id) : `seg-${index}`,
+    value: normalizeValue(s.value, max) ?? 0,
+    color: s.color != null ? String(s.color) : null,
+    label: s.label != null ? String(s.label) : null,
+    weight: Number.isFinite(s.weight) && s.weight > 0 ? s.weight : 1,
+    status: s.status != null ? String(s.status) : null,
+  };
 };
 
 /** Build a `border-radius` shorthand string from number | array | object. */
@@ -363,6 +403,25 @@ function releaseBaseStyle() {
   }
 }
 
+/** A single shared, off-screen polite aria-live region for all bars. */
+const LIVE_REGION_ID = 'tabar-live';
+function announceMessage(text) {
+  if (!isBrowser || !text) return;
+  let region = document.getElementById(LIVE_REGION_ID);
+  if (!region) {
+    region = document.createElement('div');
+    region.id = LIVE_REGION_ID;
+    region.setAttribute('aria-live', 'polite');
+    region.setAttribute('aria-atomic', 'true');
+    region.setAttribute('role', 'status');
+    // visually hidden but available to assistive tech
+    region.style.cssText =
+      'position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0';
+    document.body.appendChild(region);
+  }
+  region.textContent = String(text);
+}
+
 /* --------------------------------------------------------------------------
  * Guarded storage access (treats all stored data as untrusted)
  * ------------------------------------------------------------------------ */
@@ -479,8 +538,13 @@ class Tabar {
     this._reportTimer = null;
     this._destroyed = false;
     this._paused = false;
+    this._attempts = 0;
+    this._retryFn = null; // set via retryWith() or the {retry} option on trackXHR/trackResponse
+    this._stallTimer = null;
     /** Transfer stats for upload/download tracking (loaded/total/speed/eta). */
     this._xfer = { loaded: 0, total: 0, startedAt: null, last: null, speed: 0 };
+    /** Normalized segments when in multi-progress mode, else null. */
+    this._segments = null;
     /** Cleanup callbacks registered by bind(). */
     this._unbinds = [];
 
@@ -501,6 +565,7 @@ class Tabar {
         this.goto(opts.value, { animate: false });
       }
       this._setupReporting();
+      if (opts.segments) this.setSegments(opts.segments);
       if (opts.configUrl) this.loadConfig(opts.configUrl);
     }
   }
@@ -564,10 +629,8 @@ class Tabar {
     wrapper.setAttribute('data-tabar', '');
     wrapper.setAttribute('data-id-tabar', this.id);
     wrapper.setAttribute('data-shape-tabar', circular ? 'circular' : 'linear');
-    if (!circular) {
-      wrapper.setAttribute('data-position-tabar', this.options.position);
-      if (this.options.direction === 'rtl') wrapper.setAttribute('data-rtl-tabar', 'true');
-    }
+    if (!circular) wrapper.setAttribute('data-position-tabar', this.options.position);
+    if (this._isRtl()) wrapper.setAttribute('data-rtl-tabar', 'true'); // mirrors fill + circular sweep
     wrapper.setAttribute('role', 'progressbar');
     wrapper.setAttribute('aria-valuemin', '0');
     wrapper.setAttribute('aria-valuemax', '100');
@@ -711,6 +774,11 @@ class Tabar {
   /** @returns {'horizontal'|'vertical'} */
   _orientation() {
     return VERTICAL_POSITIONS.has(this.options.position) ? 'vertical' : 'horizontal';
+  }
+
+  /** True when the bar should render right-to-left (explicit option or RTL locale). */
+  _isRtl() {
+    return this.options.direction === 'rtl' || localeDict(this.options.locale).rtl === true;
   }
 
   /** Default gradient angle for the current orientation. */
@@ -955,11 +1023,13 @@ class Tabar {
    */
   goto(n, opts = {}) {
     const pct = normalizeValue(n, this.options.max);
-    if (this._destroyed || pct == null || !this._bar) return Promise.resolve(this);
+    if (this._destroyed || pct == null) return Promise.resolve(this);
+
+    if (this._segments) this._exitSegmentMode(); // a direct value returns to single mode
 
     // Setting a value clears a transient error/indeterminate state; a sub-100 value
     // also re-activates a completed bar. (done()'s own goto(1) keeps the 'done' state.)
-    if (this._state === 'indeterminate' || this._state === 'error') this._setState('active');
+    if (this._state === 'indeterminate' || this._state === 'error' || this._state === 'warning' || this._state === 'success') this._setState('active');
     else if (this._state === 'done' && pct < 100) this._setState('active');
 
     // A positive value should be visible — auto-show unless opted out.
@@ -980,7 +1050,7 @@ class Tabar {
     if (pct >= 100) this._scheduleAutoDone();
 
     const noTransition =
-      !animate || duration <= 0 || pct === previous || prefersReducedMotion();
+      !animate || duration <= 0 || pct === previous || prefersReducedMotion() || !this._bar;
     if (noTransition) return Promise.resolve(this);
 
     return new Promise((resolve) => {
@@ -1012,6 +1082,156 @@ class Tabar {
   /** Alias of {@link goto}. */
   set(n, opts) {
     return this.goto(n, opts);
+  }
+
+  /* ----- segments (one bar, many progresses) ---------------------------- */
+
+  /**
+   * Drive the bar with multiple segments (chunked upload/download, multi-stage,
+   * buffered-vs-played). Enters segment mode; `set()/goto()` returns to single mode.
+   * @param {Array<string|{id?,value,color?,label?,weight?,status?}>} arr
+   */
+  setSegments(arr) {
+    if (this._destroyed) return this;
+    if (!Array.isArray(arr) || !arr.length) return this._exitSegmentMode();
+    this._segments = arr.map((s, i) => normalizeSegment(s, this.options.max, i));
+    if (this._wrapper) this._wrapper.setAttribute('data-segmented-tabar', this._segmentMode());
+    this.show();
+    if (this._state === 'idle') this._setState('active');
+    this._paintSegments();
+    return this;
+  }
+
+  /** Add a segment. Chainable. */
+  addSegment(seg) {
+    const next = this._segments ? this._segments.slice() : [];
+    next.push(normalizeSegment(seg, this.options.max, next.length));
+    return this.setSegments(next);
+  }
+
+  /** Patch a segment by id (value/color/label/weight/status). Chainable. */
+  updateSegment(id, patch) {
+    if (!this._segments) return this;
+    const key = String(id);
+    this._segments = this._segments.map((s) => {
+      if (s.id !== key) return s;
+      const out = { ...s };
+      if (patch.value != null) out.value = normalizeValue(patch.value, this.options.max) ?? s.value;
+      if (patch.color !== undefined) out.color = patch.color == null ? null : String(patch.color);
+      if (patch.label !== undefined) out.label = patch.label == null ? null : String(patch.label);
+      if (Number.isFinite(patch.weight) && patch.weight > 0) out.weight = patch.weight;
+      if (patch.status !== undefined) out.status = patch.status == null ? null : String(patch.status);
+      return out;
+    });
+    this._paintSegments();
+    return this;
+  }
+
+  /** Remove a segment by id. Chainable. */
+  removeSegment(id) {
+    if (!this._segments) return this;
+    const next = this._segments.filter((s) => s.id !== String(id));
+    return next.length ? this.setSegments(next) : this._exitSegmentMode();
+  }
+
+  /** A copy of the current segments (empty array when not in segment mode). */
+  get segments() {
+    return this._segments ? this._segments.map((s) => ({ ...s })) : [];
+  }
+
+  _segmentMode() {
+    return this.options.segmentMode === 'overlay' ? 'overlay' : 'stacked';
+  }
+
+  /** Aggregate the segments into a single [0,100] value per the active strategy. */
+  _aggregateSegments() {
+    const segs = this._segments || [];
+    if (!segs.length) return 0;
+    const mode = this._segmentMode();
+    const strategy = this.options.aggregate || (mode === 'overlay' ? 'primary' : 'weighted');
+    if (strategy === 'primary') return segs[segs.length - 1].value;
+    if (strategy === 'max') return Math.max(...segs.map((s) => s.value));
+    if (strategy === 'avg') return segs.reduce((a, s) => a + s.value, 0) / segs.length;
+    if (strategy === 'sum') return clamp(segs.reduce((a, s) => a + s.value, 0), 0, 100);
+    const totalW = segs.reduce((a, s) => a + s.weight, 0) || 1; // weighted (default)
+    return segs.reduce((a, s) => a + s.weight * s.value, 0) / totalW;
+  }
+
+  /** Render the segment DOM and sync the aggregate value (aria/label/stats/event). */
+  _paintSegments() {
+    this._renderSegmentDom();
+    const pct = this._aggregateSegments();
+    const previous = this._progress;
+    this._progress = pct;
+    if (this._wrapper) this._wrapper.setAttribute('aria-valuenow', String(Math.round(pct)));
+    this._renderLabel(pct);
+    this._renderTooltip(pct);
+    if (pct !== previous) {
+      this._save();
+      this._emit('change', pct);
+    }
+    return this;
+  }
+
+  /** Build/update the segment elements inside the bar (DOM renderer only). */
+  _renderSegmentDom() {
+    if (!this._wrapper || this.options.shape === 'circular') return; // segments are linear-only
+    const p = this.options.classPrefix;
+    let layer = this._segLayer;
+    if (!layer) {
+      layer = document.createElement('div');
+      layer.className = `${p}__segments`;
+      layer.setAttribute('data-segments-tabar', '');
+      this._wrapper.appendChild(layer);
+      this._segLayer = layer;
+      if (this._bar) this._bar.style.display = 'none'; // hide the single fill in segment mode
+    }
+    const mode = this._segmentMode();
+    layer.setAttribute('data-segments-tabar', mode);
+    const segs = this._segments;
+    // reconcile child count (each segment = a slot containing a colored fill)
+    while (layer.children.length > segs.length) layer.lastChild.remove();
+    while (layer.children.length < segs.length) {
+      const slot = document.createElement('div');
+      slot.className = `${p}__segment`;
+      slot.setAttribute('data-seg-tabar', '');
+      const fill = document.createElement('div');
+      fill.className = `${p}__segment-fill`;
+      slot.appendChild(fill);
+      layer.appendChild(slot);
+    }
+    segs.forEach((s, i) => {
+      const slot = layer.children[i];
+      const fill = slot.firstChild;
+      slot.setAttribute('data-seg-id-tabar', s.id);
+      if (s.status) slot.setAttribute('data-seg-status-tabar', s.status);
+      else slot.removeAttribute('data-seg-status-tabar');
+      if (s.color) fill.style.setProperty('--tabar-seg-color', s.color);
+      else fill.style.removeProperty('--tabar-seg-color');
+      if (mode === 'overlay') {
+        slot.style.flex = '';
+        slot.style.zIndex = String(i + 1);
+        slot.style.width = `${s.value}%`; // the layer width
+        fill.style.width = '100%';
+      } else {
+        slot.style.zIndex = '';
+        slot.style.width = '';
+        slot.style.flex = `${s.weight}`; // slot occupies its weight share
+        fill.style.width = `${s.value}%`; // fills its slot by its value
+      }
+    });
+  }
+
+  /** Leave segment mode and restore the single fill. */
+  _exitSegmentMode() {
+    this._segments = null;
+    if (this._segLayer) {
+      this._segLayer.remove();
+      this._segLayer = null;
+    }
+    if (this._wrapper) this._wrapper.removeAttribute('data-segmented-tabar');
+    if (this._bar) this._bar.style.removeProperty('display');
+    return this;
   }
 
   /** Increment by `amount` (fraction). With no argument, uses NProgress-style steps. */
@@ -1061,8 +1281,10 @@ class Tabar {
       return Promise.resolve(this);
     }
     this._stopTrickle();
+    this._clearStall();
     this._setState('done');
     const finished = this.goto(1).then(() => {
+      this._announce('complete');
       this._emit('done', 100);
       if (this._persist && !this._persist.keepOnDone) this._clearSaved();
       if (this.options.autoHide) {
@@ -1081,6 +1303,7 @@ class Tabar {
   reset() {
     if (this._destroyed) return this;
     this._stopTrickle();
+    this._clearStall();
     this._resetXfer();
     this._progress = 0;
     this._setState('idle');
@@ -1093,16 +1316,107 @@ class Tabar {
 
   /**
    * Put the bar into the error state (red), e.g. when a transfer fails. Stops
-   * trickling, keeps the current value visible, and emits `error`.
+   * trickling, keeps the current value visible, announces, and emits `error`.
+   * Auto-clears after `errorTimeout` ms when configured.
    * @param {*} [info] message or detail forwarded to listeners
    */
   error(info) {
     if (this._destroyed) return this;
     this._stopTrickle();
+    this._clearStall();
     this.show();
     this._setState('error');
+    this._announce('error', info);
     this._emit('error', info != null ? info : null);
+    if (toNum(this.options.errorTimeout) > 0) {
+      this._track(
+        setTimeout(() => {
+          if (!this._destroyed && this._state === 'error') this.reset();
+        }, toNum(this.options.errorTimeout)),
+      );
+    }
     return this;
+  }
+
+  /** Put the bar into the warning state (amber). Emits `warning`. */
+  warn(info) {
+    if (this._destroyed) return this;
+    this.show();
+    this._setState('warning');
+    this._announce('warning', info);
+    this._emit('warning', info != null ? info : null);
+    return this;
+  }
+
+  /** Mark the bar successful (green) at its current value. Emits `success`. */
+  succeed(info) {
+    if (this._destroyed) return this;
+    this._stopTrickle();
+    this._clearStall();
+    this.show();
+    this._setState('success');
+    this._announce('complete', info);
+    this._emit('success', info != null ? info : null);
+    return this;
+  }
+
+  /** Register a handler that {@link retry} will invoke. Chainable. */
+  retryWith(fn) {
+    this._retryFn = typeof fn === 'function' ? fn : null;
+    return this;
+  }
+
+  /**
+   * Clear an error and re-attempt via the registered retry handler (`retryWith`
+   * / `onRetry`). Increments `attempts`. No-ops (with a debug warning) when no
+   * handler is set. Emits `retry`.
+   */
+  retry() {
+    if (this._destroyed) return this;
+    if (typeof this._retryFn !== 'function') {
+      this._log('retry() called but no retry handler is set');
+      return this;
+    }
+    this._attempts += 1;
+    if (this._state === 'error' || this._state === 'warning') this._setState('active');
+    this._emit('retry', this._attempts);
+    try {
+      this._retryFn(this, this._attempts);
+    } catch (err) {
+      if (this._debugEnabled()) console.error(`[tabar:${this.id}] retry handler threw`, err);
+    }
+    return this;
+  }
+
+  /** Announce a localized state change to the shared aria-live region. */
+  _announce(key, info) {
+    if (!this.options.announce) return;
+    const dict = localeDict(this.options.locale);
+    const phrase = dict[key] || key;
+    const label = this.options.ariaLabel || dict.progress;
+    announceMessage(info ? `${label}: ${phrase} — ${info}` : `${label}: ${phrase}`);
+  }
+
+  _clearStall() {
+    if (this._stallTimer) {
+      clearTimeout(this._stallTimer);
+      this._timers.delete(this._stallTimer);
+      this._stallTimer = null;
+    }
+  }
+
+  /** (Re)arm the stall detector; fires `stall` + warning after `stallTimeout` of no progress. */
+  _scheduleStall() {
+    this._clearStall();
+    const t = toNum(this.options.stallTimeout);
+    if (t <= 0) return;
+    this._stallTimer = this._track(
+      setTimeout(() => {
+        if (this._destroyed || this._state !== 'active') return;
+        this._emit('stall', this.stats);
+        this.warn(localeDict(this.options.locale).stalled);
+      }, t),
+    );
   }
 
   show() {
@@ -1140,6 +1454,7 @@ class Tabar {
     this._label = null;
     this._tooltip = null;
     this._gradDef = null;
+    this._segLayer = null;
     registry.delete(this.id);
     if (isBrowser) releaseBaseStyle();
   }
@@ -1483,6 +1798,7 @@ class Tabar {
    * @param {number} [total] total bytes (keeps the previous total when omitted)
    */
   setProgress(loaded, total) {
+    if (this._state === 'idle') this._setState('active'); // a transfer is active
     const x = this._xfer;
     x.loaded = Math.max(0, toNum(loaded));
     if (total != null) x.total = Math.max(0, toNum(total));
@@ -1497,6 +1813,7 @@ class Tabar {
     }
     x.last = { t, loaded: x.loaded };
     this.goto(x.total > 0 ? x.loaded / x.total : 0);
+    this._scheduleStall(); // reset the stall timer on every byte of progress
     this._emit('progress', this.stats);
     return this;
   }
@@ -1509,9 +1826,10 @@ class Tabar {
   /**
    * Track an XMLHttpRequest's progress (upload or download), incl. start/done/reset.
    * @param {XMLHttpRequest} xhr
-   * @param {{direction?: 'upload'|'download'}} [opts]
+   * @param {{direction?: 'upload'|'download', retry?: Function}} [opts]
    */
-  trackXHR(xhr, { direction = 'download' } = {}) {
+  trackXHR(xhr, { direction = 'download', retry } = {}) {
+    if (typeof retry === 'function') this.retryWith(retry);
     const source = direction === 'upload' ? xhr.upload : xhr;
     this.start();
     source.addEventListener('progress', (e) => {
@@ -1531,9 +1849,11 @@ class Tabar {
    * Track a fetch download. Returns a clone of the Response whose body streams
    * through the bar; consume the clone (`.blob()`, `.json()`, …) as usual.
    * @param {Response} response
+   * @param {{retry?: Function}} [opts]
    * @returns {Response}
    */
-  trackResponse(response) {
+  trackResponse(response, { retry } = {}) {
+    if (typeof retry === 'function') this.retryWith(retry);
     const total = Number(response.headers.get('content-length')) || 0;
     if (!response.body || typeof ReadableStream !== 'function') return response;
     this.start();
@@ -1634,6 +1954,16 @@ class Tabar {
   /** Whether the bar is currently visible. */
   get visible() {
     return !!this._wrapper && this._wrapper.hidden === false;
+  }
+
+  /** Whether the bar has reached 100%. */
+  get complete() {
+    return this._progress >= 100;
+  }
+
+  /** Number of times {@link retry} has been invoked. */
+  get attempts() {
+    return this._attempts || 0;
   }
 
   /* ----- persistence ---------------------------------------------------- */

@@ -12,7 +12,10 @@ import Tabar, {
   type TabarGradientStop,
   type TabarEventName,
   type TabarUnsubscribe,
+  type TabarSegment,
 } from './tabar';
+import { TabarGroup } from './group';
+import { terminalBar, renderTerminal } from './node';
 
 const opts: TabarOptions = {
   color: '#f00',
@@ -56,12 +59,39 @@ off2();
 ring.on('progress', (stats) => void stats);
 
 // error state + i18n
-ring.error('failed').on('error', (info) => void info);
+ring.error('failed').warn('slow').succeed('ok').on('error', (info) => void info);
+ring.retryWith((b, n) => void (b.id + n)).retry();
+const done: boolean = ring.complete;
+const tries: number = ring.attempts;
+void done;
+void tries;
 Tabar.addLocale('de', { min: 'Min', sec: 'Sek' });
 Tabar.locale = 'de';
 const dict = Tabar.getLocale('de');
 void dict.bytes;
 void Tabar.formatBytes(1024, 'de');
+
+// segments
+const seg = new Tabar({ segments: [{ id: 'a', value: 0.5 }], segmentMode: 'stacked', aggregate: 'weighted' });
+seg.setSegments([{ value: 0.2, color: '#f00' }, { value: 0.8 }]);
+seg.addSegment({ id: 'c', value: 0.3, weight: 2 });
+seg.updateSegment('c', { value: 0.9 });
+seg.removeSegment('c');
+const list: TabarSegment[] = seg.segments;
+void list;
+
+// transfer retry option + new states
+declare const xhr2: XMLHttpRequest;
+new Tabar().trackXHR(xhr2, { direction: 'download', retry: () => {} });
+
+// group + terminal
+const group = new TabarGroup({ aggregate: 'weighted' });
+const childBar = group.add({ label: 'file' });
+childBar.setProgress(1, 2);
+void group.overall.value;
+void group.children.length;
+const tbar = terminalBar({ label: 'DL', colors: false });
+renderTerminal(tbar, { width: 40 }).stop();
 
 // promises
 bar.goto(0.5).then((b) => b.done());

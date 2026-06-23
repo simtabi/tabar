@@ -27,6 +27,9 @@ const targets = [
     entry: 'src/tabar.js', outfile: 'dist/tabar.min.js', format: 'iife',
     globalName: 'TabarModule', minify: true, footer: { js: 'window.Tabar=TabarModule.default;' },
   },
+  { entry: 'src/group.js', outfile: 'dist/tabar-group.js', format: 'esm' },
+  { entry: 'src/node.js', outfile: 'dist/tabar-node.js', format: 'esm', platform: 'node' },
+  { entry: 'src/terminal.js', outfile: 'dist/tabar-terminal.js', format: 'esm', platform: 'node' },
   { entry: 'src/element.js', outfile: 'dist/tabar-element.js', format: 'esm' },
   {
     entry: 'src/element.js', outfile: 'dist/tabar-element.min.js', format: 'iife',
@@ -47,6 +50,7 @@ await Promise.all(
       target: ['es2019'],
       define,
       format: t.format,
+      platform: t.platform || 'browser',
       globalName: t.globalName,
       minify: t.minify,
       footer: t.footer,

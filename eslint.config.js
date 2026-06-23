@@ -21,12 +21,15 @@ const browserGlobals = {
   localStorage: 'readonly',
   sessionStorage: 'readonly',
   __TABAR_VERSION__: 'readonly',
+  process: 'readonly', // isomorphic guards (typeof process) in terminal/node entries
 };
 
 const nodeGlobals = {
   console: 'readonly',
   process: 'readonly',
   URL: 'readonly',
+  setTimeout: 'readonly',
+  clearTimeout: 'readonly',
 };
 
 export default [
@@ -40,7 +43,7 @@ export default [
     },
   },
   {
-    files: ['scripts/**/*.js'],
+    files: ['scripts/**/*.js', 'bin/**/*.js'],
     languageOptions: { ecmaVersion: 2022, sourceType: 'module', globals: nodeGlobals },
   },
   {

@@ -743,3 +743,108 @@ describe('web component <tabar-bar>', () => {
     expect(el.bar).toBeNull();
   });
 });
+
+describe('segments', () => {
+  it('stacked: tiles slots and aggregates weighted', () => {
+    const bar = new Tabar({ trickle: false });
+    bar.setSegments([
+      { id: 'a', value: 1, weight: 1 },
+      { id: 'b', value: 0.5, weight: 1 },
+      { id: 'c', value: 0, weight: 2 },
+    ]);
+    expect(bar._wrapper.getAttribute('data-segmented-tabar')).toBe('stacked');
+    expect(bar._wrapper.querySelectorAll('[data-seg-tabar]')).toHaveLength(3);
+    expect(bar.value).toBeCloseTo(37.5, 1); // (100+50+0)/4
+    bar.updateSegment('c', { value: 1 });
+    expect(bar.value).toBeCloseTo(87.5, 1);
+    bar.removeSegment('c');
+    expect(bar.segments).toHaveLength(2);
+  });
+
+  it('overlay: aggregate defaults to the primary (last) segment', () => {
+    const bar = new Tabar({ trickle: false, segmentMode: 'overlay' });
+    bar.setSegments([{ id: 'buffered', value: 0.8 }, { id: 'played', value: 0.4 }]);
+    expect(bar._wrapper.getAttribute('data-segmented-tabar')).toBe('overlay');
+    expect(bar.value).toBe(40);
+  });
+
+  it('honors an aggregate override and exits on set()', async () => {
+    const bar = new Tabar({ trickle: false, aggregate: 'max' });
+    bar.setSegments([{ value: 0.3 }, { value: 0.9 }, { value: 0.5 }]);
+    expect(bar.value).toBe(90);
+    await bar.set(0.4, { animate: false });
+    expect(bar.segments).toHaveLength(0);
+    expect(bar._wrapper.hasAttribute('data-segmented-tabar')).toBe(false);
+  });
+});
+
+describe('error UX', () => {
+  it('warn/succeed states and set() clears them', async () => {
+    const bar = new Tabar({ trickle: false });
+    bar.set(0.5, { animate: false });
+    bar.warn('slow');
+    expect(bar.state).toBe('warning');
+    bar.succeed();
+    expect(bar.state).toBe('success');
+    await bar.set(0.6, { animate: false });
+    expect(bar.state).toBe('active');
+  });
+
+  it('retry invokes the handler once, clears error, counts attempts', () => {
+    let got = 0;
+    const bar = new Tabar({ trickle: false });
+    bar.retryWith((b, n) => { got = n; });
+    bar.error('x');
+    let fired = 0;
+    bar.on('retry', () => { fired += 1; });
+    bar.retry();
+    expect(bar.attempts).toBe(1);
+    expect(got).toBe(1);
+    expect(fired).toBe(1);
+    expect(bar.state).toBe('active');
+  });
+
+  it('retry without a handler is a no-op', () => {
+    const bar = new Tabar({ trickle: false });
+    bar.error();
+    bar.retry();
+    expect(bar.attempts).toBe(0);
+  });
+
+  it('announces to the shared aria-live region; complete getter', async () => {
+    const bar = new Tabar({ trickle: false });
+    await bar.done(true);
+    expect(bar.complete).toBe(true);
+    const region = document.getElementById('tabar-live');
+    expect(region).toBeTruthy();
+    expect(region.textContent).toContain('Complete');
+  });
+
+  it('stall fires + warning after stallTimeout of no progress', async () => {
+    const bar = new Tabar({ trickle: false, stallTimeout: 30 });
+    let stalled = false;
+    bar.on('stall', () => { stalled = true; });
+    bar.setProgress(100, 1000);
+    await new Promise((r) => setTimeout(r, 60));
+    expect(stalled).toBe(true);
+    expect(bar.state).toBe('warning');
+  });
+});
+
+describe('i18n: shipped locales + RTL', () => {
+  afterEach(() => { Tabar.locale = 'en'; });
+
+  it('ships a full set with localized units', () => {
+    for (const code of ['es', 'fr', 'de', 'pt', 'it', 'ja', 'zh', 'ko', 'ar']) {
+      expect(typeof Tabar.getLocale(code).progress).toBe('string');
+    }
+    Tabar.locale = 'fr';
+    expect(Tabar.formatBytes(1536)).toBe('1.5 Ko');
+  });
+
+  it('marks a bar RTL from an RTL locale (incl. circular)', () => {
+    Tabar.locale = 'ar';
+    const ring = new Tabar({ shape: 'circular', trickle: false });
+    expect(ring._wrapper.getAttribute('data-rtl-tabar')).toBe('true');
+  });
+});

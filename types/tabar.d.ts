@@ -7,7 +7,14 @@ export type TabarShape = 'linear' | 'circular';
 export type TabarPosition = 'top' | 'bottom' | 'left' | 'right' | 'inline';
 export type TabarDirection = 'ltr' | 'rtl';
 export type TabarOrientation = 'horizontal' | 'vertical';
-export type TabarState = 'idle' | 'active' | 'done' | 'indeterminate' | 'error';
+export type TabarState =
+  | 'idle'
+  | 'active'
+  | 'done'
+  | 'indeterminate'
+  | 'error'
+  | 'warning'
+  | 'success';
 
 /** A locale dictionary for built-in strings. */
 export interface TabarLocaleDict {
@@ -17,7 +24,25 @@ export interface TabarLocaleDict {
   sec: string;
   lessThan: string;
   progress: string;
+  complete?: string;
+  error?: string;
+  stalled?: string;
+  loading?: string;
+  /** Marks a right-to-left locale (mirrors fills + circular sweep). */
+  rtl?: boolean;
 }
+
+/** A segment in multi-progress (chunked/overlay) mode. */
+export interface TabarSegment {
+  id?: string;
+  value: number;
+  color?: string;
+  label?: string;
+  weight?: number;
+  status?: string;
+}
+export type TabarSegmentMode = 'stacked' | 'overlay';
+export type TabarAggregate = 'weighted' | 'sum' | 'avg' | 'max' | 'primary';
 export type TabarTheme = 'default' | 'gradient' | 'rainbow' | 'stripes' | 'glow' | 'minimal';
 export type TabarStorage = 'local' | 'session';
 export type TabarPersistMode = 'value' | 'task' | 'both';
@@ -89,7 +114,11 @@ export type TabarEventName =
   | 'config'
   | 'report'
   | 'progress'
-  | 'error';
+  | 'error'
+  | 'warning'
+  | 'success'
+  | 'retry'
+  | 'stall';
 export type TabarHandler = (payload: unknown, bar: Tabar) => void;
 /** Unsubscribe function returned by the static bus `Tabar.on`/`Tabar.once`. */
 export type TabarUnsubscribe = () => void;
@@ -170,6 +199,20 @@ export interface TabarOptions {
   /** Initial value to show on construct (fraction or absolute). */
   value?: number | null;
 
+  /** Multi-progress segments (chunked upload/download, multi-stage, buffered/played). */
+  segments?: TabarSegment[] | null;
+  /** Segment layout. Default: 'stacked'. */
+  segmentMode?: TabarSegmentMode;
+  /** How segments aggregate into the bar's value. Default by mode. */
+  aggregate?: TabarAggregate;
+
+  /** Announce state changes to screen readers (shared aria-live region). Default: true. */
+  announce?: boolean;
+  /** Ms with no progress while active before `stall` + warning. 0 = off. */
+  stallTimeout?: number;
+  /** Ms after which an error auto-clears. 0 = off. */
+  errorTimeout?: number;
+
   /** Value scale; `set(max)` === 100%. Default: 100. */
   max?: number;
   /** Floor fraction applied by `start()`. Default: 0.08. */
@@ -235,6 +278,10 @@ export interface TabarOptions {
   onReport?: TabarHandler | null;
   onProgress?: TabarHandler | null;
   onError?: TabarHandler | null;
+  onWarning?: TabarHandler | null;
+  onSuccess?: TabarHandler | null;
+  onStall?: TabarHandler | null;
+  onRetry?: TabarHandler | null;
 }
 
 export interface TabarGotoOptions {
@@ -254,8 +301,14 @@ export declare class Tabar {
   readonly state: TabarState;
   /** Whether the bar is currently visible. */
   readonly visible: boolean;
+  /** Whether the bar has reached 100%. */
+  readonly complete: boolean;
+  /** Number of times retry() has run. */
+  readonly attempts: number;
   /** Live transfer statistics (loaded/total/percent/speed/eta/elapsed). */
   readonly stats: TabarStats;
+  /** Current segments (empty when not in segment mode). */
+  readonly segments: TabarSegment[];
 
   static get(id: string): Tabar | undefined;
   static readonly instances: Tabar[];
@@ -297,8 +350,22 @@ export declare class Tabar {
   reset(): this;
   /** Enter the error state (red) and emit `error`. */
   error(info?: unknown): this;
+  /** Enter the warning state (amber) and emit `warning`. */
+  warn(info?: unknown): this;
+  /** Mark successful (green) and emit `success`. */
+  succeed(info?: unknown): this;
+  /** Register a handler for retry(). */
+  retryWith(fn: (bar: Tabar, attempt: number) => void): this;
+  /** Clear an error and re-attempt via the registered handler. Emits `retry`. */
+  retry(): this;
   pause(): this;
   resume(): this;
+
+  /** Drive the bar with multiple segments (enters segment mode). */
+  setSegments(segments: TabarSegment[]): this;
+  addSegment(segment: TabarSegment): this;
+  updateSegment(id: string, patch: Partial<TabarSegment>): this;
+  removeSegment(id: string): this;
   show(): this;
   hide(): this;
   destroy(): void;
@@ -343,9 +410,12 @@ export declare class Tabar {
   /** Drive the bar from a byte transfer and track speed/ETA. Emits `progress`. */
   setProgress(loaded: number, total?: number): this;
   /** Track an XMLHttpRequest upload or download, incl. start/done/reset. */
-  trackXHR(xhr: XMLHttpRequest, opts?: { direction?: 'upload' | 'download' }): this;
+  trackXHR(
+    xhr: XMLHttpRequest,
+    opts?: { direction?: 'upload' | 'download'; retry?: () => void },
+  ): this;
   /** Track a fetch download; returns a Response whose body streams through the bar. */
-  trackResponse(response: Response): Response;
+  trackResponse(response: Response, opts?: { retry?: () => void }): Response;
   /** Bind the bar to a value source (event or interval). Returns an unbind function. */
   bind(
     getter: () => number,

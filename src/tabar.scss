@@ -180,6 +180,29 @@ $glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$
       drop-shadow(0 0 8px #{$glow-color});
   }
 
+  // --- Segments (one bar, many progresses) ----------------------------------
+  &__segments {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    border-radius: inherit;
+    overflow: hidden;
+  }
+  &__segment {
+    position: relative;
+    height: 100%;
+    min-width: 0;
+  }
+  &__segment-fill {
+    height: 100%;
+    background: var(--tabar-seg-color, var(--tabar-color, var(--tabar-default-color, #{$color})));
+    transition: width var(--tabar-speed, #{$speed}) ease;
+  }
+  &[data-segmented-tabar="overlay"] &__segments { display: block; }
+  &[data-segmented-tabar="overlay"] &__segment { position: absolute; top: 0; left: 0; }
+  &[data-rtl-tabar="true"][data-segmented-tabar="stacked"] &__segments { flex-direction: row-reverse; }
+  &[data-rtl-tabar="true"][data-segmented-tabar="overlay"] &__segment { left: auto; right: 0; }
+
   // --- Gradient theme -------------------------------------------------------
   &[data-theme-tabar="gradient"] &__bar {
     background: var(
@@ -214,13 +237,25 @@ $glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$
     animation: tabar-stripes 0.6s linear infinite;
   }
 
-  // --- Error state (visual feedback for failures) ---------------------------
+  // --- Status states (visual feedback) --------------------------------------
   &[data-state-tabar="error"] &__bar {
     background: var(--tabar-error, #e5484d); // linear fill
     stroke: var(--tabar-error, #e5484d); // circular ring
     animation: none;
   }
   &[data-state-tabar="error"] &__label { color: var(--tabar-error, #e5484d); }
+  &[data-state-tabar="warning"] &__bar {
+    background: var(--tabar-warning, #f5a623);
+    stroke: var(--tabar-warning, #f5a623);
+    animation: none;
+  }
+  &[data-state-tabar="warning"] &__label { color: var(--tabar-warning, #f5a623); }
+  &[data-state-tabar="success"] &__bar {
+    background: var(--tabar-success, #30a46c);
+    stroke: var(--tabar-success, #30a46c);
+    animation: none;
+  }
+  &[data-state-tabar="success"] &__label { color: var(--tabar-success, #30a46c); }
 
   // --- Indeterminate --------------------------------------------------------
   &[data-state-tabar="indeterminate"] &__bar {
@@ -245,9 +280,11 @@ $glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$
   }
   &__svg {
     display: block;
-    transform: rotate(-90deg); // start the arc at 12 o'clock
+    transform: rotate(-90deg); // start the arc at 12 o'clock, sweep clockwise
     grid-area: 1 / 1;
   }
+  // RTL: mirror the ring so it sweeps counter-clockwise (label is unaffected).
+  &[data-shape-tabar="circular"][data-rtl-tabar="true"] &__svg { transform: rotate(-90deg) scaleX(-1); }
   &__track {
     stroke: var(--tabar-bg, rgba(127, 127, 127, 0.2));
     stroke-width: var(--tabar-height, 6px);
@@ -334,4 +371,20 @@ $glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$
   .tabar {
     --tabar-default-color: #1f8fe0;
   }
+}
+
+// --- TabarGroup (parent task + child bars) ----------------------------------
+.tabar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.tabar-group__children {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tabar-group__overall,
+.tabar-group__child {
+  min-height: 14px;
 }

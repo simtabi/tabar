@@ -37,6 +37,20 @@
       "import": "./dist/tabar.esm.js",
       "require": "./dist/tabar.umd.cjs"
     },
+    "./node": {
+      "types": "./types/node.d.ts",
+      "import": "./dist/tabar-node.js",
+      "default": "./src/node.js"
+    },
+    "./terminal": {
+      "import": "./dist/tabar-terminal.js",
+      "default": "./src/terminal.js"
+    },
+    "./group": {
+      "types": "./types/group.d.ts",
+      "import": "./dist/tabar-group.js",
+      "default": "./src/group.js"
+    },
     "./element": {
       "import": "./dist/tabar-element.js",
       "default": "./src/element.js"
@@ -50,10 +64,14 @@
     "./src": "./src/tabar.js",
     "./package.json": "./package.json"
   },
+  "bin": {
+    "tabar": "bin/tabar.js"
+  },
   "files": [
     "dist",
     "src",
     "types",
+    "bin",
     "README.md",
     "LICENSE",
     "CHANGELOG.md"
@@ -69,7 +87,7 @@
     "pretest": "npm run styles",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint src test scripts",
+    "lint": "eslint src test scripts bin",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "prepublishOnly": "npm run build"
   },
