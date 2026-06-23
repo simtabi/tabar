@@ -204,6 +204,17 @@ const toLength = (v) => {
   return String(v);
 };
 
+/**
+ * A CSS size value: a finite number → `${n}px`; a non-empty string passes
+ * through (e.g. `'100%'`, `'2rem'`) so a bar can fill its container; else the
+ * fallback. Used for the linear bar's `height` (thickness or fill).
+ */
+const toCssSize = (v, fallback) => {
+  if (typeof v === 'number') return Number.isFinite(v) ? `${v}px` : fallback;
+  if (typeof v === 'string' && v.trim()) return v.trim();
+  return fallback;
+};
+
 /** Restrict a circular `stroke-linecap` to the valid SVG values. */
 const toLinecap = (v) => (v === 'butt' || v === 'square' ? v : 'round');
 
@@ -829,7 +840,9 @@ class Tabar {
     if (this._provided.has('background')) set('--tabar-bg', String(o.background));
     else el.style.removeProperty('--tabar-bg');
     set('--tabar-color2', String(o.color2));
-    set('--tabar-height', `${toNum(o.height)}px`);
+    // Linear `height` may be any CSS length (e.g. '100%' to fill the host);
+    // circular `height` is the ring stroke thickness, so keep it numeric px.
+    set('--tabar-height', o.shape === 'circular' ? `${toNum(o.height) || 6}px` : toCssSize(o.height, '3px'));
     set('--tabar-radius', cornersToCss(o.radius));
     set('--tabar-inner-radius', cornersToCss(o.innerRadius));
     set('--tabar-speed', `${toNum(o.speed)}ms`);
@@ -1698,9 +1711,13 @@ class Tabar {
     return this;
   }
 
+  /** Set the bar thickness. Linear bars accept any CSS length (`'100%'` fills the host). */
   setHeight(px) {
     this.options.height = px;
-    if (this._wrapper) this._wrapper.style.setProperty('--tabar-height', `${toNum(px)}px`);
+    if (this._wrapper) {
+      const css = this.options.shape === 'circular' ? `${toNum(px) || 6}px` : toCssSize(px, '3px');
+      this._wrapper.style.setProperty('--tabar-height', css);
+    }
     return this;
   }
 

@@ -215,8 +215,20 @@ function cfgToCode(o) {
 
 let preview = null;
 const cfgCode = $('#cfg-code');
+const cfgHost = $('#cfg-host');
 function cfgRebuild() {
   if (preview) preview.destroy();
+  // Size the preview host so the bar fills it exactly (no leftover track strip):
+  // a linear track equals the configured thickness; a ring drops the track box.
+  if (cfgHost) {
+    if (cfgState.shape === 'circular') {
+      cfgHost.classList.add('cfg-host--ring');
+      cfgHost.style.height = 'auto';
+    } else {
+      cfgHost.classList.remove('cfg-host--ring');
+      cfgHost.style.height = `${Number(cfgState.height)}px`;
+    }
+  }
   const opts = cfgToOptions(cfgState);
   preview = new Tabar(opts);
   preview.retryWith((bar) => bar.set(0.75));
@@ -362,7 +374,7 @@ const page = new Tabar({ id: 'page', color: 'var(--accent)', height: 4, trickleS
 
 /* --- Inline + swatches + slider ------------------------------------------- */
 const inline = new Tabar({
-  id: 'inline', position: 'inline', mountTo: '#inline-host', height: 16, radius: 8,
+  id: 'inline', position: 'inline', mountTo: '#inline-host', height: '100%', radius: 8,
   color: '#1abc9c', trickle: false, showLabel: true, labelFormat: pct, value: 0.4,
 });
 const swatchHost = $('#swatches');
@@ -412,7 +424,7 @@ const spawnPosition = (position) => {
 
 /* --- Themes + gradient editor --------------------------------------------- */
 const themed = new Tabar({
-  id: 'themed', position: 'inline', mountTo: '#theme-host', height: 28, radius: 10,
+  id: 'themed', position: 'inline', mountTo: '#theme-host', height: '100%', radius: 10,
   theme: 'gradient', color: '#f12711', color2: '#f5af19', trickle: false, value: 0.7,
 });
 const gradA = $('#grad-a');
@@ -432,7 +444,7 @@ $('#tooltip-toggle').addEventListener('change', (e) => themed.setTooltip(e.targe
 /* --- Transfer / ETA ------------------------------------------------------- */
 const XFER_TOTAL = 24 * 1024 * 1024;
 const xfer = new Tabar({
-  id: 'xfer', position: 'inline', mountTo: '#xfer-host', height: 28, radius: 10, trickle: false,
+  id: 'xfer', position: 'inline', mountTo: '#xfer-host', height: '100%', radius: 10, trickle: false,
   color: '#2299dd', messageAlign: 'start',
   // Inline status text driven by the live transfer stats + state.
   messages: {
@@ -470,7 +482,7 @@ const fakeDownload = (total, chunk) => {
 
 /* --- Reactivity ----------------------------------------------------------- */
 const react = new Tabar({
-  id: 'react', position: 'inline', mountTo: '#react-host', height: 28, radius: 10,
+  id: 'react', position: 'inline', mountTo: '#react-host', height: '100%', radius: 10,
   color: '#9b59b6', trickle: false, showLabel: true, labelFormat: pct,
 });
 const reactSlider = $('#react-slider');
@@ -479,7 +491,7 @@ react.bind(() => Number(reactSlider.value) / 100, { event: 'input', target: reac
 reactSlider.addEventListener('input', () => { reactVal.textContent = `${reactSlider.value}%`; });
 
 /* --- JSON config ---------------------------------------------------------- */
-const jsonBar = new Tabar({ id: 'json', position: 'inline', mountTo: '#json-host', height: 16, radius: 8, trickle: false, value: 0.3 });
+const jsonBar = new Tabar({ id: 'json', position: 'inline', mountTo: '#json-host', height: '100%', radius: 8, trickle: false, value: 0.3 });
 const jsonEl = $('#json-config');
 const jsonStatus = $('#json-status');
 jsonEl.value = JSON.stringify({ color: '#e91e63', height: 16, radius: 9999, theme: 'gradient', color2: '#7c4dff', value: 0.55 }, null, 2);
@@ -492,9 +504,9 @@ const segChunks = [
 ];
 const SEG_PALETTE = ['#5e5ce6', '#ff375f', '#64d2ff', '#bf5af2', '#ffd60a'];
 let segExtra = 0;
-const segStacked = new Tabar({ position: 'inline', mountTo: '#seg-stacked', height: 16, radius: 8 });
+const segStacked = new Tabar({ position: 'inline', mountTo: '#seg-stacked', height: '100%', radius: 8 });
 segStacked.setSegments(segChunks.map((c) => ({ ...c })));
-const segOverlay = new Tabar({ position: 'inline', mountTo: '#seg-overlay', height: 16, radius: 8, segmentMode: 'overlay' });
+const segOverlay = new Tabar({ position: 'inline', mountTo: '#seg-overlay', height: '100%', radius: 8, segmentMode: 'overlay' });
 segOverlay.setSegments([{ id: 'buffered', value: 0.8, color: '#c7c7cc' }, { id: 'played', value: 0.35, color: '#2299dd' }]);
 
 /* --- Group ---------------------------------------------------------------- */
@@ -518,7 +530,7 @@ addGroupChild();
 /* --- Feedback ------------------------------------------------------------- */
 const feedbackHost = $('#feedback-host');
 const feedback = new Tabar({
-  id: 'feedback', position: 'inline', mountTo: '#feedback-host', height: 24, radius: 8, trickle: false,
+  id: 'feedback', position: 'inline', mountTo: '#feedback-host', height: '100%', radius: 8, trickle: false,
   // Inline message that reflects the state/status.
   messages: {
     warning: 'Slow connection',
@@ -543,15 +555,15 @@ bindStateColor('#fb-success-color', '--tabar-success');
 
 /* --- Concurrency ---------------------------------------------------------- */
 const conc = ['#2299dd', '#30d158', '#ff9f0a'].map((c, i) =>
-  new Tabar({ position: 'inline', mountTo: `#c${i + 1}`, height: 12, radius: 6, color: c, trickle: false }),
+  new Tabar({ position: 'inline', mountTo: `#c${i + 1}`, height: '100%', radius: 6, color: c, trickle: false }),
 );
 
 /* --- Persistence ---------------------------------------------------------- */
-let persist = new Tabar({ id: 'persist', position: 'inline', mountTo: '#persist-host', height: 16, radius: 8, trickle: false, color: '#e67e22', persist: { storage: 'local', debounce: 0 } });
+let persist = new Tabar({ id: 'persist', position: 'inline', mountTo: '#persist-host', height: '100%', radius: 8, trickle: false, color: '#e67e22', persist: { storage: 'local', debounce: 0 } });
 const persistStorageEl = $('#persist-storage');
 persistStorageEl?.addEventListener('change', () => {
   persist.destroy();
-  persist = new Tabar({ id: 'persist', position: 'inline', mountTo: '#persist-host', height: 16, radius: 8, trickle: false, color: '#e67e22', persist: { storage: persistStorageEl.value, debounce: 0 } });
+  persist = new Tabar({ id: 'persist', position: 'inline', mountTo: '#persist-host', height: '100%', radius: 8, trickle: false, color: '#e67e22', persist: { storage: persistStorageEl.value, debounce: 0 } });
 });
 
 /* --- Actions -------------------------------------------------------------- */

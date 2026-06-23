@@ -152,11 +152,15 @@ section { padding: clamp(56px, 9vw, 104px) 0; }
 .demo .hint { font-size: 13px; color: var(--muted); margin: 16px 0 0; }
 .demo .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
 .mini-btn {
-  font: inherit; font-size: 13px; padding: 7px 13px; border-radius: 980px;
-  border: 1px solid var(--line); background: var(--surface-2); color: var(--text); cursor: pointer;
+  font: inherit; font-size: 13px; font-weight: 500; line-height: 1; padding: 8px 14px;
+  border-radius: 980px; border: 1px solid var(--line); background: var(--surface);
+  color: var(--text); cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
-.mini-btn:hover { border-color: var(--accent); }
+.mini-btn:hover { border-color: var(--accent); background: var(--surface-2); }
+.mini-btn:active { transform: translateY(1px); }
 .mini-btn.solid { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; border-color: transparent; }
+.mini-btn.solid:hover { filter: brightness(1.05); }
+@media (prefers-reduced-motion: reduce) { .mini-btn:active { transform: none; } }
 
 /* --- Code blocks ---------------------------------------------------------- */
 .code-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
@@ -230,7 +234,11 @@ section { padding: clamp(56px, 9vw, 104px) 0; }
 .log { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; background: var(--surface-2); border-radius: 12px; padding: 14px; height: 220px; overflow-y: auto; white-space: pre-wrap; }
 .log-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; color: var(--muted); }
 output { font-variant-numeric: tabular-nums; }
-.demo-track { background: var(--surface-2); border-radius: 10px; overflow: hidden; }
+/* The demo track IS the bar's track: the bar fills it (height:'100%'), so its
+   own wrapper track is transparent and only the surface-2 track shows — no
+   leftover grey strip below a shorter bar. */
+.demo-track { background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+.demo-track .tabar { --tabar-track: transparent; }
 .field select,
 .field input[type='text'],
 .field input[type='number'] {
@@ -239,8 +247,25 @@ output { font-variant-numeric: tabular-nums; }
 }
 
 /* --- Configurator --------------------------------------------------------- */
-.cfg-stage { min-height: 34px; display: block; }
-.cfg-actions { gap: 8px; }
+/* Preview card: a clean stage for the live bar/ring with room for glow to bleed. */
+.cfg-preview {
+  display: grid; place-items: center; padding: 28px 30px; overflow: visible;
+  background: var(--surface-2); border-radius: 16px; border: 1px solid var(--line);
+}
+.cfg-preview .demo-track { width: 100%; background: var(--surface); } /* contrast on the card */
+/* Circular preview: drop the track box so the ring isn't clipped or boxed. */
+#cfg-host.cfg-host--ring { background: transparent; border-radius: 0; overflow: visible; height: auto !important; }
+
+/* Grouped action toolbar — clusters by intent instead of one long row. */
+.cfg-toolbar { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+.cfg-btn-group {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  padding: 8px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-2);
+}
+.cfg-btn-group__label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700;
+  color: var(--muted); margin: 0 4px 0 2px;
+}
 .cfg-grid { display: flex; flex-direction: column; gap: 14px; margin-top: 20px; }
 .cfg-fieldset {
   border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px 16px; margin: 0;

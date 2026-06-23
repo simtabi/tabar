@@ -76,21 +76,32 @@
           <h2>Configurator — every option, live</h2>
           <p>Tweak any option below and the preview rebuilds instantly. The generated
             <code>new Tabar({…})</code> snippet shows exactly the non-default options you've set.</p>
-          <div class="stage cfg-stage stage--bleed"><div class="demo-track bleed" id="cfg-host" data-testid="cfg-host" style="width:100%;min-height:34px"></div></div>
-          <div class="row cfg-actions" id="cfg-actions" data-testid="cfg-actions" style="margin-top:14px">
-            <button class="mini-btn solid" data-act="cfg-start">start()</button>
-            <button class="mini-btn" data-act="cfg-inc">inc()</button>
-            <button class="mini-btn" data-act="cfg-set">set 50%</button>
-            <button class="mini-btn" data-act="cfg-done">done()</button>
-            <button class="mini-btn" data-act="cfg-reset">reset()</button>
-            <button class="mini-btn" data-act="cfg-ind">indeterminate()</button>
-            <button class="mini-btn" data-act="cfg-error">error()</button>
-            <button class="mini-btn" data-act="cfg-warn">warn()</button>
-            <button class="mini-btn" data-act="cfg-succeed">succeed()</button>
-            <button class="mini-btn" data-act="cfg-retry">retry()</button>
-            <button class="mini-btn" data-act="cfg-show">show()</button>
-            <button class="mini-btn" data-act="cfg-hide">hide()</button>
-            <button class="mini-btn" data-act="cfg-rebuild">rebuild</button>
+          <div class="cfg-preview stage--bleed">
+            <div class="demo-track bleed" id="cfg-host" data-testid="cfg-host" style="width:100%"></div>
+          </div>
+          <div class="cfg-toolbar" id="cfg-actions" data-testid="cfg-actions">
+            <div class="cfg-btn-group" role="group" aria-label="Progress">
+              <span class="cfg-btn-group__label">Progress</span>
+              <button class="mini-btn solid" data-act="cfg-start">start</button>
+              <button class="mini-btn" data-act="cfg-inc">inc</button>
+              <button class="mini-btn" data-act="cfg-set">50%</button>
+              <button class="mini-btn" data-act="cfg-done">done</button>
+              <button class="mini-btn" data-act="cfg-reset">reset</button>
+            </div>
+            <div class="cfg-btn-group" role="group" aria-label="States">
+              <span class="cfg-btn-group__label">States</span>
+              <button class="mini-btn" data-act="cfg-ind">indeterminate</button>
+              <button class="mini-btn" data-act="cfg-error">error</button>
+              <button class="mini-btn" data-act="cfg-warn">warn</button>
+              <button class="mini-btn" data-act="cfg-succeed">succeed</button>
+              <button class="mini-btn" data-act="cfg-retry">retry</button>
+            </div>
+            <div class="cfg-btn-group" role="group" aria-label="View">
+              <span class="cfg-btn-group__label">View</span>
+              <button class="mini-btn" data-act="cfg-show">show</button>
+              <button class="mini-btn" data-act="cfg-hide">hide</button>
+              <button class="mini-btn" data-act="cfg-rebuild">rebuild</button>
+            </div>
           </div>
           <div class="cfg-grid" id="cfg-controls" data-testid="cfg-controls"></div>
           <div class="code cfg-codeblock">
@@ -116,7 +127,7 @@
         <section class="panel" id="inline">
           <h2>Inline &amp; live color</h2>
           <p>Mount into your own container; recolor live with <code>setColor()</code>.</p>
-          <div class="stage"><div class="demo-track" id="inline-host" data-testid="inline-host" style="min-height:16px"></div></div>
+          <div class="stage"><div class="demo-track" id="inline-host" data-testid="inline-host" style="height:16px"></div></div>
           <div class="swatches" id="swatches"></div>
           <div class="row" style="margin-top:14px">
             <label class="field" style="flex:1"><span>Value <output id="inline-val">40%</output></span>
@@ -163,7 +174,7 @@
         <section class="panel" id="themes">
           <h2>Themes &amp; gradient editor</h2>
           <p>Edit colors, angle and type live; toggle glow, stripes and a tooltip.</p>
-          <div class="stage stage--bleed"><div class="demo-track bleed" id="theme-host" data-testid="theme-host" style="width:100%;min-height:32px"></div></div>
+          <div class="stage stage--bleed"><div class="demo-track bleed" id="theme-host" data-testid="theme-host" style="width:100%;height:32px"></div></div>
           <div class="row" style="margin-top:14px">
             <label class="field"><span>Color A</span><input type="color" id="grad-a" value="#f12711" /></label>
             <label class="field"><span>Color B</span><input type="color" id="grad-b" value="#f5af19" /></label>
@@ -189,7 +200,7 @@
         <section class="panel" id="transfer">
           <h2>Upload / download &amp; ETA</h2>
           <p>Drive from a byte transfer with <code>setProgress(loaded, total)</code>; the label shows live speed &amp; a smoothed ETA from <code>bar.stats</code> (localized).</p>
-          <div class="stage"><div class="demo-track" id="xfer-host" data-testid="xfer-host" style="width:100%;min-height:32px"></div></div>
+          <div class="stage"><div class="demo-track" id="xfer-host" data-testid="xfer-host" style="width:100%;height:32px"></div></div>
           <div class="row" style="margin-top:14px">
             <button class="mini-btn solid" data-act="xfer-start">Simulate download</button>
             <button class="mini-btn" data-act="xfer-stall">Throttle</button>
@@ -202,7 +213,7 @@
         <section class="panel" id="reactivity">
           <h2>Reactivity</h2>
           <p>Bind to any value source with <code>bind(getter, { event, target })</code>.</p>
-          <div class="stage"><div class="demo-track" id="react-host" data-testid="react-host" style="width:100%;min-height:32px"></div></div>
+          <div class="stage"><div class="demo-track" id="react-host" data-testid="react-host" style="width:100%;height:32px"></div></div>
           <div class="row" style="margin-top:14px">
             <label class="field" style="flex:1"><span>Value <output id="react-val">0%</output></span>
               <input type="range" id="react-slider" data-testid="react-slider" min="0" max="100" value="0" style="width:100%" /></label>
@@ -215,16 +226,16 @@
           <textarea id="json-config" rows="5" spellcheck="false" style="width:100%;font-family:ui-monospace,Menlo,monospace;font-size:13px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);padding:12px"></textarea>
           <div class="row" style="margin-top:12px"><button class="mini-btn solid" data-act="json-apply">Apply</button></div>
           <p class="hint" id="json-status" style="margin:10px 0 0;font-size:13px;color:var(--muted)"></p>
-          <div class="stage" style="margin-top:14px"><div class="demo-track" id="json-host" data-testid="json-host" style="width:100%;min-height:16px"></div></div>
+          <div class="stage" style="margin-top:14px"><div class="demo-track" id="json-host" data-testid="json-host" style="width:100%;height:16px"></div></div>
         </section>
 
         <section class="panel" id="segments">
           <h2>Segments — one bar, many progresses</h2>
           <p><strong>Stacked</strong> chunks tile a bar; <strong>overlay</strong> layers values (buffered vs played).</p>
           <p style="margin-bottom:6px"><strong>Stacked</strong></p>
-          <div class="demo-track" id="seg-stacked" data-testid="seg-stacked" style="min-height:16px"></div>
+          <div class="demo-track" id="seg-stacked" data-testid="seg-stacked" style="height:16px"></div>
           <p style="margin:14px 0 6px"><strong>Overlay</strong></p>
-          <div class="demo-track" id="seg-overlay" data-testid="seg-overlay" style="min-height:16px"></div>
+          <div class="demo-track" id="seg-overlay" data-testid="seg-overlay" style="height:16px"></div>
           <div class="row" style="margin-top:14px">
             <button class="mini-btn solid" data-act="seg-advance">Advance a chunk</button>
             <button class="mini-btn" data-act="seg-add">Add segment</button>
@@ -245,7 +256,7 @@
         <section class="panel" id="feedback">
           <h2>States &amp; feedback</h2>
           <p>Themeable error / warning / success, <code>retry()</code> with an attempt counter, and aria-live announcements. The color pickers set the <code>--tabar-*</code> state variables.</p>
-          <div class="stage"><div class="demo-track" id="feedback-host" data-testid="feedback-host" style="width:100%;min-height:16px"></div></div>
+          <div class="stage"><div class="demo-track" id="feedback-host" data-testid="feedback-host" style="width:100%;height:16px"></div></div>
           <div class="row" style="margin-top:14px">
             <button class="mini-btn" data-act="fb-warn">Warn</button>
             <button class="mini-btn" data-act="fb-error">Error</button>
@@ -263,14 +274,14 @@
         <section class="panel" id="concurrency">
           <h2>Concurrency</h2>
           <p>Run many independent bars at once — no id/class collisions.</p>
-          <div class="stage" style="display:block"><div class="demo-track" id="c1" style="min-height:12px;margin-bottom:8px"></div><div class="demo-track" id="c2" style="min-height:12px;margin-bottom:8px"></div><div class="demo-track" id="c3" style="min-height:12px"></div></div>
+          <div class="stage" style="display:block"><div class="demo-track" id="c1" style="height:12px;margin-bottom:8px"></div><div class="demo-track" id="c2" style="height:12px;margin-bottom:8px"></div><div class="demo-track" id="c3" style="height:12px"></div></div>
           <div class="row" style="margin-top:14px"><button class="mini-btn solid" data-act="conc-go">Run all</button></div>
         </section>
 
         <section class="panel" id="persistence">
           <h2>Persistence</h2>
           <p>Save to storage and restore on reload (<code>persist</code>).</p>
-          <div class="stage"><div class="demo-track" id="persist-host" data-testid="persist-host" style="width:100%;min-height:16px"></div></div>
+          <div class="stage"><div class="demo-track" id="persist-host" data-testid="persist-host" style="width:100%;height:16px"></div></div>
           <div class="row" style="margin-top:14px">
             <button class="mini-btn solid" data-act="persist-set">Set 60%</button>
             <button class="mini-btn" data-act="persist-clear">Clear</button>

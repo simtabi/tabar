@@ -22,7 +22,7 @@ Pass an options object to `new Tabar(options)`. Every option is optional.
 | `color` | `string` | `'#29d'` | Bar fill (any CSS color). |
 | `color2` | `string` | `'#7c4dff'` | Secondary color for the `gradient` theme. |
 | `background` | `string` | `'transparent'` | Track background. |
-| `height` | `number` | `3` | Bar thickness in px (height for horizontal, width for vertical). |
+| `height` | `number \| string` | `3` | Bar thickness — px when a number; a CSS length (e.g. `'100%'`) lets a linear bar fill its host. Circular: ring stroke thickness (px). |
 | `radius` | `number \| [tl,tr,bl,br] \| {topLeft,…}` | `0` | Outer (track) corner radius. |
 | `innerRadius` | same as `radius` | `0` | Inner (bar) corner radius. |
 | `speed` | `number` | `300` | Transition duration in ms. |

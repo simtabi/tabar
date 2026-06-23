@@ -20,6 +20,9 @@ All notable changes to this project are documented here. The format is based on
   to the default mount.
 - Attribute consistency: `max` and `debug` are now settable via the `<tabar-bar>`
   element and `data-tabar-*`; dropped a dead `min` coercion key.
+- The demo "bottom border" is gone — playground bars now **fill their track** so no
+  grey strip shows below a shorter bar; the configurator section and its action
+  buttons were redesigned into grouped clusters with a cleaner layout.
 
 ### Added
 - **`*-center` positions + configurable `length`** — `top-center`/`bottom-center`/
@@ -29,6 +32,9 @@ All notable changes to this project are documented here. The format is based on
 - **Multiple-color modes** — a `colors` multi-stop alias plus `colorMode: 'gradient' |
   'bands'` (hard, non-interpolated color blocks) and `colorAnimate` (scrolling), with
   `setColors`/`addColorStop`/`removeColorStop`/`setColorMode`/`setColorAnimate`.
+- **Flexible `height`** — a linear bar's `height` now accepts any CSS length, so
+  `height: '100%'` makes it fill its host container (number values stay px). Circular
+  `height` remains the ring stroke thickness.
 - **More circular options** — `trackColor`, `lineCap`, `startAngle`, `clockwise`
   (`--tabar-track-color`/`--tabar-start-angle`/`--tabar-flip`) and a configurable
   `glowSize`.

@@ -184,8 +184,12 @@ export interface TabarOptions {
   color2?: string;
   /** Track background. Default: 'transparent'. */
   background?: string;
-  /** Bar thickness in px (height for horizontal, width for vertical). Default: 3. */
-  height?: number;
+  /**
+   * Bar thickness — height for horizontal bars, width for vertical. A number is
+   * px; a CSS length string (e.g. `'100%'`) lets a linear bar fill its host.
+   * For circular bars this is the ring stroke thickness (px). Default: 3.
+   */
+  height?: number | string;
   /** Outer (track) corner radius. */
   radius?: TabarCorners;
   /** Inner (bar) corner radius. */
@@ -414,7 +418,7 @@ export declare class Tabar {
   setColor(color: string): this;
   setColor2(color: string): this;
   setBackground(color: string): this;
-  setHeight(px: number): this;
+  setHeight(px: number | string): this;
   setSpeed(ms: number): this;
   setRadius(...args: Array<number | number[] | object>): this;
   setInnerRadius(...args: Array<number | number[] | object>): this;

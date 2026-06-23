@@ -10,10 +10,13 @@
 
 /** Option keys whose attribute value is parsed as a Number (empty → unset). */
 export const NUMERIC = new Set([
-  'value', 'height', 'size', 'speed', 'zIndex', 'max', 'minimum',
+  'value', 'size', 'speed', 'zIndex', 'max', 'minimum',
   'gradientAngle', 'trickleSpeed', 'stallTimeout', 'errorTimeout', 'autoHideDelay',
   'offset', 'glowSize', 'startAngle',
 ]);
+
+// Dimensions that accept a number (→ px) OR a CSS length string (e.g. '100%').
+const DIMENSION = new Set(['height']);
 
 /** Option keys treated as booleans (any value except the string `"false"` → true). */
 export const BOOLEAN = new Set([
@@ -46,6 +49,11 @@ export const coerceAttr = (key, value) => {
     return value; // a fixed tooltip string
   }
   if (BOOLEAN.has(key)) return value !== 'false';
+  if (DIMENSION.has(key)) {
+    // A bare number is px; anything else (e.g. '100%', '2rem') passes through.
+    const n = Number(value);
+    return value.trim() !== '' && Number.isFinite(n) ? n : value;
+  }
   if (NUMERIC.has(key)) return value === '' ? undefined : Number(value); // empty numeric → unset
   if (key === 'gradient' || key === 'colors') return value.split(',').map((c) => c.trim()).filter(Boolean);
   if (key === 'segments' || key === 'messages') {

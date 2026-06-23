@@ -1135,3 +1135,27 @@ describe('robustness', () => {
     expect(bar.options.debug).toBe(true);
   });
 });
+
+describe('flexible height', () => {
+  it('accepts a CSS length so a linear bar can fill its host', () => {
+    const bar = new Tabar({ position: 'inline', height: '100%', trickle: false });
+    expect(bar._wrapper.style.getPropertyValue('--tabar-height')).toBe('100%');
+    bar.setHeight(24);
+    expect(bar._wrapper.style.getPropertyValue('--tabar-height')).toBe('24px');
+    bar.setHeight('2rem');
+    expect(bar._wrapper.style.getPropertyValue('--tabar-height')).toBe('2rem');
+  });
+
+  it('keeps circular height numeric (ring stroke), ignoring a string', () => {
+    const ring = new Tabar({ shape: 'circular', height: '100%', trickle: false });
+    expect(ring._wrapper.style.getPropertyValue('--tabar-height')).toBe('6px');
+  });
+
+  it('reads a percentage height from a data-tabar attribute', () => {
+    const host = document.createElement('div');
+    host.setAttribute('data-tabar-height', '100%');
+    document.body.appendChild(host);
+    const bar = new Tabar({ position: 'inline', mountTo: host, trickle: false });
+    expect(bar.options.height).toBe('100%');
+  });
+});
