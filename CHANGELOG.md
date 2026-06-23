@@ -28,6 +28,9 @@ A major capability release: Tabar now runs in the **terminal** as well as the we
 - **i18n + RTL** — ten built-in locales (EN, ES, FR, DE, PT, IT, JA, ZH, KO, AR) with localized
   units/announcements; RTL-aware linear fill and circular ring sweep (e.g. Arabic).
 - A `complete` getter and the `warning`/`success`/`retry`/`stall` events.
+- A redesigned marketing site — an Apple-style landing page plus an interactive playground —
+  built from `site/` to `site/dist/` (`npm run demo`); new `cli.js` and `multi-progress.html`
+  examples.
 
 ### Fixed
 - `goto()`/`set()`/`setProgress()` no longer required a DOM element, so the value/state

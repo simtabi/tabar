@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en" data-theme="">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tabar — a dependency-free progress bar for web & CLI</title>
+    <meta
+      name="description"
+      content="Tabar is a zero-dependency progress bar for the web and the terminal: linear & circular shapes, multi-progress segments, uploads with ETA, theming, events, and i18n."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="nav">
+      <div class="wrap">
+        <a class="nav__brand" href="./index.html"><span class="dot"></span> Tabar</a>
+        <nav class="nav__links" aria-label="Primary">
+          <a href="#features" class="hide-sm">Features</a>
+          <a href="#shapes" class="hide-sm">Shapes</a>
+          <a href="#code" class="hide-sm">Code</a>
+          <a href="./playground.html">Playground</a>
+          <a href="https://github.com/simtabi/tabar">GitHub</a>
+          <button type="button" class="nav__theme" id="theme" aria-label="Toggle theme">◐</button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <!-- HERO -->
+      <section class="hero">
+        <div class="wrap">
+          <span class="hero__eyebrow">v<span id="ver">0.6.0</span> · zero dependencies</span>
+          <h1>Progress, <span class="grad">everywhere</span>.</h1>
+          <p class="hero__sub">
+            One small ES module for a polished progress bar — in the browser <em>and</em> the
+            terminal. Linear &amp; circular, multi-progress, uploads with ETA, fully themeable,
+            accessible by default.
+          </p>
+          <div class="hero__cta">
+            <a class="btn btn--primary" href="./playground.html">Try the playground →</a>
+            <a class="btn btn--ghost" href="https://github.com/simtabi/tabar">View on GitHub</a>
+          </div>
+          <p class="hero__meta"><code>npm install @simtabi/tabar</code></p>
+
+          <div class="hero__stage">
+            <div class="hero__bar" id="hero-bar"></div>
+            <div class="row">
+              <div class="hero__ring" id="hero-ring"></div>
+              <div class="hero__bar" id="hero-seg" style="flex:1;min-width:200px"></div>
+            </div>
+            <p class="hero__caption" id="hero-caption">A live bar, a circular ring, and a segmented transfer — all Tabar.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURES -->
+      <section id="features">
+        <div class="wrap">
+          <div class="section-head">
+            <p class="eyebrow">Why Tabar</p>
+            <h2>Everything a progress bar needs</h2>
+            <p>No framework, no build step, no runtime dependencies — under 13&nbsp;KB gzipped.</p>
+          </div>
+          <div class="features">
+            <article class="card"><span class="ico">📦</span><h3>Zero dependencies</h3><p>Pure DOM &amp; SVG. ESM, CJS and a drop-in <code>&lt;script&gt;</code> build. Safe to run many bars at once.</p></article>
+            <article class="card"><span class="ico">🖥️</span><h3>Web &amp; CLI</h3><p>The same API renders in the browser and as a live ANSI bar in the terminal, plus a <code>tabar</code> CLI.</p></article>
+            <article class="card"><span class="ico">⭕</span><h3>Shapes</h3><p>Linear bars (top/bottom/left/right/inline) and circular SVG rings — all themeable.</p></article>
+            <article class="card"><span class="ico">🧩</span><h3>Multi-progress</h3><p>Segmented bars (stacked chunks or overlay layers) and groups of child bars with an aggregated overall.</p></article>
+            <article class="card"><span class="ico">⏱️</span><h3>Uploads &amp; ETA</h3><p><code>trackXHR</code>/<code>trackResponse</code> with smoothed speed &amp; ETA; retry, stall detection &amp; states.</p></article>
+            <article class="card"><span class="ico">🎨</span><h3>Themeable</h3><p>Every visual is a CSS variable. Gradients, glow, stripes, tooltips — works with any framework.</p></article>
+            <article class="card"><span class="ico">🔌</span><h3>Events &amp; API</h3><p>Instance + global bus + DOM events, a registry, JSON/API config, a Web Component &amp; a React hook.</p></article>
+            <article class="card"><span class="ico">🌍</span><h3>i18n &amp; a11y</h3><p>Ten built-in locales incl. RTL Arabic, real <code>role="progressbar"</code>, reduced-motion aware.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <!-- SHAPES SHOWCASE -->
+      <section id="shapes" style="background:var(--surface-2)">
+        <div class="wrap">
+          <div class="section-head">
+            <p class="eyebrow">Live</p>
+            <h2>See it move</h2>
+            <p>Every demo below is a real Tabar instance running on this page.</p>
+          </div>
+          <div class="showcase">
+            <div class="demo">
+              <h3>Linear &amp; themes</h3>
+              <div class="stage"><div class="demo-track" id="sc-linear" style="width:100%;min-height:14px"></div></div>
+              <div class="controls">
+                <button class="mini-btn solid" data-sc="linear-go">Animate</button>
+                <button class="mini-btn" data-sc="linear-grad">Gradient</button>
+                <button class="mini-btn" data-sc="linear-stripe">Stripes</button>
+              </div>
+            </div>
+            <div class="demo">
+              <h3>Circular ring</h3>
+              <div class="ring-stage" id="sc-ring"></div>
+              <div class="controls">
+                <button class="mini-btn solid" data-sc="ring-go">Animate</button>
+                <button class="mini-btn" data-sc="ring-ind">Indeterminate</button>
+              </div>
+            </div>
+            <div class="demo">
+              <h3>Segments — chunks</h3>
+              <div class="stage"><div class="demo-track" id="sc-seg" style="width:100%;min-height:16px"></div></div>
+              <p class="hint">Stacked, weighted chunks fill independently.</p>
+              <div class="controls"><button class="mini-btn solid" data-sc="seg-advance">Advance a chunk</button></div>
+            </div>
+            <div class="demo">
+              <h3>Group — parallel</h3>
+              <div id="sc-group"></div>
+              <div class="controls"><button class="mini-btn solid" data-sc="group-add">Add a download</button></div>
+            </div>
+            <div class="demo">
+              <h3>Upload with ETA</h3>
+              <div class="stage"><div class="demo-track" id="sc-xfer" style="width:100%;min-height:16px"></div></div>
+              <div class="controls">
+                <button class="mini-btn solid" data-sc="xfer-go">Download</button>
+                <button class="mini-btn" data-sc="xfer-fail">Fail</button>
+              </div>
+            </div>
+            <div class="demo">
+              <h3>States &amp; retry</h3>
+              <div class="stage"><div class="demo-track" id="sc-state" style="width:100%;min-height:16px"></div></div>
+              <div class="controls">
+                <button class="mini-btn" data-sc="st-warn">Warn</button>
+                <button class="mini-btn" data-sc="st-error">Error</button>
+                <button class="mini-btn solid" data-sc="st-retry">Retry</button>
+                <button class="mini-btn" data-sc="st-ok">Succeed</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CODE -->
+      <section id="code">
+        <div class="wrap">
+          <div class="section-head">
+            <p class="eyebrow">Five lines</p>
+            <h2>Get started</h2>
+            <p>Install, import, and drive a bar around your async work.</p>
+          </div>
+          <div class="code-grid">
+            <div class="code">
+              <div class="code__head">Browser</div>
+              <pre><code><span class="k">import</span> { Tabar } <span class="k">from</span> <span class="s">'@simtabi/tabar'</span>;
+
+<span class="k">const</span> bar = <span class="k">new</span> Tabar({ color: <span class="s">'#29d'</span> });
+bar.start();
+<span class="k">await</span> fetchData();
+bar.done();</code></pre>
+            </div>
+            <div class="code">
+              <div class="code__head">Uploads &amp; segments</div>
+              <pre><code><span class="c">// live speed + ETA from a fetch download</span>
+bar.trackResponse(<span class="k">await</span> fetch(url));
+
+<span class="c">// one bar, many chunks</span>
+bar.setSegments([
+  { id: <span class="s">'a'</span>, value: 1, weight: 1 },
+  { id: <span class="s">'b'</span>, value: 0.4, weight: 3 },
+]);</code></pre>
+            </div>
+            <div class="code">
+              <div class="code__head">Terminal / CLI</div>
+              <pre><code><span class="k">import</span> { terminalBar } <span class="k">from</span> <span class="s">'@simtabi/tabar/node'</span>;
+<span class="k">const</span> bar = terminalBar({ label: <span class="s">'Downloading'</span> });
+bar.setProgress(loaded, total);
+
+<span class="c"># or pipe progress into the CLI</span>
+some-job | npx tabar --total 1000</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- EXAMPLES -->
+      <section id="examples" style="background:var(--surface-2)">
+        <div class="wrap">
+          <div class="section-head">
+            <p class="eyebrow">Recipes</p>
+            <h2>Examples</h2>
+            <p>Copy-pasteable, framework-free starting points.</p>
+          </div>
+          <div class="gallery">
+            <a href="../examples/no-framework.html"><span class="ico">🌐</span><h3>No framework</h3><p>Plain HTML + the drop-in script.</p></a>
+            <a href="../examples/multi-progress.html"><span class="ico">🧩</span><h3>Multi-progress</h3><p>Segments &amp; a group of downloads.</p></a>
+            <a href="../examples/tailwind.html"><span class="ico">💨</span><h3>Tailwind</h3><p>Themed with utility classes.</p></a>
+            <a href="../examples/bootstrap.html"><span class="ico">🅱️</span><h3>Bootstrap</h3><p>Drop into a Bootstrap layout.</p></a>
+            <a href="../examples/cli.js"><span class="ico">⌨️</span><h3>CLI (Node)</h3><p>Terminal bar + a multi-bar group.</p></a>
+            <a href="https://opensource.simtabi.com/documentation/tabar"><span class="ico">📚</span><h3>Documentation</h3><p>Full guides &amp; the API reference.</p></a>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="cta-band">
+        <div class="wrap">
+          <div class="inner">
+            <h2>Ship a better progress bar today</h2>
+            <p>Zero dependencies. Web &amp; CLI. Accessible by default.</p>
+            <div class="hero__cta">
+              <a class="btn btn--primary" href="./playground.html">Open the playground →</a>
+              <a class="btn btn--ghost" href="https://github.com/simtabi/tabar">Star on GitHub</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap">
+        <span>Tabar v<span id="ver-foot">0.6.0</span> · <a href="https://github.com/simtabi/tabar/blob/main/LICENSE">MIT</a> © Simtabi LLC</span>
+        <span class="footer__links">
+          <a href="https://opensource.simtabi.com/products/tabar">Product</a>
+          <a href="https://opensource.simtabi.com/documentation/tabar">Docs</a>
+          <a href="https://github.com/simtabi/tabar">GitHub</a>
+          <a href="https://github.com/simtabi/tabar/issues">Issues</a>
+        </span>
+      </div>
+    </footer>
+
+    <script type="module" src="./landing.js"></script>
+  </body>
+</html>

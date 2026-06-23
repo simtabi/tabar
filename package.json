@@ -83,7 +83,8 @@
   "scripts": {
     "styles": "node scripts/build-css.js",
     "build": "npm run styles && node scripts/build.js",
-    "demo": "node scripts/serve.js",
+    "build:site": "npm run build && node scripts/build-site.js",
+    "demo": "npm run build:site && node scripts/serve.js",
     "pretest": "npm run styles",
     "test": "vitest run",
     "test:watch": "vitest",

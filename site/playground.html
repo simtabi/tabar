@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en" data-theme="">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tabar — Playground</title>
+    <meta name="description" content="Interactive playground for Tabar: shapes, themes, transfers, segments, groups, states and events." />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="nav">
+      <div class="wrap">
+        <a class="nav__brand" href="./index.html"><span class="dot"></span> Tabar</a>
+        <nav class="nav__links" aria-label="Primary">
+          <a href="./index.html" class="hide-sm">Home</a>
+          <a href="#events">Events</a>
+          <a href="https://github.com/simtabi/tabar">GitHub</a>
+          <button type="button" class="nav__theme" id="theme" aria-label="Toggle theme">◐</button>
+        </nav>
+      </div>
+    </header>
+
+    <div class="wrap pg-head">
+      <h1>Playground</h1>
+      <p>Every control drives a real Tabar instance. The <strong>Events</strong> panel (last)
+        logs everything — including the bars constructed at page load.</p>
+      <div class="pg-toolbar">
+        <label class="field"><span>Language (i18n)</span>
+          <select id="lang" aria-label="Language">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+            <option value="ja">日本語</option>
+            <option value="zh">中文</option>
+            <option value="ar">العربية (RTL)</option>
+          </select>
+        </label>
+        <label class="check"><input type="checkbox" id="debug-toggle" /> <code>Tabar.debug</code></label>
+      </div>
+    </div>
+
+    <div class="wrap pg-layout">
+      <nav class="pg-toc" aria-label="Sections">
+        <span class="group">Basics</span>
+        <a href="#top">Top bar</a>
+        <a href="#inline">Inline &amp; color</a>
+        <span class="group">Shapes</span>
+        <a href="#circular">Circular</a>
+        <span class="group">Styling</span>
+        <a href="#themes">Themes &amp; gradient</a>
+        <span class="group">Data</span>
+        <a href="#transfer">Upload / ETA</a>
+        <a href="#reactivity">Reactivity</a>
+        <a href="#json">JSON / API</a>
+        <span class="group">Multi-progress</span>
+        <a href="#segments">Segments</a>
+        <a href="#group">Group</a>
+        <span class="group">State</span>
+        <a href="#feedback">States &amp; retry</a>
+        <a href="#concurrency">Concurrency</a>
+        <a href="#persistence">Persistence</a>
+        <span class="group">Observe</span>
+        <a href="#events">Events</a>
+      </nav>
+
+      <div class="panels">
+        <section class="panel" id="top">
+          <h2>Top page bar</h2>
+          <p>The classic NProgress-style bar. <code>start()</code> shows + trickles; <code>done()</code> glides to 100% then hides.</p>
+          <div class="row">
+            <button class="mini-btn solid" data-act="top-start">start()</button>
+            <button class="mini-btn" data-act="top-inc">inc()</button>
+            <button class="mini-btn" data-act="top-done">done()</button>
+            <button class="mini-btn" data-act="top-ind">indeterminate()</button>
+          </div>
+        </section>
+
+        <section class="panel" id="inline">
+          <h2>Inline &amp; live color</h2>
+          <p>Mount into your own container; recolor live with <code>setColor()</code>.</p>
+          <div class="stage"><div class="demo-track" id="inline-host" style="min-height:16px"></div></div>
+          <div class="swatches" id="swatches"></div>
+          <div class="row" style="margin-top:14px">
+            <label class="field" style="flex:1"><span>Value <output id="inline-val">40%</output></span>
+              <input type="range" id="inline-slider" min="0" max="100" value="40" style="width:100%" /></label>
+          </div>
+        </section>
+
+        <section class="panel" id="circular">
+          <h2>Circular ring</h2>
+          <p>SVG rings via <code>shape: 'circular'</code> — gradient stroke, centered label.</p>
+          <div class="row" id="ring-row" style="align-items:center;gap:28px;justify-content:center"></div>
+          <div class="row" style="margin-top:16px">
+            <button class="mini-btn solid" data-act="ring-go">Animate</button>
+            <button class="mini-btn" data-act="ring-ind">Indeterminate</button>
+            <button class="mini-btn" data-act="ring-reset">Reset</button>
+          </div>
+        </section>
+
+        <section class="panel" id="themes">
+          <h2>Themes &amp; gradient editor</h2>
+          <p>Edit colors, angle and type live; toggle glow, stripes and a tooltip.</p>
+          <div class="stage"><div class="demo-track" id="theme-host" style="width:100%;min-height:32px"></div></div>
+          <div class="row" style="margin-top:14px">
+            <label class="field"><span>Color A</span><input type="color" id="grad-a" value="#f12711" /></label>
+            <label class="field"><span>Color B</span><input type="color" id="grad-b" value="#f5af19" /></label>
+            <label class="field" style="flex:1;min-width:160px"><span>Angle <output id="angle-val">90°</output></span>
+              <input type="range" id="grad-angle" min="0" max="360" value="90" style="width:100%" /></label>
+            <label class="field"><span>Type</span>
+              <select id="grad-type">
+                <option value="linear">linear</option>
+                <option value="radial">radial</option>
+                <option value="conic">conic</option>
+              </select></label>
+          </div>
+          <div class="row" style="margin-top:12px">
+            <label class="check"><input type="checkbox" id="glow-toggle" /> Glow</label>
+            <label class="check"><input type="checkbox" id="stripe-toggle" /> Stripes</label>
+            <label class="check"><input type="checkbox" id="tooltip-toggle" /> Tooltip</label>
+          </div>
+        </section>
+
+        <section class="panel" id="transfer">
+          <h2>Upload / download &amp; ETA</h2>
+          <p>Drive from a byte transfer with <code>setProgress(loaded, total)</code>; the label shows live speed &amp; a smoothed ETA from <code>bar.stats</code> (localized).</p>
+          <div class="stage"><div class="demo-track" id="xfer-host" style="width:100%;min-height:32px"></div></div>
+          <div class="row" style="margin-top:14px">
+            <button class="mini-btn solid" data-act="xfer-start">Simulate download</button>
+            <button class="mini-btn" data-act="xfer-stall">Throttle</button>
+            <button class="mini-btn" data-act="xfer-fail">Fail</button>
+            <button class="mini-btn" data-act="xfer-reset">Reset</button>
+          </div>
+        </section>
+
+        <section class="panel" id="reactivity">
+          <h2>Reactivity</h2>
+          <p>Bind to any value source with <code>bind(getter, { event, target })</code>.</p>
+          <div class="stage"><div class="demo-track" id="react-host" style="width:100%;min-height:32px"></div></div>
+          <div class="row" style="margin-top:14px">
+            <label class="field" style="flex:1"><span>Value <output id="react-val">0%</output></span>
+              <input type="range" id="react-slider" min="0" max="100" value="0" style="width:100%" /></label>
+          </div>
+        </section>
+
+        <section class="panel" id="json">
+          <h2>Configure from JSON</h2>
+          <p>Construct or reconfigure from a JSON object/string with <code>configure()</code>.</p>
+          <textarea id="json-config" rows="5" spellcheck="false" style="width:100%;font-family:ui-monospace,Menlo,monospace;font-size:13px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);padding:12px"></textarea>
+          <div class="row" style="margin-top:12px"><button class="mini-btn solid" data-act="json-apply">Apply</button></div>
+          <div class="stage" style="margin-top:14px"><div class="demo-track" id="json-host" style="width:100%;min-height:16px"></div></div>
+        </section>
+
+        <section class="panel" id="segments">
+          <h2>Segments — one bar, many progresses</h2>
+          <p><strong>Stacked</strong> chunks tile a bar; <strong>overlay</strong> layers values (buffered vs played).</p>
+          <p style="margin-bottom:6px"><strong>Stacked</strong></p>
+          <div class="demo-track" id="seg-stacked" style="min-height:16px"></div>
+          <p style="margin:14px 0 6px"><strong>Overlay</strong></p>
+          <div class="demo-track" id="seg-overlay" style="min-height:16px"></div>
+          <div class="row" style="margin-top:14px"><button class="mini-btn solid" data-act="seg-advance">Advance a chunk</button></div>
+        </section>
+
+        <section class="panel" id="group">
+          <h2>Group — a parent task with child bars</h2>
+          <p><code>TabarGroup</code> aggregates child bars into an overall.</p>
+          <div id="group-host"></div>
+          <div class="row" style="margin-top:14px"><button class="mini-btn solid" data-act="group-add">Add a download</button></div>
+        </section>
+
+        <section class="panel" id="feedback">
+          <h2>States &amp; feedback</h2>
+          <p>Themeable error / warning / success, <code>retry()</code> with an attempt counter, and aria-live announcements.</p>
+          <div class="stage"><div class="demo-track" id="feedback-host" style="width:100%;min-height:16px"></div></div>
+          <div class="row" style="margin-top:14px">
+            <button class="mini-btn" data-act="fb-warn">Warn</button>
+            <button class="mini-btn" data-act="fb-error">Error</button>
+            <button class="mini-btn solid" data-act="fb-retry">Retry</button>
+            <button class="mini-btn" data-act="fb-succeed">Succeed</button>
+          </div>
+          <p class="hint" style="margin-top:10px;font-size:13px;color:var(--muted)">Attempts: <output id="fb-attempts">0</output></p>
+        </section>
+
+        <section class="panel" id="concurrency">
+          <h2>Concurrency</h2>
+          <p>Run many independent bars at once — no id/class collisions.</p>
+          <div class="stage" style="display:block"><div class="demo-track" id="c1" style="min-height:12px;margin-bottom:8px"></div><div class="demo-track" id="c2" style="min-height:12px;margin-bottom:8px"></div><div class="demo-track" id="c3" style="min-height:12px"></div></div>
+          <div class="row" style="margin-top:14px"><button class="mini-btn solid" data-act="conc-go">Run all</button></div>
+        </section>
+
+        <section class="panel" id="persistence">
+          <h2>Persistence</h2>
+          <p>Save to storage and restore on reload (<code>persist</code>).</p>
+          <div class="stage"><div class="demo-track" id="persist-host" style="width:100%;min-height:16px"></div></div>
+          <div class="row" style="margin-top:14px">
+            <button class="mini-btn solid" data-act="persist-set">Set 60%</button>
+            <button class="mini-btn" data-act="persist-clear">Clear</button>
+            <button class="mini-btn" data-act="reload">Reload page</button>
+          </div>
+        </section>
+
+        <section class="panel" id="events">
+          <h2>Events</h2>
+          <p>Listeners fire on the instance, a global bus and as DOM <code>tabar:*</code> events.</p>
+          <div class="log-meta"><span id="log-count">0 events</span><button class="mini-btn" data-act="evt-clear">Clear</button></div>
+          <div class="log" id="event-log" aria-live="off"></div>
+        </section>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="wrap">
+        <span id="version">Tabar</span>
+        <span class="footer__links">
+          <a href="./index.html">Home</a>
+          <a href="https://opensource.simtabi.com/documentation/tabar">Docs</a>
+          <a href="https://github.com/simtabi/tabar">GitHub</a>
+        </span>
+      </div>
+    </footer>
+
+    <script type="module" src="./playground.js"></script>
+  </body>
+</html>

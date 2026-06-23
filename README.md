@@ -200,8 +200,10 @@ More in [docs/tools/events.md](docs/tools/events.md).
 
 ## Demo
 
-Open [`demo/index.html`](demo/index.html) for an interactive playground, and
-[`examples/`](examples/) for no-framework, Tailwind and Bootstrap setups.
+Run `npm run demo` to build and serve the site — an Apple-style **landing page** plus an
+interactive **playground** (`/playground.html`) covering shapes, themes, transfers, segments,
+groups, states and events. The [`examples/`](examples/) folder has copy-pasteable
+no-framework, Tailwind, Bootstrap, multi-progress and Node CLI setups.
 
 ## Contributing
 
