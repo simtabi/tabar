@@ -127,6 +127,19 @@ export class TabarGroup {
     return this._children.get(id);
   }
 
+  /** Merge default options applied to future child bars. Chainable. */
+  setChildDefaults(opts) {
+    this.options.child = { ...(this.options.child || {}), ...(opts || {}) };
+    return this;
+  }
+
+  /** Update the overall bar's options live (e.g. color/theme). Chainable. */
+  setOverallDefaults(opts) {
+    this.options.overall = { ...(this.options.overall || {}), ...(opts || {}) };
+    if (this._overall) this._overall.configure(opts || {});
+    return this;
+  }
+
   /** @returns {Tabar[]} */
   get children() {
     return [...this._children.values()];

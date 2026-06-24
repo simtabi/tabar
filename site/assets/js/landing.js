@@ -4,12 +4,18 @@ import { TabarGroup } from '../../../src/group.js';
 
 /* --- Theme toggle (persisted) --------------------------------------------- */
 const root = document.documentElement;
+const themeBtn = document.getElementById('theme');
+const isDark = () =>
+  root.dataset.theme === 'dark' ||
+  (!root.dataset.theme && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+const reflectTheme = () => themeBtn?.setAttribute('aria-pressed', String(isDark()));
 const saved = localStorage.getItem('tabar-theme');
 if (saved) root.dataset.theme = saved;
-document.getElementById('theme')?.addEventListener('click', () => {
-  const dark = root.dataset.theme !== 'dark';
-  root.dataset.theme = dark ? 'dark' : 'light';
+reflectTheme();
+themeBtn?.addEventListener('click', () => {
+  root.dataset.theme = isDark() ? 'light' : 'dark';
   localStorage.setItem('tabar-theme', root.dataset.theme);
+  reflectTheme();
 });
 
 /* --- Version stamps ------------------------------------------------------- */

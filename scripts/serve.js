@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = resolve(fileURLToPath(import.meta.url), '../..');
 const siteRoot = join(repoRoot, 'site/dist');
-const port = Number(process.env.PORT) || 8080;
+const port = Number(process.env.PORT ?? 8080);
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -24,6 +24,15 @@ const MIME = {
   '.map': 'application/json; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+  '.txt': 'text/plain; charset=utf-8',
 };
 
 /** Read `pathname` from `base`, guarding against path traversal. */

@@ -16,7 +16,7 @@ export const NUMERIC = new Set([
 ]);
 
 // Dimensions that accept a number (→ px) OR a CSS length string (e.g. '100%').
-const DIMENSION = new Set(['height']);
+const DIMENSION = new Set(['height', 'length']);
 
 /** Option keys treated as booleans (any value except the string `"false"` → true). */
 export const BOOLEAN = new Set([

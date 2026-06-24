@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Tabar — Playground</title>
     <meta name="description" content="Interactive playground for Tabar: a full live configurator plus shapes, themes, transfers, segments, groups, states and events." />
+    <meta name="theme-color" content="#2299dd" />
+    <link rel="icon" href="./assets/img/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./assets/img/favicon.svg" />
     <link rel="stylesheet" href="./assets/css/styles.css" />
   </head>
   <body>
@@ -15,7 +18,7 @@
           <a href="./index.html" class="hide-sm">Home</a>
           <a href="#events">Events</a>
           <a href="https://github.com/simtabi/tabar">GitHub</a>
-          <button type="button" class="nav__theme" id="theme" aria-label="Toggle theme">◐</button>
+          <button type="button" class="nav__theme" id="theme" aria-label="Toggle dark mode" aria-pressed="false">◐</button>
         </nav>
       </div>
     </header>
@@ -298,7 +301,7 @@
           <h2>Events</h2>
           <p>Listeners fire on the instance, a global bus and as DOM <code>tabar:*</code> events.</p>
           <div class="log-meta"><span id="log-count">0 events</span><button class="mini-btn" data-act="evt-clear">Clear</button></div>
-          <div class="log" id="event-log" data-testid="event-log" aria-live="off"></div>
+          <div class="log" id="event-log" data-testid="event-log" role="log" aria-live="polite" aria-label="Tabar event log"></div>
         </section>
       </div>
     </div>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Tabar — a dependency-free progress bar for web & CLI">
+  <defs>
+    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2299dd"/>
+      <stop offset="1" stop-color="#7c4dff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#fbfbfd"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+    <circle cx="104" cy="120" r="14" fill="url(#bar)"/>
+    <text x="130" y="130" font-size="34" font-weight="600" fill="#1d1d1f">Tabar</text>
+    <text x="100" y="300" font-size="84" font-weight="700" fill="#1d1d1f" letter-spacing="-2">Progress bars,</text>
+    <text x="100" y="396" font-size="84" font-weight="700" letter-spacing="-2" fill="url(#bar)">done right.</text>
+    <text x="100" y="470" font-size="33" fill="#6e6e73">Dependency-free · web &amp; CLI · linear &amp; circular · accessible.</text>
+  </g>
+  <rect x="100" y="520" width="1000" height="20" rx="10" fill="#e3e3e6"/>
+  <rect x="100" y="520" width="680" height="20" rx="10" fill="url(#bar)"/>
+</svg>

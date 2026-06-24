@@ -174,6 +174,8 @@ More in [docs/tools/events.md](docs/tools/events.md).
 | `destroy()` | Remove DOM, timers and listeners; release the shared stylesheet. |
 | `setColor/​setColor2/​setBackground/​setHeight/​setSpeed/​setRadius/​setInnerRadius/​setLabel/​setTooltip` | Chainable live setters (`setHeight` accepts px or any CSS length). |
 | `setLength/​setOffset/​setTrackColor/​setLineCap/​setStartAngle/​setClockwise` | Fixed-bar length/inset and circular ring geometry. |
+| `setSize/​setShape/​setPosition/​setDirection/​setMax/​setMinimum/​setSegmentMode/​setZIndex` | Resize/restructure live (`setShape` rebuilds, preserving state). |
+| getters: `bar.color/​height/​size/​theme/​position/​shape/​colors/​…` | Read any option back (read-only; one per option). |
 | `setTheme/​setGradient/​setGradientStops/​setColorAt/​setGradientAngle/​setGradientType/​setGradientShape/​setGradientPosition/​setFill` | Edit look, gradient colors/stops/angle/type/shape/center, or any CSS fill. |
 | `setColors/​addColorStop/​removeColorStop/​setColorMode/​setColorAnimate` | Multi-color stops, `gradient` vs hard `bands`, and the scrolling animation. |
 | `setGlow(on, color?)/​setGlowColor/​setGlowSize/​setStriped` | Glow (with bleed size) & stripe modifiers that compose with any theme. |

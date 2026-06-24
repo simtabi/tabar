@@ -357,6 +357,42 @@ export declare class Tabar {
   /** The inline message currently shown for this state (`''` when none). */
   readonly message: string;
 
+  // Read-only getters for every option (current configured value).
+  readonly color: string;
+  readonly color2: string;
+  readonly background: string;
+  readonly height: number | string;
+  readonly size: number;
+  readonly radius: TabarCorners;
+  readonly innerRadius: TabarCorners;
+  readonly speed: number;
+  readonly zIndex: number;
+  readonly position: TabarPosition;
+  readonly shape: TabarShape;
+  readonly direction: TabarDirection;
+  readonly length: number | string;
+  readonly offset: number;
+  readonly theme: TabarTheme;
+  readonly colors: TabarGradientStop[] | null;
+  readonly colorMode: TabarColorMode;
+  readonly colorAnimate: boolean;
+  readonly gradient: TabarGradientStop[] | null;
+  readonly gradientType: TabarGradientType;
+  readonly fill: string | null;
+  readonly glow: boolean;
+  readonly glowColor: string | null;
+  readonly glowSize: number;
+  readonly striped: boolean;
+  readonly trackColor: string | null;
+  readonly lineCap: TabarLineCap;
+  readonly startAngle: number;
+  readonly clockwise: boolean;
+  readonly max: number;
+  readonly minimum: number;
+  readonly segmentMode: TabarSegmentMode;
+  readonly tooltip: boolean | string | ((percent: number, bar: Tabar) => string);
+  readonly label: string;
+
   static get(id: string): Tabar | undefined;
   static readonly instances: Tabar[];
   static readonly events: TabarEventName[];
@@ -465,6 +501,22 @@ export declare class Tabar {
   setLineCap(cap: TabarLineCap): this;
   setStartAngle(deg: number): this;
   setClockwise(on?: boolean): this;
+  /** Set the circular ring diameter in px (no-op for linear bars). */
+  setSize(px: number): this;
+  /** Switch between 'linear' and 'circular' (rebuilds, preserving state). */
+  setShape(shape: TabarShape): this;
+  /** Move the bar to a new position. */
+  setPosition(pos: TabarPosition): this;
+  /** Set the text/fill direction. */
+  setDirection(dir: TabarDirection): this;
+  /** Set the value scale (`set(max)` === 100%). */
+  setMax(n: number): this;
+  /** Set the floor fraction applied by `start()`. */
+  setMinimum(n: number): this;
+  /** Set the segment layout when in segment mode. */
+  setSegmentMode(mode: TabarSegmentMode): this;
+  /** Set the z-index for fixed bars. */
+  setZIndex(z: number): this;
   setDebug(on?: boolean): this;
   configure(partial: Partial<TabarOptions> | string): this;
 

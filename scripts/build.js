@@ -20,12 +20,15 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const { version } = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
 const define = { __TABAR_VERSION__: JSON.stringify(version) };
 
+// Preserved license header for the drop-in minified bundles.
+const banner = { js: `/*! Tabar v${version} | MIT License | https://github.com/simtabi/tabar */` };
+
 const targets = [
   { entry: 'src/tabar.js', outfile: 'dist/tabar.esm.js', format: 'esm' },
   { entry: 'src/tabar.js', outfile: 'dist/tabar.umd.cjs', format: 'cjs' },
   {
     entry: 'src/tabar.js', outfile: 'dist/tabar.min.js', format: 'iife',
-    globalName: 'TabarModule', minify: true, footer: { js: 'window.Tabar=TabarModule.default;' },
+    globalName: 'TabarModule', minify: true, banner, footer: { js: 'window.Tabar=TabarModule.default;' },
   },
   { entry: 'src/group.js', outfile: 'dist/tabar-group.js', format: 'esm' },
   { entry: 'src/node.js', outfile: 'dist/tabar-node.js', format: 'esm', platform: 'node' },
@@ -33,7 +36,7 @@ const targets = [
   { entry: 'src/element.js', outfile: 'dist/tabar-element.js', format: 'esm' },
   {
     entry: 'src/element.js', outfile: 'dist/tabar-element.min.js', format: 'iife',
-    globalName: 'TabarElement', minify: true,
+    globalName: 'TabarElement', minify: true, banner,
   },
   { entry: 'src/react.js', outfile: 'dist/tabar-react.js', format: 'esm', external: ['react'] },
 ];
@@ -53,6 +56,7 @@ await Promise.all(
       platform: t.platform || 'browser',
       globalName: t.globalName,
       minify: t.minify,
+      banner: t.banner,
       footer: t.footer,
       external: t.external,
     }),

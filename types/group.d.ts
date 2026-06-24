@@ -26,6 +26,10 @@ export declare class TabarGroup {
   add(childOptions?: TabarOptions): Tabar;
   remove(id: string): this;
   child(id: string): Tabar | undefined;
+  /** Merge default options applied to future child bars. */
+  setChildDefaults(opts: TabarOptions): this;
+  /** Update the overall bar's options live. */
+  setOverallDefaults(opts: TabarOptions): this;
   on(name: string, handler: (payload: unknown, child?: Tabar) => void): this;
   off(name: string, handler?: (payload: unknown, child?: Tabar) => void): this;
   destroy(): void;

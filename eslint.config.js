@@ -50,4 +50,20 @@ export default [
     files: ['test/**/*.js'],
     languageOptions: { ecmaVersion: 2022, sourceType: 'module', globals: browserGlobals },
   },
+  {
+    files: ['site/assets/js/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        ...browserGlobals,
+        location: 'readonly',
+        navigator: 'readonly',
+        URLSearchParams: 'readonly',
+        Uint8Array: 'readonly',
+        getComputedStyle: 'readonly',
+      },
+    },
+    rules: { 'no-console': 'off' },
+  },
 ];

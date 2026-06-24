@@ -6,7 +6,30 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+- **Broader, consistent API.** New chainable setters — `setSize`, `setShape`
+  (rebuilds linear↔circular, preserving state), `setPosition`, `setDirection`,
+  `setMax`, `setMinimum`, `setSegmentMode`, `setZIndex` — plus read-only **getters
+  for every option** (`bar.color`, `bar.height`, `bar.theme`, …). `TabarGroup` gains
+  `setChildDefaults`/`setOverallDefaults`.
+- **Design-system pass on the demo site**: a tokenized 4/8px spacing grid + type/
+  radius scales, unified buttons/inputs, `:focus-visible` rings on every control,
+  fixed dark-mode muted-text contrast, full `prefers-reduced-motion` coverage, an
+  `aria-pressed` theme toggle and `aria-live` event log, plus a favicon and
+  Open Graph/Twitter cards.
+- **Types for every export** (`./terminal`, `./element` were missing), a coverage
+  script (`npm run test:coverage`), a license banner on the minified bundles, and the
+  demo JS is now linted.
+
 ### Fixed
+- **Circular `setHeight`/`setSize` are now live.** The ring's radius/circumference are
+  recomputed (and the arc repainted) when the stroke or diameter changes — previously
+  a live `setHeight` left the fill mis-scaled.
+- A bare-number `data-tabar-length` (e.g. `"240"`) is read as `240px` instead of the
+  invalid CSS `240`.
+- The React `useTabar` hook now re-renders on `start`/`resume`/`show`/`hide`/`stall`/
+  `retry` too (previously only a subset of events).
+- The `tabar` CLI no longer reads past the end of argv when a value flag is last.
 - **Tooltips now show.** The wrapper opened `overflow` only for the glow, so the
   tooltip (rendered above the bar) was clipped — `[data-tooltip-tabar-on]` now opens
   overflow too, and `setTooltip()` attaches the tip to the wrapper for circular rings

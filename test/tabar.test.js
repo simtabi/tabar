@@ -1166,3 +1166,64 @@ describe('flexible height', () => {
     expect(bar.options.height).toBe('100%');
   });
 });
+
+describe('broad API: setters, getters, structural rebuild', () => {
+  it('exposes read-only getters for options', () => {
+    const bar = new Tabar({ position: 'inline', color: '#abc', height: 12, theme: 'gradient', trickle: false });
+    expect(bar.color).toBe('#abc');
+    expect(bar.height).toBe(12);
+    expect(bar.theme).toBe('gradient');
+    expect(bar.position).toBe('inline');
+    expect(bar.shape).toBe('linear');
+  });
+
+  it('setSize / setHeight recompute circular geometry and repaint', () => {
+    const ring = new Tabar({ shape: 'circular', size: 64, height: 6, trickle: false });
+    ring.set(0.5, { animate: false });
+    const before = ring._circumference;
+    ring.setHeight(16);
+    expect(ring._circumference).not.toBe(before); // r changed → circumference changed
+    expect(ring._bar.getAttribute('stroke-width')).toBe('16');
+    ring.setSize(120);
+    const svg = ring._bar.ownerSVGElement;
+    expect(svg.getAttribute('width')).toBe('120');
+    expect(svg.getAttribute('viewBox')).toBe('0 0 120 120');
+    // dashoffset still reflects 50%
+    expect(ring._bar.style.strokeDashoffset).toBe(`${ring._circumference * 0.5}`);
+  });
+
+  it('setShape rebuilds the DOM and preserves the value', () => {
+    const bar = new Tabar({ position: 'inline', trickle: false });
+    bar.set(0.4, { animate: false });
+    bar.setShape('circular');
+    expect(bar.shape).toBe('circular');
+    const el = document.querySelector('[data-tabar]');
+    expect(el.getAttribute('data-shape-tabar')).toBe('circular');
+    expect(el.querySelector('svg')).toBeTruthy();
+    expect(Math.round(bar.value)).toBe(40); // value preserved across rebuild
+    bar.setShape('linear');
+    expect(document.querySelector('[data-shape-tabar="linear"]')).toBeTruthy();
+  });
+
+  it('setPosition / setDirection / setMax / setSegmentMode apply live', () => {
+    const bar = new Tabar({ position: 'top', trickle: false });
+    bar.setPosition('bottom-center');
+    expect(bar._wrapper.getAttribute('data-position-tabar')).toBe('bottom-center');
+    bar.setDirection('rtl');
+    expect(bar._wrapper.getAttribute('data-rtl-tabar')).toBe('true');
+    bar.setMax(200);
+    expect(bar.max).toBe(200);
+    bar.setSegments([{ id: 'a', value: 0.5 }, { id: 'b', value: 0.5 }]);
+    bar.setSegmentMode('overlay');
+    expect(bar._wrapper.getAttribute('data-segmented-tabar')).toBe('overlay');
+  });
+
+  it('reads a numeric data-tabar-length as px', () => {
+    const host = document.createElement('div');
+    host.setAttribute('data-tabar-length', '240');
+    document.body.appendChild(host);
+    const bar = new Tabar({ position: 'top', mountTo: host, trickle: false });
+    expect(bar.options.length).toBe(240);
+    expect(bar._wrapper.style.getPropertyValue('--tabar-length')).toBe('240px');
+  });
+});

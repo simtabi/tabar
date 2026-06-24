@@ -43,6 +43,7 @@
       "default": "./src/node.js"
     },
     "./terminal": {
+      "types": "./types/terminal.d.ts",
       "import": "./dist/tabar-terminal.js",
       "default": "./src/terminal.js"
     },
@@ -52,6 +53,7 @@
       "default": "./src/group.js"
     },
     "./element": {
+      "types": "./types/element.d.ts",
       "import": "./dist/tabar-element.js",
       "default": "./src/element.js"
     },
@@ -88,9 +90,10 @@
     "pretest": "npm run styles",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:update": "playwright test --update-snapshots",
-    "lint": "eslint src test scripts bin",
+    "lint": "eslint src test scripts bin site/assets/js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "prepublishOnly": "npm run build"
   },
@@ -106,6 +109,7 @@
     "@eslint/js": "^9.9.0",
     "@playwright/test": "^1.61.0",
     "@testing-library/react": "^16.3.2",
+    "@vitest/coverage-v8": "^2.1.9",
     "esbuild": "^0.23.0",
     "eslint": "^9.9.0",
     "happy-dom": "^15.0.0",

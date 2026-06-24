@@ -63,6 +63,9 @@ const DEFAULTS = Object.freeze({
   speed: 300, // transition duration in ms
   zIndex: 1031,
 
+  // theme is a PRESET; `glow`/`striped` below are independent MODIFIERS that
+  // compose with any theme. Multi-color fill precedence: `colors` > `gradient` >
+  // the `gradient` theme's [color, color2]. `minimal` renders like `default`.
   theme: 'default', // 'default' | 'gradient' | 'rainbow' | 'stripes' | 'glow' | 'minimal'
   colors: null, // multi-color stops: ['#f00','#0f0','#00f'] or [{color,at}] (alias for `gradient`)
   colorMode: 'gradient', // 'gradient' (blended) | 'bands' (hard, non-interpolated color blocks)
@@ -818,6 +821,52 @@ class Tabar {
     svg.append(track, bar);
     wrapper.appendChild(svg);
     return bar;
+  }
+
+  /** Recompute circular geometry after a live `size`/`height` (stroke) change. */
+  _recomputeRing() {
+    if (this.options.shape !== 'circular' || !this._bar) return;
+    const svg = this._bar.ownerSVGElement;
+    if (!svg) return;
+    const size = toNum(this.options.size) || 64;
+    const stroke = toNum(this.options.height) || 6;
+    const r = (size - stroke) / 2;
+    this._circumference = 2 * Math.PI * r;
+    svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
+    svg.setAttribute('width', `${size}`);
+    svg.setAttribute('height', `${size}`);
+    for (const c of svg.querySelectorAll('circle')) {
+      c.setAttribute('cx', `${size / 2}`);
+      c.setAttribute('cy', `${size / 2}`);
+      c.setAttribute('r', `${r}`);
+      c.setAttribute('stroke-width', `${stroke}`);
+    }
+    this._bar.style.strokeDasharray = `${this._circumference}`;
+    this._setWidth(this._progress, 0); // repaint at the current value
+  }
+
+  /**
+   * Recreate the DOM subtree (for structural changes like `shape`), preserving
+   * the current value/state/visibility/segments.
+   */
+  _rebuild() {
+    if (!this._wrapper) return this;
+    const snap = { pct: this._progress, state: this._state, visible: this.visible, segments: this._segments };
+    this._wrapper.remove();
+    this._wrapper = this._bar = this._label = this._tooltip = this._messageEl = null;
+    this._gradDef = null;
+    this._segments = null;
+    this._build();
+    this._applyTheme();
+    if (snap.segments) {
+      this.setSegments(snap.segments);
+    } else {
+      this._progress = snap.pct;
+      this._setWidth(snap.pct, 0);
+    }
+    this._setState(snap.state);
+    if (!snap.visible) this.hide();
+    return this;
   }
 
   _resolveHost() {
@@ -1720,7 +1769,17 @@ class Tabar {
     if (this._wrapper) {
       const css = this.options.shape === 'circular' ? `${toNum(px) || 6}px` : toCssSize(px, '6px');
       this._wrapper.style.setProperty('--tabar-height', css);
+      // A circular ring's radius/circumference depend on the stroke, so recompute
+      // the geometry and repaint — otherwise the arc fill mis-scales.
+      if (this.options.shape === 'circular') this._recomputeRing();
     }
+    return this;
+  }
+
+  /** Set the circular ring diameter in px (no-op for linear bars). */
+  setSize(px) {
+    this.options.size = toNum(px) || 64;
+    if (this._wrapper && this.options.shape === 'circular') this._recomputeRing();
     return this;
   }
 
@@ -1989,6 +2048,65 @@ class Tabar {
     this.options.clockwise = !!on;
     // Same formula as _applyTheme: flip when counter-clockwise XOR RTL.
     if (this._wrapper) this._wrapper.style.setProperty('--tabar-flip', (this.options.clockwise === false) !== this._isRtl() ? '-1' : '1');
+    return this;
+  }
+
+  /** Switch between 'linear' and 'circular' (rebuilds the DOM, preserving state). */
+  setShape(shape) {
+    const next = shape === 'circular' ? 'circular' : 'linear';
+    if (next === this.options.shape) return this;
+    this.options.shape = next;
+    if (this._wrapper) this._rebuild();
+    return this;
+  }
+
+  /** Move the bar to a new position (e.g. 'top', 'bottom-center', 'inline'). */
+  setPosition(pos) {
+    this.options.position = pos;
+    if (this._wrapper && this.options.shape !== 'circular') {
+      this._wrapper.setAttribute('data-position-tabar', this._position());
+      this._wrapper.setAttribute('data-orientation-tabar', this._orientation());
+    }
+    return this;
+  }
+
+  /** Set the text/fill direction ('ltr' | 'rtl'). */
+  setDirection(dir) {
+    this.options.direction = dir === 'rtl' ? 'rtl' : 'ltr';
+    if (this._wrapper) {
+      if (this._isRtl()) this._wrapper.setAttribute('data-rtl-tabar', 'true');
+      else this._wrapper.removeAttribute('data-rtl-tabar');
+      this._applyTheme(); // recompute gradient angle + circular flip
+    }
+    return this;
+  }
+
+  /** Set the value scale (`set(max)` === 100%). */
+  setMax(n) {
+    this.options.max = Math.max(1, toNum(n) || 100);
+    return this;
+  }
+
+  /** Set the floor fraction applied by `start()`. */
+  setMinimum(n) {
+    this.options.minimum = clamp(toNum(n), 0, 1);
+    return this;
+  }
+
+  /** Set the segment layout ('stacked' | 'overlay') when in segment mode. */
+  setSegmentMode(mode) {
+    this.options.segmentMode = mode === 'overlay' ? 'overlay' : 'stacked';
+    if (this._segments) {
+      if (this._wrapper) this._wrapper.setAttribute('data-segmented-tabar', this._segmentMode());
+      this._paintSegments();
+    }
+    return this;
+  }
+
+  /** Set the z-index for fixed bars. */
+  setZIndex(z) {
+    this.options.zIndex = toNum(z);
+    if (this._wrapper) this._wrapper.style.setProperty('--tabar-z', String(toNum(z)));
     return this;
   }
 
@@ -2413,6 +2531,23 @@ Object.defineProperty(Tabar, 'locale', {
     if (locales[code]) activeLocale = code;
   },
 });
+
+// Read-only getters for every public option (e.g. `bar.color`, `bar.height`,
+// `bar.theme`), generated from DEFAULTS so they stay in sync. Skips keys that
+// already have a richer accessor (live state) and the `on*` event callbacks.
+const RESERVED_ACCESSORS = new Set([
+  'id', 'value', 'state', 'visible', 'complete', 'attempts', 'stats', 'message', 'segments',
+]);
+for (const key of Object.keys(DEFAULTS)) {
+  if (RESERVED_ACCESSORS.has(key) || /^on[A-Z]/.test(key)) continue;
+  if (Object.getOwnPropertyDescriptor(Tabar.prototype, key)) continue;
+  Object.defineProperty(Tabar.prototype, key, {
+    get() {
+      return this.options[key];
+    },
+    configurable: true,
+  });
+}
 
 /** Factory helper. Equivalent to `new Tabar(options)`. */
 export function createTabar(options) {

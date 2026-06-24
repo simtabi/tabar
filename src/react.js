@@ -36,10 +36,12 @@ export function useTabar(options = {}) {
     barRef.current = bar;
 
     const sync = () =>
-      setSnapshot({ value: bar.value, state: bar.state, stats: bar.stats, complete: bar.complete });
-    ['change', 'progress', 'reset', 'done', 'indeterminate', 'error', 'warning', 'success'].forEach(
-      (e) => bar.on(e, sync),
-    );
+      setSnapshot({ value: bar.value, state: bar.state, stats: bar.stats, complete: bar.complete, visible: bar.visible });
+    // Every event that can change value/state/visibility, so React stays in sync.
+    [
+      'start', 'change', 'progress', 'reset', 'resume', 'done', 'indeterminate',
+      'show', 'hide', 'error', 'warning', 'success', 'stall', 'retry',
+    ].forEach((e) => bar.on(e, sync));
     sync();
 
     return () => {

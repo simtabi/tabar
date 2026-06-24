@@ -16,14 +16,16 @@ const argv = process.argv.slice(2);
 const opts = { colors: true };
 let demo = false;
 let help = false;
+// Consume the value after a flag, guarding against a missing trailing argument.
+const next = (i) => (i + 1 < argv.length ? argv[i + 1] : undefined);
 for (let i = 0; i < argv.length; i += 1) {
   const a = argv[i];
   if (a === '--demo') demo = true;
   else if (a === '--help' || a === '-h') help = true;
   else if (a === '--no-color') opts.colors = false;
-  else if (a === '--total') opts.total = Number(argv[++i]);
-  else if (a === '--label') opts.label = argv[++i];
-  else if (a === '--width') opts.width = Number(argv[++i]);
+  else if (a === '--total') { opts.total = Number(next(i)); i += 1; }
+  else if (a === '--label') { opts.label = next(i); i += 1; }
+  else if (a === '--width') { opts.width = Number(next(i)); i += 1; }
 }
 
 if (help) {

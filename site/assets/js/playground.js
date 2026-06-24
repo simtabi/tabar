@@ -7,11 +7,18 @@ const $ = (sel) => document.querySelector(sel);
 
 /* --- Theme toggle (persisted) --------------------------------------------- */
 const root = document.documentElement;
+const themeBtn = $('#theme');
+const isDark = () =>
+  root.dataset.theme === 'dark' ||
+  (!root.dataset.theme && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+const reflectTheme = () => themeBtn?.setAttribute('aria-pressed', String(isDark()));
 const savedTheme = localStorage.getItem('tabar-theme');
 if (savedTheme) root.dataset.theme = savedTheme;
-$('#theme')?.addEventListener('click', () => {
-  root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+reflectTheme();
+themeBtn?.addEventListener('click', () => {
+  root.dataset.theme = isDark() ? 'light' : 'dark';
   localStorage.setItem('tabar-theme', root.dataset.theme);
+  reflectTheme();
 });
 
 /* --- Event log FIRST (captures page-load construction) -------------------- */
