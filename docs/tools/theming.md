@@ -119,17 +119,29 @@ bar.addColorStop('#0f0').setColorMode('bands').setColorAnimate(true);
 
 - **`gradient`** mode blends the stops smoothly.
 - **`bands`** mode paints each color as a solid, non-interpolated block (great for
-  multi-stage / phase bars). Distinct from `segments`, which track independent values.
+  multi-stage / phase bars) — use **3 or more** colors for a meaningful split. Distinct from
+  `segments`, which track independent values.
 - **`colorAnimate`** scrolls the fill (like `theme: 'rainbow'`, but with your colors); it
   respects `prefers-reduced-motion`.
 
-## Glow
+## Border
 
-`glow` adds a soft halo that **bleeds onto surrounding elements**. `glowColor` sets its color
-(defaults to the bar color) and `glowSize` (px) controls how far it spreads:
+Outline the (linear) track with `borderWidth` / `borderStyle` / `borderColor` (or
+`setBorder(width, style?, color?)`). Width `0` (default) means no border:
 
 ```js
-new Tabar({ glow: true, glowColor: '#00e5ff', glowSize: 16 });
+new Tabar({ borderWidth: 2, borderStyle: 'dashed', borderColor: '#2299dd' });
+```
+
+## Glow
+
+`glow` adds a soft halo that **bleeds onto surrounding elements** and follows the bar's
+rounded corners (it's no longer a hard rectangle). `glowColor` sets its color (defaults to the
+bar color) and `glowSize` (px) controls how far it spreads; the halo also sits outside any
+`border`:
+
+```js
+new Tabar({ glow: true, glowColor: '#00e5ff', glowSize: 16, radius: 8 });
 ```
 
 Note: a glowing (or tooltip-bearing) bar needs its container **not** to clip overflow — give

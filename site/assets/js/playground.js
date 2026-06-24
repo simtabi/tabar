@@ -55,6 +55,11 @@ const CFG_SCHEMA = [
     { key: 'radius', label: 'Radius (px)', type: 'number', min: 0, max: 9999, step: 1 },
     { key: 'innerRadius', label: 'Inner radius (px)', type: 'number', min: 0, max: 9999, step: 1 },
   ] },
+  { group: 'Border (linear)', controls: [
+    { key: 'borderWidth', label: 'Width', type: 'range', min: 0, max: 12, step: 1, unit: 'px' },
+    { key: 'borderStyle', label: 'Style', type: 'select', options: ['solid', 'dashed', 'dotted', 'double', 'none'] },
+    { key: 'borderColor', label: 'Color (CSS)', type: 'text', placeholder: 'faint neutral' },
+  ] },
   { group: 'Color & theme', controls: [
     { key: 'theme', label: 'Theme', type: 'select', options: ['default', 'gradient', 'rainbow', 'stripes', 'glow', 'minimal'] },
     { key: 'color', label: 'Color', type: 'color' },
@@ -124,6 +129,7 @@ const CFG_SCHEMA = [
 // Starting values for the configurator (a sensible, good-looking default bar).
 const cfgState = {
   shape: 'linear', direction: 'ltr', height: 18, size: 96, radius: 9, innerRadius: 0,
+  borderWidth: 0, borderStyle: 'solid', borderColor: '',
   theme: 'gradient', color: '#2299dd', color2: '#7c4dff', background: '', glow: false,
   glowColor: '', glowSize: 8, striped: false, stripeAnimate: true,
   colorMode: 'gradient', colorAnimate: false,
@@ -138,7 +144,8 @@ const cfgState = {
   locale: 'en', ariaLabel: '',
   persistOn: false, persistStorage: 'local',
   // Dynamic multi-color stops (managed by the colors editor below, not the schema).
-  colorsList: [],
+  // Seeded with 3 so 'bands' mode has its recommended minimum out of the box.
+  colorsList: ['#2299dd', '#7c4dff', '#30d158'],
 };
 
 // Translate the flat configurator state into Tabar construction options.
@@ -148,6 +155,11 @@ function cfgToOptions(s) {
   if (s.direction === 'rtl') o.direction = 'rtl';
   if (Number(s.radius)) o.radius = Number(s.radius);
   if (Number(s.innerRadius)) o.innerRadius = Number(s.innerRadius);
+  if (Number(s.borderWidth)) {
+    o.borderWidth = Number(s.borderWidth);
+    if (s.borderStyle !== 'solid') o.borderStyle = s.borderStyle;
+    if (s.borderColor) o.borderColor = s.borderColor;
+  }
   if (s.theme !== 'default') o.theme = s.theme;
   o.color = s.color;
   if (s.theme === 'gradient') o.color2 = s.color2;
@@ -320,8 +332,9 @@ if (cfgControlsEl) {
   const PALETTE = ['#2299dd', '#7c4dff', '#30d158', '#ff9f0a', '#e5484d', '#64d2ff'];
   const colorsFs = document.createElement('fieldset');
   colorsFs.className = 'cfg-fieldset';
+  const MIN_COLORS = 3; // bands need at least three distinct blocks
   const colorsLegend = document.createElement('legend');
-  colorsLegend.textContent = 'Colors (multi-stop — 2+ to apply)';
+  colorsLegend.textContent = 'Colors (multi-stop — 3+ for bands)';
   const colorsWrap = document.createElement('div');
   colorsWrap.className = 'cfg-colors';
   colorsWrap.setAttribute('data-testid', 'cfg-colors');
@@ -343,7 +356,13 @@ if (cfgControlsEl) {
       rm.className = 'mini-btn';
       rm.textContent = '×';
       rm.setAttribute('aria-label', `Remove color ${i + 1}`);
-      rm.addEventListener('click', () => { cfgState.colorsList.splice(i, 1); renderColorsEditor(); cfgRebuild(); });
+      rm.disabled = cfgState.colorsList.length <= MIN_COLORS; // keep the 3-color minimum
+      rm.addEventListener('click', () => {
+        if (cfgState.colorsList.length <= MIN_COLORS) return;
+        cfgState.colorsList.splice(i, 1);
+        renderColorsEditor();
+        cfgRebuild();
+      });
       item.append(input, rm);
       colorsWrap.appendChild(item);
     });

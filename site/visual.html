@@ -15,6 +15,9 @@
       .vtile h3 { font-size: 13px; margin: 0 0 14px; color: var(--muted); font-weight: 600; }
       .vtile .host { min-height: 28px; }
       .vtile .host.ring { min-height: 120px; display: grid; place-items: center; }
+      /* A contained mini-viewport: `transform` scopes position:fixed bars to it. */
+      .vtile .host.frame { position: relative; transform: translateZ(0); overflow: hidden; height: 120px; background: var(--surface-2); border-radius: 10px; }
+      .vtile--wide { grid-column: span 1; }
       h1 { font-size: 20px; text-align: center; margin: 0 0 22px; }
     </style>
   </head>

@@ -12,7 +12,7 @@
 export const NUMERIC = new Set([
   'value', 'size', 'speed', 'zIndex', 'max', 'minimum',
   'gradientAngle', 'trickleSpeed', 'stallTimeout', 'errorTimeout', 'autoHideDelay',
-  'offset', 'glowSize', 'startAngle',
+  'offset', 'glowSize', 'startAngle', 'borderWidth',
 ]);
 
 // Dimensions that accept a number (→ px) OR a CSS length string (e.g. '100%').
@@ -75,7 +75,7 @@ export const coerceAttr = (key, value) => {
  */
 export const ATTR_NAMES = [
   'value', 'color', 'color2', 'background', 'theme', 'position', 'shape', 'size', 'height',
-  'radius', 'inner-radius', 'speed', 'z-index',
+  'radius', 'inner-radius', 'border-width', 'border-style', 'border-color', 'speed', 'z-index',
   'glow', 'glow-color', 'glow-size', 'striped', 'stripe-animate',
   'gradient', 'gradient-type', 'gradient-angle', 'gradient-shape', 'gradient-position', 'fill',
   'colors', 'color-mode', 'color-animate', 'track-color', 'line-cap', 'start-angle', 'clockwise',

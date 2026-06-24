@@ -10,6 +10,7 @@ export type TabarPosition =
 
 export type TabarColorMode = 'gradient' | 'bands';
 export type TabarLineCap = 'round' | 'butt' | 'square';
+export type TabarBorderStyle = 'solid' | 'dashed' | 'dotted' | 'double' | 'groove' | 'ridge' | 'none';
 export type TabarDirection = 'ltr' | 'rtl';
 export type TabarOrientation = 'horizontal' | 'vertical';
 export type TabarState =
@@ -196,6 +197,12 @@ export interface TabarOptions {
   radius?: TabarCorners;
   /** Inner (bar) corner radius. */
   innerRadius?: TabarCorners;
+  /** Outline width in px around the (linear) track. 0 = no border. Default: 0. */
+  borderWidth?: number;
+  /** Border style. Default: 'solid'. */
+  borderStyle?: TabarBorderStyle;
+  /** Border color (any CSS color); a faint neutral when omitted. */
+  borderColor?: string | null;
   /** Transition duration in ms. Default: 300. */
   speed?: number;
   /** z-index for fixed bars. Default: 1031. */
@@ -365,6 +372,9 @@ export declare class Tabar {
   readonly size: number;
   readonly radius: TabarCorners;
   readonly innerRadius: TabarCorners;
+  readonly borderWidth: number;
+  readonly borderStyle: TabarBorderStyle;
+  readonly borderColor: string | null;
   readonly speed: number;
   readonly zIndex: number;
   readonly position: TabarPosition;
@@ -460,6 +470,9 @@ export declare class Tabar {
   setSpeed(ms: number): this;
   setRadius(...args: Array<number | number[] | object>): this;
   setInnerRadius(...args: Array<number | number[] | object>): this;
+  /** Set the (linear) track border: width px, optional style + color. */
+  setBorder(width: number, style?: TabarBorderStyle, color?: string | null): this;
+  setBorderColor(color: string | null): this;
   setLabel(text: string): this;
   /** Replace the inline status messages map (`null` clears it). */
   setMessages(

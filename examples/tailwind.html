@@ -26,6 +26,19 @@
     <button id="reset" class="rounded-lg border border-slate-300 px-4 py-2 font-semibold">Reset</button>
   </div>
 
+  <h2 class="text-xl font-semibold mt-10 mb-2">Multi-color, bands & border</h2>
+  <p class="text-slate-500 mb-4">Configured purely with <code>data-tabar-*</code> attributes —
+    no per-bar JS. A 3-color bands fill with a dashed border.</p>
+  <div id="bands" class="my-4"
+       data-tabar-colors="#0ea5e9,#22c55e,#f59e0b"
+       data-tabar-color-mode="bands"
+       data-tabar-height="18"
+       data-tabar-radius="9999"
+       data-tabar-border-width="2"
+       data-tabar-border-style="dashed"
+       data-tabar-border-color="#94a3b8"
+       data-tabar-value="0.8"></div>
+
   <script type="module">
     import { Tabar } from '../src/tabar.js';
 
@@ -34,6 +47,9 @@
 
     document.getElementById('go').addEventListener('click', () => bar.set(0.85));
     document.getElementById('reset').addEventListener('click', () => bar.set(0, { animate: false }).show());
+
+    // The second bar reads its whole config from data-tabar-* attributes.
+    new Tabar({ position: 'inline', mountTo: '#bands', trickle: false });
   </script>
 </body>
 </html>

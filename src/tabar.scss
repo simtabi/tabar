@@ -38,6 +38,8 @@ $glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$
   height: var(--tabar-height, #{$height});
   background: var(--tabar-bg, var(--tabar-track));
   border-radius: var(--tabar-radius, 0);
+  // Optional outline around the track (width 0 = none). box-sizing keeps it inside.
+  border: var(--tabar-border-width, 0) var(--tabar-border-style, solid) var(--tabar-border-color, rgba(127, 127, 127, 0.35));
   overflow: hidden;
   pointer-events: none;
   box-sizing: border-box;
@@ -210,6 +212,9 @@ $glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$
   &[data-theme-tabar="glow"] { overflow: visible; }
   &[data-glow-tabar="true"] &__bar,
   &[data-theme-tabar="glow"] &__bar {
+    // The halo follows the fill's shape — round it to the bar's radius (and any
+    // border) so the glow hugs the bar instead of being a hard rectangle.
+    border-radius: var(--tabar-radius, 0);
     filter:
       drop-shadow(0 0 calc(var(--tabar-glow-size, 8px) * 0.4) #{$glow-color})
       drop-shadow(0 0 var(--tabar-glow-size, 8px) #{$glow-color})
@@ -318,6 +323,7 @@ $glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$
     width: auto;
     height: auto;
     background: none;
+    border: 0; // a box border around a ring is wrong; the border is linear-only
     overflow: visible;
   }
   &__svg {

@@ -1227,3 +1227,67 @@ describe('broad API: setters, getters, structural rebuild', () => {
     expect(bar._wrapper.style.getPropertyValue('--tabar-length')).toBe('240px');
   });
 });
+
+describe('state values & border', () => {
+  it('succeed() completes to 100% (green) without auto-hiding', async () => {
+    const bar = new Tabar({ position: 'inline', autoHide: true, autoHideDelay: 10, trickle: false });
+    bar.set(0.45, { animate: false });
+    bar.succeed('verified');
+    expect(bar.value).toBe(100);
+    expect(bar.state).toBe('success');
+    expect(bar._wrapper.getAttribute('data-state-tabar')).toBe('success');
+    await new Promise((r) => setTimeout(r, 30)); // would have auto-hidden if it routed through done()
+    expect(bar.visible).toBe(true);
+  });
+
+  it('error()/warn() keep the current value (only recolor)', () => {
+    const bar = new Tabar({ position: 'inline', trickle: false });
+    bar.set(0.4, { animate: false });
+    bar.error('x');
+    expect(bar.value).toBe(40);
+    bar.set(0.6, { animate: false });
+    bar.warn('y');
+    expect(bar.value).toBe(60);
+  });
+
+  it('applies a configurable border (linear) via option and setter', () => {
+    const bar = new Tabar({ position: 'inline', borderWidth: 2, borderStyle: 'dashed', borderColor: '#abc', trickle: false });
+    const el = bar._wrapper;
+    expect(el.style.getPropertyValue('--tabar-border-width')).toBe('2px');
+    expect(el.style.getPropertyValue('--tabar-border-style')).toBe('dashed');
+    expect(el.style.getPropertyValue('--tabar-border-color')).toBe('#abc');
+    bar.setBorder(4, 'dotted', '#123');
+    expect(el.style.getPropertyValue('--tabar-border-width')).toBe('4px');
+    expect(el.style.getPropertyValue('--tabar-border-style')).toBe('dotted');
+    bar.setBorderColor(null);
+    expect(el.style.getPropertyValue('--tabar-border-color')).toBe('');
+  });
+
+  it('reads border-* data attributes', () => {
+    const host = document.createElement('div');
+    host.setAttribute('data-tabar-border-width', '3');
+    host.setAttribute('data-tabar-border-style', 'dotted');
+    document.body.appendChild(host);
+    const bar = new Tabar({ position: 'inline', mountTo: host, trickle: false });
+    expect(bar.options.borderWidth).toBe(3);
+    expect(bar.options.borderStyle).toBe('dotted');
+  });
+
+  it('covers the remaining live setters', () => {
+    const bar = new Tabar({ shape: 'circular', trickle: false });
+    bar.setBackground('#eee');
+    expect(bar._wrapper.style.getPropertyValue('--tabar-bg')).toBe('#eee');
+    bar.setTrackColor('#ddd');
+    expect(bar._wrapper.style.getPropertyValue('--tabar-track-color')).toBe('#ddd');
+    bar.setStartAngle(45);
+    expect(bar._wrapper.style.getPropertyValue('--tabar-start-angle')).toBe('45deg');
+    bar.setClockwise(false);
+    expect(bar._wrapper.style.getPropertyValue('--tabar-flip')).toBe('-1');
+    bar.setGlowSize(14);
+    expect(bar._wrapper.style.getPropertyValue('--tabar-glow-size')).toBe('14px');
+    bar.setOffset(8);
+    expect(bar._wrapper.style.getPropertyValue('--tabar-offset')).toBe('8px');
+    bar.setMinimum(0.2);
+    expect(bar.minimum).toBe(0.2);
+  });
+});

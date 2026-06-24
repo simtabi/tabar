@@ -24,23 +24,17 @@ test.describe('visual gallery', () => {
     await expect(page.locator('.tabar__peg')).toHaveCount(0);
   });
 
-  // A few high-value per-tile shots (cheaper diffs, clearer failures).
-  for (const key of ['default', 'gradient', 'stripes', 'segments-stacked', 'ring-gradient', 'bands', 'tooltip', 'glow-strong', 'ring-butt']) {
+  // A few high-value per-tile shots (cheaper diffs, clearer failures) — incl. the
+  // rounded glow, the border, a success-at-100% state, bands, and the framed
+  // fixed/center positions (now all in this one fixture).
+  for (const key of [
+    'default', 'gradient', 'stripes', 'segments-stacked', 'ring-gradient',
+    'bands', 'tooltip', 'glow', 'glow-strong', 'border', 'success', 'ring-butt',
+    'pos-top', 'pos-bottom', 'pos-left-center', 'pos-top-center',
+  ]) {
     test(`tile: ${key}`, async ({ page }) => {
       await page.waitForLoadState('networkidle');
       await expect(page.getByTestId(`tile-${key}`)).toHaveScreenshot(`tile-${key}.png`);
-    });
-  }
-});
-
-// Fixed/center positions overlay the viewport, so they get their own page.
-test.describe('fixed & center positions', () => {
-  for (const pos of ['top', 'bottom', 'left', 'right', 'top-center', 'bottom-center', 'left-center', 'right-center']) {
-    test(`position: ${pos}`, async ({ page }) => {
-      await page.goto(`/visual-fixed.html?pos=${pos}&len=60%&val=0.7`);
-      await expect(page.locator('[data-tabar]')).toBeVisible();
-      await page.waitForLoadState('networkidle');
-      await expect(page).toHaveScreenshot(`fixed-${pos}.png`, { fullPage: false });
     });
   }
 });

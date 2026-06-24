@@ -26,8 +26,8 @@ await mkdir(resolve(out, 'assets/css'), { recursive: true });
 await mkdir(resolve(out, 'assets/img'), { recursive: true });
 
 // Each page has a JS entry of the same name under site/assets/js/.
-const ENTRIES = ['landing', 'playground', 'visual', 'visual-fixed'];
-const PAGES = ['index.html', 'playground.html', 'visual.html', 'visual-fixed.html'];
+const ENTRIES = ['landing', 'playground', 'visual'];
+const PAGES = ['index.html', 'playground.html', 'visual.html'];
 
 // 1) JS — bundle each page entry (Tabar is inlined; version injected).
 await build({

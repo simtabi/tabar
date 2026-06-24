@@ -25,6 +25,9 @@ Pass an options object to `new Tabar(options)`. Every option is optional.
 | `height` | `number \| string` | `6` | Bar thickness — px when a number; any CSS length string (`'0.5rem'`, `'100%'`, `'2vh'`, `calc(...)`) is honored for linear bars. Circular: ring stroke thickness (px). See [units](#height-units). |
 | `radius` | `number \| [tl,tr,bl,br] \| {topLeft,…}` | `0` | Outer (track) corner radius. |
 | `innerRadius` | same as `radius` | `0` | Inner (bar) corner radius. |
+| `borderWidth` | `number` | `0` | Outline width (px) around the **linear** track. `0` = no border. |
+| `borderStyle` | `'solid' \| 'dashed' \| 'dotted' \| 'double' \| 'none'` | `'solid'` | Border style. |
+| `borderColor` | `string` | `null` | Border color; a faint neutral when unset. |
 | `speed` | `number` | `300` | Transition duration in ms. |
 | `zIndex` | `number` | `1031` | z-index for fixed bars. |
 | `theme` | `'default' \| 'gradient' \| 'rainbow' \| 'stripes' \| 'glow' \| 'minimal'` | `'default'` | Preset look — see [theming](tools/theming.md). |
@@ -82,6 +85,21 @@ Pass an options object to `new Tabar(options)`. Every option is optional.
 > default so they're always visible on load. When you don't set `color`/`background`, the bar
 > follows a `prefers-color-scheme` aware palette; set them explicitly to pin a fixed look.
 
+## Reading state & options
+
+Live state is exposed as read-only getters: `bar.value`, `bar.state`, `bar.visible`,
+`bar.complete`, `bar.attempts`, `bar.stats`, `bar.segments`, `bar.message`. **Every option**
+also has a read-only getter of the same name (`bar.color`, `bar.height`, `bar.theme`,
+`bar.position`, `bar.colors`, …) — use a `set*` method to change it.
+
+## State feedback
+
+`succeed()` marks the bar successful and **completes it to 100%** (green) without hiding —
+distinct from `done()`, which animates to 100% then auto-hides/resets. `error()` (red) and
+`warn()` (amber) recolor at the **current** value (a failure/warning partway through is
+meaningful). Calling `set()`/`goto()`/`reset()` clears a transient error/warning/success/
+indeterminate state. `errorTimeout` auto-clears an error; `warn()` has no auto-clear.
+
 ## Value units
 
 `goto`/`set`/`inc` accept either a **fraction** in `[0, 1]` (e.g. `0.5` → 50%) or an
@@ -130,6 +148,7 @@ anywhere in your cascade:
 | `--tabar-offset` | Inset of a fixed bar from its docked edge |
 | `--tabar-radius` | Outer corner radius |
 | `--tabar-inner-radius` | Inner corner radius |
+| `--tabar-border-width` / `--tabar-border-style` / `--tabar-border-color` | Linear track border |
 | `--tabar-speed` | Transition duration |
 | `--tabar-z` | z-index of fixed bars |
 | `--tabar-track-color` | Circular track ring color (falls back to `--tabar-bg`) |

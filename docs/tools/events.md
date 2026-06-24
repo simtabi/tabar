@@ -26,6 +26,10 @@ observable four ways, and every instance is reachable through the registry.
 
 `Tabar.events` returns the full list.
 
+> `succeed()` also completes the bar to **100%** (green) without hiding it; `error()`/`warn()`
+> recolor at the current value. `set()`/`goto()`/`reset()` clear a transient error/warning/
+> success/indeterminate state back to active/idle.
+
 ## Four ways to listen
 
 ### 1. Instance listeners (`on` / `once` / `off`) — chainable

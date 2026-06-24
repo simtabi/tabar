@@ -60,6 +60,10 @@ const DEFAULTS = Object.freeze({
   height: 6,
   radius: 0, // outer radius: number | [tl,tr,bl,br] | {topLeft,...}
   innerRadius: 0, // bar radius: same shapes as `radius`
+  // Optional outline around the (linear) track. Width 0 = no border.
+  borderWidth: 0, // px
+  borderStyle: 'solid', // 'solid' | 'dashed' | 'dotted' | 'double' | 'none'
+  borderColor: null, // defaults to a faint neutral when a width is set
   speed: 300, // transition duration in ms
   zIndex: 1031,
 
@@ -223,6 +227,10 @@ const toCssSize = (v, fallback) => {
 
 /** Restrict a circular `stroke-linecap` to the valid SVG values. */
 const toLinecap = (v) => (v === 'butt' || v === 'square' ? v : 'round');
+
+/** Restrict a CSS `border-style` to a safe set. */
+const BORDER_STYLES = new Set(['solid', 'dashed', 'dotted', 'double', 'groove', 'ridge', 'none']);
+const toBorderStyle = (v) => (BORDER_STYLES.has(v) ? v : 'solid');
 
 /** Resolve a `mountTo` (element or selector) to an Element, or null. */
 const resolveMountEl = (mountTo) => {
@@ -897,6 +905,10 @@ class Tabar {
     set('--tabar-height', o.shape === 'circular' ? `${toNum(o.height) || 6}px` : toCssSize(o.height, '6px'));
     set('--tabar-radius', cornersToCss(o.radius));
     set('--tabar-inner-radius', cornersToCss(o.innerRadius));
+    set('--tabar-border-width', `${toNum(o.borderWidth)}px`);
+    set('--tabar-border-style', toBorderStyle(o.borderStyle));
+    if (o.borderColor != null) set('--tabar-border-color', String(o.borderColor));
+    else el.style.removeProperty('--tabar-border-color');
     set('--tabar-speed', `${toNum(o.speed)}ms`);
     set('--tabar-z', String(toNum(o.zIndex)));
     set('--tabar-length', toLength(o.length));
@@ -1601,7 +1613,18 @@ class Tabar {
     if (this._destroyed) return this;
     this._stopTrickle();
     this._clearStall();
+    if (this._segments) this._exitSegmentMode();
     this.show();
+    // Success means complete: fill to 100% (animated) without scheduling auto-done,
+    // so the bar stays green at full instead of hiding. Don't route through goto()
+    // (it would clear the state and auto-done at 100%).
+    const previous = this._progress;
+    this._progress = 100;
+    this._setWidth(100);
+    if (previous !== 100) {
+      this._save();
+      this._emit('change', 100);
+    }
     this._setState('success');
     this._announce('complete', info);
     this._emit('success', info != null ? info : null);
@@ -1806,6 +1829,34 @@ class Tabar {
     this.options.innerRadius = args.length === 1 ? args[0] : args;
     if (this._wrapper) {
       this._wrapper.style.setProperty('--tabar-inner-radius', cornersToCss(this.options.innerRadius));
+    }
+    return this;
+  }
+
+  /**
+   * Set the (linear) track border. Width in px; style is solid|dashed|dotted|
+   * double|none; color any CSS color (`null` = faint neutral). Chainable.
+   */
+  setBorder(width, style, color) {
+    this.options.borderWidth = toNum(width);
+    if (style !== undefined) this.options.borderStyle = toBorderStyle(style);
+    if (color !== undefined) this.options.borderColor = color;
+    if (this._wrapper) {
+      const el = this._wrapper;
+      el.style.setProperty('--tabar-border-width', `${toNum(width)}px`);
+      el.style.setProperty('--tabar-border-style', toBorderStyle(this.options.borderStyle));
+      if (this.options.borderColor != null) el.style.setProperty('--tabar-border-color', String(this.options.borderColor));
+      else el.style.removeProperty('--tabar-border-color');
+    }
+    return this;
+  }
+
+  /** Set the border color (`null` reverts to the faint neutral default). */
+  setBorderColor(color) {
+    this.options.borderColor = color || null;
+    if (this._wrapper) {
+      if (color) this._wrapper.style.setProperty('--tabar-border-color', String(color));
+      else this._wrapper.style.removeProperty('--tabar-border-color');
     }
     return this;
   }

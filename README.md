@@ -169,10 +169,11 @@ More in [docs/tools/events.md](docs/tools/events.md).
 | `trackXHR(xhr)` / `trackResponse(res)` | Track an upload/download automatically. |
 | `bind(getter, opts)` | Bind to a value source (event/interval); returns an unbind fn. |
 | `done(force?)` | Animate to 100%, then auto-hide/reset. Returns a `Promise`. |
-| `reset()` / `error(info?)` | Reset to 0, or flip to the red error state (emits `error`). |
+| `error(info?)` / `warn(info?)` / `succeed(info?)` | Flip to error (red, keeps value), warning (amber, keeps value), or success (green, **completes to 100%**); each emits its event. |
+| `reset()` | Reset to 0% and idle. |
 | `show()` / `hide()` | Toggle visibility (`bar.visible`). |
 | `destroy()` | Remove DOM, timers and listeners; release the shared stylesheet. |
-| `setColor/​setColor2/​setBackground/​setHeight/​setSpeed/​setRadius/​setInnerRadius/​setLabel/​setTooltip` | Chainable live setters (`setHeight` accepts px or any CSS length). |
+| `setColor/​setColor2/​setBackground/​setHeight/​setSpeed/​setRadius/​setInnerRadius/​setBorder/​setLabel/​setTooltip` | Chainable live setters (`setHeight` accepts px or any CSS length; `setBorder(width, style?, color?)`). |
 | `setLength/​setOffset/​setTrackColor/​setLineCap/​setStartAngle/​setClockwise` | Fixed-bar length/inset and circular ring geometry. |
 | `setSize/​setShape/​setPosition/​setDirection/​setMax/​setMinimum/​setSegmentMode/​setZIndex` | Resize/restructure live (`setShape` rebuilds, preserving state). |
 | getters: `bar.color/​height/​size/​theme/​position/​shape/​colors/​…` | Read any option back (read-only; one per option). |

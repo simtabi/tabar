@@ -7,6 +7,8 @@ All notable changes to this project are documented here. The format is based on
 ## [Unreleased]
 
 ### Added
+- **Configurable border** — `borderWidth`/`borderStyle`/`borderColor` (and `setBorder`) outline
+  the linear track; `--tabar-border-*` CSS vars; settable via `<tabar-bar>`/`data-tabar-*`.
 - **Broader, consistent API.** New chainable setters — `setSize`, `setShape`
   (rebuilds linear↔circular, preserving state), `setPosition`, `setDirection`,
   `setMax`, `setMinimum`, `setSegmentMode`, `setZIndex` — plus read-only **getters
@@ -22,6 +24,14 @@ All notable changes to this project are documented here. The format is based on
   demo JS is now linted.
 
 ### Fixed
+- **Glow follows the bar's shape.** The halo (a `drop-shadow` on the fill) was a hard
+  rectangle because the fill's corners were square; it now rounds to `--tabar-radius`, so the
+  glow hugs a rounded bar and sits outside any border.
+- **`succeed()` completes to 100%.** A "success" bar now fills to 100% green instead of
+  recoloring at the current value, without auto-hiding (`error()`/`warn()` still keep their
+  value). The configurator's color editor seeds 3 colors and keeps a 3-color minimum for bands.
+- The two visual-test fixtures were merged into one `visual.html` (fixed/center positions now
+  render in contained "viewport-frame" tiles); `visual-fixed.html` was removed.
 - **Circular `setHeight`/`setSize` are now live.** The ring's radius/circumference are
   recomputed (and the arc repainted) when the stroke or diameter changes — previously
   a live `setHeight` left the fill mis-scaled.

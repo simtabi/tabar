@@ -73,10 +73,12 @@ function `tooltip`/`messages`) are JS-only.
 ```
 
 Attributes map to options (kebab-case → camelCase) and cover the whole option surface —
-geometry (`height`, `length`, `offset`, `size`, `radius`, `inner-radius`), position
+geometry (`height`, `length`, `offset`, `size`, `radius`, `inner-radius`,
+`border-width`/`border-style`/`border-color`), position
 (incl. `top-center`/`left-center`/…), color (`color`, `colors`, `color-mode`,
 `color-animate`, `gradient*`, `fill`, `track-color`), `glow`/`glow-color`/`glow-size`,
-circular `line-cap`/`start-angle`/`clockwise`, `tooltip`/`tooltip-always`, `messages`/
+`striped`/`stripe-animate`, circular `line-cap`/`start-angle`/`clockwise`,
+`tooltip`/`tooltip-always`, `messages`/
 `message-align`/`message-color`, `segments`/`segment-mode`/`aggregate`, `persist`,
 `config-url`/`report-url`, `locale`, `aria-label`, `max`, `minimum`, `trickle*`,
 `auto-show`/`auto-hide*`, `announce`, `stall-timeout`/`error-timeout`, and `debug`. The full
@@ -117,8 +119,13 @@ function Loader() {
 ```
 
 `react` is an optional peer dependency — only pulled in when you import this entry point. The
-hook mounts one inline bar into the `ref` element and destroys it on unmount; `bar()` returns
-the live instance for the full imperative API.
+hook mounts one inline bar into the `ref` element and destroys it on unmount.
+
+It returns `{ ref, bar, value, state, stats, complete }`: `bar()` gives the live instance for
+the full imperative API, while `value`/`state`/`stats`/`complete` are **reactive** — they
+re-render on every lifecycle event (`start`, `change`, `progress`, `done`, `show`/`hide`,
+`error`/`warning`/`success`, `stall`, `retry`, …), so you can render `{Math.round(value)}%`
+directly.
 
 ---
 
