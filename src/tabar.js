@@ -305,7 +305,8 @@ const formatDuration = (seconds, code) => {
 const normalizeValue = (n, max) => {
   const v = Number(n);
   if (!Number.isFinite(v)) return null;
-  const onScale = v >= 0 && v <= 1 ? v * 100 : (v / max) * 100;
+  const m = Number(max) > 0 ? Number(max) : 100; // guard against max <= 0 (avoids Infinity)
+  const onScale = v >= 0 && v <= 1 ? v * 100 : (v / m) * 100;
   return clamp(onScale, 0, 100);
 };
 
@@ -330,6 +331,15 @@ const normalizeSegment = (seg, max) => {
 const cornersToCss = (value) => {
   if (value == null) return '0';
   if (typeof value === 'number') return `${toNum(value)}px`;
+  if (typeof value === 'string') {
+    // Attribute/JSON paths deliver strings: a bare number → px, a comma/space
+    // list → per-corner, any other CSS length (e.g. "50%") passes through.
+    const s = value.trim();
+    if (s === '') return '0';
+    if (/[\s,]/.test(s)) return cornersToCss(s.split(/[\s,]+/).map(Number));
+    const n = Number(s);
+    return Number.isFinite(n) ? `${n}px` : s;
+  }
   if (Array.isArray(value)) {
     const [tl = 0, tr = 0, bl = 0, br = 0] = value.map(toNum);
     return `${tl}px ${tr}px ${br}px ${bl}px`;
@@ -798,7 +808,7 @@ class Tabar {
   _buildCircular(wrapper, p) {
     const size = toNum(this.options.size) || 64;
     const stroke = toNum(this.options.height) || 6;
-    const r = (size - stroke) / 2;
+    const r = Math.max(0, (size - stroke) / 2); // never negative when size <= stroke
     this._circumference = 2 * Math.PI * r;
 
     const svg = document.createElementNS(SVG_NS, 'svg');
@@ -838,7 +848,7 @@ class Tabar {
     if (!svg) return;
     const size = toNum(this.options.size) || 64;
     const stroke = toNum(this.options.height) || 6;
-    const r = (size - stroke) / 2;
+    const r = Math.max(0, (size - stroke) / 2); // never negative when size <= stroke
     this._circumference = 2 * Math.PI * r;
     svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
     svg.setAttribute('width', `${size}`);
@@ -2329,16 +2339,31 @@ class Tabar {
     if (typeof retry === 'function') this.retryWith(retry);
     const source = direction === 'upload' ? xhr.upload : xhr;
     this.start();
-    source.addEventListener('progress', (e) => {
+    const onProgress = (e) => {
       if (e.lengthComputable) this.setProgress(e.loaded, e.total);
       else if (this._state !== 'indeterminate') this.indeterminate(true);
-    });
-    xhr.addEventListener('load', () => {
+    };
+    const onLoad = () => {
+      cleanup();
       if (xhr.status >= 400) this.error(`HTTP ${xhr.status}`);
       else this.done();
-    });
-    xhr.addEventListener('error', () => this.error('network error'));
-    xhr.addEventListener('abort', () => this.reset());
+    };
+    const onError = () => { cleanup(); this.error('network error'); };
+    const onAbort = () => { cleanup(); this.reset(); };
+    // Remove the listeners on completion AND on destroy() (via _unbinds), so a
+    // bar torn down mid-flight doesn't leak the XHR/instance through closures.
+    const cleanup = () => {
+      source.removeEventListener?.('progress', onProgress);
+      xhr.removeEventListener?.('load', onLoad);
+      xhr.removeEventListener?.('error', onError);
+      xhr.removeEventListener?.('abort', onAbort);
+      this._unbinds = this._unbinds.filter((fn) => fn !== cleanup);
+    };
+    source.addEventListener('progress', onProgress);
+    xhr.addEventListener('load', onLoad);
+    xhr.addEventListener('error', onError);
+    xhr.addEventListener('abort', onAbort);
+    this._unbinds.push(cleanup);
     return this;
   }
 

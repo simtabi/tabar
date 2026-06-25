@@ -1291,3 +1291,42 @@ describe('state values & border', () => {
     expect(bar.minimum).toBe(0.2);
   });
 });
+
+describe('robustness fixes', () => {
+  it('coerces string radius/innerRadius (attribute/JSON paths) to CSS', () => {
+    const a = new Tabar({ position: 'inline', radius: '10', trickle: false });
+    expect(a._wrapper.style.getPropertyValue('--tabar-radius')).toBe('10px');
+    const b = new Tabar({ position: 'inline', radius: '8,4,8,4', trickle: false });
+    expect(b._wrapper.style.getPropertyValue('--tabar-radius')).toBe('8px 4px 4px 8px');
+    const c = new Tabar({ position: 'inline', radius: '50%', trickle: false });
+    expect(c._wrapper.style.getPropertyValue('--tabar-radius')).toBe('50%');
+  });
+
+  it('does not corrupt values when max <= 0', () => {
+    const bar = new Tabar({ position: 'inline', max: 0, trickle: false });
+    bar.set(50, { animate: false });
+    expect(bar.value).toBe(50); // not 100 from a divide-by-zero Infinity
+  });
+
+  it('survives a circular bar whose size <= stroke (no negative radius)', () => {
+    const bar = new Tabar({ position: 'inline', shape: 'circular', size: 4, height: 6, trickle: false });
+    bar.set(0.5, { animate: false });
+    const circle = bar._wrapper.querySelector('circle');
+    expect(Number(circle?.getAttribute('r'))).toBeGreaterThanOrEqual(0);
+    expect(bar.value).toBe(50);
+  });
+
+  it('trackXHR removes its listeners on destroy (no leak)', () => {
+    const live = new Set();
+    const xhr = {
+      upload: { addEventListener() {}, removeEventListener() {} },
+      addEventListener(t) { live.add(t); },
+      removeEventListener(t) { live.delete(t); },
+    };
+    const bar = new Tabar({ position: 'inline', trickle: false });
+    bar.trackXHR(xhr);
+    expect(live.size).toBeGreaterThan(0);
+    bar.destroy();
+    expect(live.size).toBe(0); // all listeners cleaned up via _unbinds
+  });
+});

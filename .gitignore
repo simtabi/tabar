@@ -23,6 +23,10 @@ playwright-report/
 /playwright/.cache/
 blob-report/
 
+# Local scratch / verification harnesses
+scratch-verify.mjs
+scratch-*.mjs
+
 # Editor / OS
 .DS_Store
 .idea/
