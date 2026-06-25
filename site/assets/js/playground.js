@@ -458,9 +458,9 @@ let posBar = null;
 const posLengthEl = $('#pos-length');
 const spawnPosition = (position) => {
   if (posBar) posBar.destroy();
-  const vertical = position.startsWith('left') || position.startsWith('right');
   const length = posLengthEl ? posLengthEl.value : '100%';
-  posBar = new Tabar({ position, length, height: vertical ? 6 : 6, radius: 4, color: 'var(--x-primary)', trickle: false });
+  // autoHide so done() clears the overlay bar (as the panel text promises).
+  posBar = new Tabar({ position, length, height: 6, radius: 4, color: 'var(--x-primary)', trickle: false, autoHide: true });
   posBar.set(0.8);
   setTimeout(() => { posBar?.done(); }, 1600);
 };
