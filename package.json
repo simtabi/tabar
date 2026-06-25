@@ -72,7 +72,7 @@
   "files": [
     "dist",
     "src",
-    "types",
+    "types/*.d.ts",
     "bin",
     "README.md",
     "LICENSE",
