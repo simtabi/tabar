@@ -34,4 +34,11 @@ describe('<tabar-bar> web component', () => {
     el.setAttribute('color-mode', 'bands');
     expect(el.bar.options.colorMode).toBe('bands');
   });
+
+  it('parses a colors attribute with functional colors (commas inside parens)', () => {
+    const el = document.createElement('tabar-bar');
+    el.setAttribute('colors', 'rgb(255, 0, 0), #00ff00, hsl(200, 50%, 50%)');
+    document.body.appendChild(el);
+    expect(el.bar.options.colors).toEqual(['rgb(255, 0, 0)', '#00ff00', 'hsl(200, 50%, 50%)']);
+  });
 });

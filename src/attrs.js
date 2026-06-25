@@ -27,6 +27,28 @@ export const BOOLEAN = new Set([
 export const toCamel = (s) => s.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
 
 /**
+ * Split a comma-separated color list on TOP-LEVEL commas only, so functional
+ * colors keep their inner commas intact — `"rgb(1,2,3), #fff"` → ['rgb(1,2,3)', '#fff'].
+ */
+const splitColorList = (value) => {
+  const out = [];
+  let cur = '';
+  let depth = 0;
+  for (const ch of value) {
+    if (ch === '(') depth += 1;
+    else if (ch === ')') depth = Math.max(0, depth - 1);
+    if (ch === ',' && depth === 0) {
+      if (cur.trim()) out.push(cur.trim());
+      cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  if (cur.trim()) out.push(cur.trim());
+  return out;
+};
+
+/**
  * Coerce a raw attribute string into the right JS type for its option.
  * Returns `undefined` to mean "leave unset" (so the option's default stands).
  */
@@ -55,7 +77,7 @@ export const coerceAttr = (key, value) => {
     return value.trim() !== '' && Number.isFinite(n) ? n : value;
   }
   if (NUMERIC.has(key)) return value === '' ? undefined : Number(value); // empty numeric → unset
-  if (key === 'gradient' || key === 'colors') return value.split(',').map((c) => c.trim()).filter(Boolean);
+  if (key === 'gradient' || key === 'colors') return splitColorList(value);
   if (key === 'segments' || key === 'messages') {
     try {
       return JSON.parse(value);

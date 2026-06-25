@@ -46,7 +46,7 @@
     bar.show();
 
     document.getElementById('go').addEventListener('click', () => bar.set(0.85));
-    document.getElementById('reset').addEventListener('click', () => bar.set(0, { animate: false }).show());
+    document.getElementById('reset').addEventListener('click', () => { bar.set(0, { animate: false }); bar.show(); });
 
     // The second bar reads its whole config from data-tabar-* attributes.
     new Tabar({ position: 'inline', mountTo: '#bands', trickle: false });
