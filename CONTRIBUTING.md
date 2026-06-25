@@ -54,6 +54,16 @@ printf '30 100\n80 100\n100 100\n' | node bin/tabar.js --total 100 --label Build
 Styling changes go in `src/tabar.scss`; run `npm run styles` (or `npm run build`) to
 regenerate `dist/tabar.css` and `src/styles.js`.
 
+**Naming & CSS architecture.** The library uses **BEM** (`tabar`, `tabar__bar`,
+`tabar-group__child`) plus `data-*-tabar` hooks, and depends on **no CSS framework** — keep it
+that way (nothing in `src/` may reference Bootstrap/Webpixels/Tailwind). The **demo site** is a
+separate concern: it's built with **Webpixels CSS** (Bootstrap-based) and uses its
+utility/component classes (`btn`, `card`, `form-control`, `d-flex`, …); `build-site.js` vendors
+`@webpixels/css` into `site/dist/assets/css/webpixels.css`, and `site/assets/scss/styles.scss`
+holds only the few demo-specific bits the framework can't express. `site/visual.html` is a
+self-contained Playwright fixture — it loads **neither** stylesheet so the screenshot baselines
+stay stable when the demo's styling changes.
+
 ## Coding conventions
 
 - **No runtime dependencies.** Dev-only tooling is fine; `src/` must stay dependency-free.

@@ -14,11 +14,13 @@ All notable changes to this project are documented here. The format is based on
   `setMax`, `setMinimum`, `setSegmentMode`, `setZIndex` — plus read-only **getters
   for every option** (`bar.color`, `bar.height`, `bar.theme`, …). `TabarGroup` gains
   `setChildDefaults`/`setOverallDefaults`.
-- **Design-system pass on the demo site**: a tokenized 4/8px spacing grid + type/
-  radius scales, unified buttons/inputs, `:focus-visible` rings on every control,
-  fixed dark-mode muted-text contrast, full `prefers-reduced-motion` coverage, an
-  `aria-pressed` theme toggle and `aria-live` event log, plus a favicon and
-  Open Graph/Twitter cards.
+- **Demo site rebuilt on [Webpixels CSS](https://webpixels.io)** (a Bootstrap-based
+  framework) instead of a hand-rolled design system — the landing page, playground and
+  configurator now use its utility/component classes, with dark mode via Bootstrap's
+  `data-bs-theme`. The bespoke `styles.scss` shrank to a thin demo-glue layer. **The library
+  itself stays framework-free** (zero CSS dependency; themes via `--tabar-*`). An
+  `examples/webpixels.html` was added; the `aria-pressed` theme toggle, `aria-live` event log,
+  favicon and Open Graph/Twitter cards carried over.
 - **Types for every export** (`./terminal`, `./element` were missing), a coverage
   script (`npm run test:coverage`), a license banner on the minified bundles, and the
   demo JS is now linted.

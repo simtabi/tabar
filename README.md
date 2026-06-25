@@ -208,12 +208,17 @@ More in [docs/tools/events.md](docs/tools/events.md).
 
 ## Demo
 
-Run `npm run demo` to build and serve the site — an Apple-style **landing page** plus an
-interactive **playground** (`/playground.html`). The playground opens with a live
-**configurator** that drives one bar across the whole option surface and shows the matching
-`new Tabar({…})` code, followed by focused demos of shapes, positions, themes, transfers,
-segments, groups, states and events. The [`examples/`](examples/) folder has copy-pasteable
-no-framework, Tailwind, Bootstrap, multi-progress and Node CLI setups.
+Run `npm run demo` to build and serve the site — a **landing page** plus an interactive
+**playground** (`/playground.html`). The playground opens with a live **configurator** that
+drives one bar across the whole option surface and shows the matching `new Tabar({…})` code,
+followed by focused demos of shapes, positions, themes, transfers, segments, groups, states
+and events. The [`examples/`](examples/) folder has copy-pasteable no-framework, Tailwind,
+Bootstrap, Webpixels, multi-progress and Node CLI setups.
+
+> The demo site is styled with [Webpixels CSS](https://webpixels.io) (a Bootstrap-based
+> framework) — purely for presentation. **Tabar itself ships zero CSS-framework dependency**:
+> it injects its own styles (`#tabar-base`) and themes via `--tabar-*` variables, so it drops
+> into any framework (Bootstrap, Tailwind, Webpixels) or none.
 
 ## Contributing
 

@@ -2,19 +2,18 @@
 import { Tabar } from '../../../src/tabar.js';
 import { TabarGroup } from '../../../src/group.js';
 
-/* --- Theme toggle (persisted) --------------------------------------------- */
+/* --- Theme toggle (persisted, drives Bootstrap's data-bs-theme) ------------ */
 const root = document.documentElement;
 const themeBtn = document.getElementById('theme');
-const isDark = () =>
-  root.dataset.theme === 'dark' ||
-  (!root.dataset.theme && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
-const reflectTheme = () => themeBtn?.setAttribute('aria-pressed', String(isDark()));
+const prefersDark = () => window.matchMedia?.('(prefers-color-scheme: dark)').matches;
 const saved = localStorage.getItem('tabar-theme');
-if (saved) root.dataset.theme = saved;
+root.setAttribute('data-bs-theme', saved || (prefersDark() ? 'dark' : 'light'));
+const reflectTheme = () => themeBtn?.setAttribute('aria-pressed', String(root.getAttribute('data-bs-theme') === 'dark'));
 reflectTheme();
 themeBtn?.addEventListener('click', () => {
-  root.dataset.theme = isDark() ? 'light' : 'dark';
-  localStorage.setItem('tabar-theme', root.dataset.theme);
+  const next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-bs-theme', next);
+  localStorage.setItem('tabar-theme', next);
   reflectTheme();
 });
 

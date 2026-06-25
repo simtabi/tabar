@@ -5,19 +5,18 @@ import { TabarGroup } from '../../../src/group.js';
 const pct = (p) => `${Math.round(p)}%`;
 const $ = (sel) => document.querySelector(sel);
 
-/* --- Theme toggle (persisted) --------------------------------------------- */
+/* --- Theme toggle (persisted, drives Bootstrap's data-bs-theme) ------------ */
 const root = document.documentElement;
 const themeBtn = $('#theme');
-const isDark = () =>
-  root.dataset.theme === 'dark' ||
-  (!root.dataset.theme && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
-const reflectTheme = () => themeBtn?.setAttribute('aria-pressed', String(isDark()));
+const prefersDark = () => window.matchMedia?.('(prefers-color-scheme: dark)').matches;
 const savedTheme = localStorage.getItem('tabar-theme');
-if (savedTheme) root.dataset.theme = savedTheme;
+root.setAttribute('data-bs-theme', savedTheme || (prefersDark() ? 'dark' : 'light'));
+const reflectTheme = () => themeBtn?.setAttribute('aria-pressed', String(root.getAttribute('data-bs-theme') === 'dark'));
 reflectTheme();
 themeBtn?.addEventListener('click', () => {
-  root.dataset.theme = isDark() ? 'light' : 'dark';
-  localStorage.setItem('tabar-theme', root.dataset.theme);
+  const next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-bs-theme', next);
+  localStorage.setItem('tabar-theme', next);
   reflectTheme();
 });
 
@@ -260,36 +259,47 @@ function cfgRebuild() {
   if (cfgCode) cfgCode.textContent = cfgToCode(opts);
 }
 
-// Render one control from a schema descriptor.
+// Render one control from a schema descriptor (Bootstrap/Webpixels form classes).
 function cfgControl(c) {
-  const wrap = document.createElement('label');
-  wrap.className = c.type === 'bool' ? 'check cfg-check' : 'field cfg-field';
+  const wrap = document.createElement('div');
+  wrap.className = 'cfg-field';
   const val = cfgState[c.key];
 
   if (c.type === 'bool') {
+    const check = document.createElement('div');
+    check.className = 'form-check';
     const input = document.createElement('input');
     input.type = 'checkbox';
+    input.className = 'form-check-input';
     input.checked = !!val;
     input.id = `cfg-${c.key}`;
     input.dataset.cfg = c.key;
     input.setAttribute('data-testid', `cfg-${c.key}`);
-    wrap.append(input, document.createTextNode(` ${c.label}`));
+    const label = document.createElement('label');
+    label.className = 'form-check-label';
+    label.setAttribute('for', `cfg-${c.key}`);
+    label.textContent = c.label;
+    check.append(input, label);
+    wrap.appendChild(check);
     return wrap;
   }
 
-  const span = document.createElement('span');
-  span.textContent = c.label;
+  const label = document.createElement('label');
+  label.className = 'form-label';
+  label.setAttribute('for', `cfg-${c.key}`);
+  label.textContent = c.label;
   let out;
   if (c.type === 'range') {
     out = document.createElement('output');
     out.textContent = `${val}${c.unit || ''}`;
-    span.append(' ', out);
+    label.append(' ', out);
   }
-  wrap.appendChild(span);
+  wrap.appendChild(label);
 
   let input;
   if (c.type === 'select') {
     input = document.createElement('select');
+    input.className = 'form-select form-select-sm';
     for (const opt of c.options) {
       const o = document.createElement('option');
       o.value = opt; o.textContent = opt;
@@ -299,6 +309,10 @@ function cfgControl(c) {
   } else {
     input = document.createElement('input');
     input.type = c.type === 'range' ? 'range' : c.type === 'number' ? 'number' : c.type === 'color' ? 'color' : 'text';
+    input.className =
+      c.type === 'range' ? 'form-range'
+      : c.type === 'color' ? 'form-control form-control-color'
+      : 'form-control form-control-sm';
     if (c.min != null) input.min = c.min;
     if (c.max != null) input.max = c.max;
     if (c.step != null) input.step = c.step;
@@ -317,8 +331,9 @@ const cfgControlsEl = $('#cfg-controls');
 if (cfgControlsEl) {
   for (const section of CFG_SCHEMA) {
     const fs = document.createElement('fieldset');
-    fs.className = 'cfg-fieldset';
+    fs.className = 'cfg-fieldset border rounded p-3 mb-3';
     const legend = document.createElement('legend');
+    legend.className = 'float-none w-auto px-2 small fw-semibold text-muted';
     legend.textContent = section.group;
     fs.appendChild(legend);
     const grid = document.createElement('div');
@@ -331,9 +346,10 @@ if (cfgControlsEl) {
   // Dynamic multi-color stop editor → cfgState.colorsList → the `colors` option.
   const PALETTE = ['#2299dd', '#7c4dff', '#30d158', '#ff9f0a', '#e5484d', '#64d2ff'];
   const colorsFs = document.createElement('fieldset');
-  colorsFs.className = 'cfg-fieldset';
+  colorsFs.className = 'cfg-fieldset border rounded p-3 mb-3';
   const MIN_COLORS = 3; // bands need at least three distinct blocks
   const colorsLegend = document.createElement('legend');
+  colorsLegend.className = 'float-none w-auto px-2 small fw-semibold text-muted';
   colorsLegend.textContent = 'Colors (multi-stop — 3+ for bands)';
   const colorsWrap = document.createElement('div');
   colorsWrap.className = 'cfg-colors';
@@ -348,12 +364,13 @@ if (cfgControlsEl) {
       item.className = 'cfg-colors__item';
       const input = document.createElement('input');
       input.type = 'color';
+      input.className = 'form-control form-control-color';
       input.value = hex;
       input.setAttribute('data-testid', `cfg-color-${i}`);
       input.addEventListener('input', () => { cfgState.colorsList[i] = input.value; cfgRebuild(); });
       const rm = document.createElement('button');
       rm.type = 'button';
-      rm.className = 'mini-btn';
+      rm.className = 'btn btn-sm btn-neutral';
       rm.textContent = '×';
       rm.setAttribute('aria-label', `Remove color ${i + 1}`);
       rm.disabled = cfgState.colorsList.length <= MIN_COLORS; // keep the 3-color minimum
@@ -368,7 +385,7 @@ if (cfgControlsEl) {
     });
     const add = document.createElement('button');
     add.type = 'button';
-    add.className = 'mini-btn';
+    add.className = 'btn btn-sm btn-neutral';
     add.textContent = '+ Add color';
     add.setAttribute('data-testid', 'cfg-color-add');
     add.addEventListener('click', () => {
@@ -396,7 +413,7 @@ if (cfgControlsEl) {
 }
 
 /* --- Basics: top bar ------------------------------------------------------ */
-const page = new Tabar({ id: 'page', color: 'var(--accent)', height: 4, trickleSpeed: 240 });
+const page = new Tabar({ id: 'page', color: 'var(--x-primary)', height: 4, trickleSpeed: 240 });
 
 /* --- Inline + swatches + slider ------------------------------------------- */
 const inline = new Tabar({
@@ -443,7 +460,7 @@ const spawnPosition = (position) => {
   if (posBar) posBar.destroy();
   const vertical = position.startsWith('left') || position.startsWith('right');
   const length = posLengthEl ? posLengthEl.value : '100%';
-  posBar = new Tabar({ position, length, height: vertical ? 6 : 6, radius: 4, color: 'var(--accent)', trickle: false });
+  posBar = new Tabar({ position, length, height: vertical ? 6 : 6, radius: 4, color: 'var(--x-primary)', trickle: false });
   posBar.set(0.8);
   setTimeout(() => { posBar?.done(); }, 1600);
 };
@@ -647,7 +664,7 @@ const actions = {
     try {
       const parsed = JSON.parse(jsonEl.value);
       jsonBar.configure(parsed);
-      if (jsonStatus) { jsonStatus.textContent = 'Applied ✓'; jsonStatus.style.color = 'var(--accent)'; }
+      if (jsonStatus) { jsonStatus.textContent = 'Applied ✓'; jsonStatus.style.color = 'var(--x-primary)'; }
     } catch (err) {
       if (jsonStatus) { jsonStatus.textContent = `Invalid config: ${err.message}`; jsonStatus.style.color = '#e5484d'; }
     }

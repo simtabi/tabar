@@ -41,7 +41,12 @@ await build({
   define: { __TABAR_VERSION__: JSON.stringify(version) },
 });
 
-// 2) CSS — compile the site stylesheet.
+// 2) CSS — vendor Webpixels (the demo's framework) + the slim site glue stylesheet.
+//    The library ships ZERO CSS-framework dependency; this is presentation only.
+await copyFile(
+  resolve(root, 'node_modules/@webpixels/css/dist/all.css'),
+  resolve(out, 'assets/css/webpixels.css'),
+);
 const css = sass.compile(resolve(site, 'assets/scss/styles.scss'), { style: 'compressed' }).css;
 await writeFile(resolve(out, 'assets/css/styles.css'), css);
 
