@@ -9,7 +9,7 @@ recent minor will be supported.
 
 Please report security issues **privately** — do not open a public GitHub issue.
 
-Email **opensource@simtabi.com** with:
+Email **security@simtabi.com** with:
 
 - a description of the vulnerability and its impact,
 - steps to reproduce or a proof of concept,
