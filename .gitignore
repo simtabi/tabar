@@ -1,5 +1,7 @@
 # Dependencies
 node_modules/
+# A library tracks no lock file: consumers never install from it, and CI resolves fresh.
+package-lock.json
 
 # Build output
 dist/

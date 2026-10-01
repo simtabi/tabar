@@ -107,7 +107,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
-    "@playwright/test": "^1.61.0",
+    "@playwright/test": "~1.61.0",
     "@testing-library/react": "^16.3.2",
     "@vitest/coverage-v8": "^2.1.9",
     "@webpixels/css": "^3.0.5",
