@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>ProBar JS- A Custom ProgressBar for your website.</title>
+	<!-- bootstrap css -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+	<link href="https://fonts.googleapis.com/css?family=Manjari:100,700&display=swap" rel="stylesheet">
+
+	<style type="text/css">
+		* {
+			font-family: 'Manjari', sans-serif;
+		}
+		h1 {
+			font-weight: bold;font-size: 50px;
+		}
+		.wrapper {
+			text-align: center;
+			margin-top: 35px;
+		}
+		.firstSection {
+			border: 2px solid!important;
+			font-weight: 700!important;
+			padding: 10px 25px!important;
+		}
+		.secondSection {
+			display: inline-block;
+			border: 2px solid!important;
+			font-weight: 700!important;
+			padding: 10px 25px!important;
+		}
+		.title {
+			margin-top: 35px;
+			font-weight: 700;
+		}
+		a {
+			color : #2c3e50;
+		}
+		#wrapper-progressBar {
+			position: fixed;
+			z-index: 5;
+		}
+	</style>
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.10/styles/monokai.min.css">
+
+
+	<script defer src="https://use.fontawesome.com/releases/v5.7.2/js/all.js" integrity="sha384-0pzryjIRos8mFBWMzSSZApWtPl/5++eIfzYmTgBBmXYdhvxPc+XcFEk+zJwDgWbP" crossorigin="anonymous"></script>
+
+	<style type="text/css">
+		.hljs {
+			border-radius: 8px;
+			padding-left: 25px;
+		}
+	</style>
+</head>
+<body>
+	
+<div class="container">
+	<div class="row">
+		<div class="col-lg-12 wrapper">
+			<h1>Probar</h1>
+		</div>
+		<div class="col-lg-12 wrapper">
+			<h5>A progress bar with multiple options.</h5>
+			<p>for all the people who do not have the time.. 😜</p>
+		</div>
+		<div class="col-lg-12 wrapper">
+			<div class="row">
+				<div class="col-lg-4">
+					<button type="button" class="btn btn-outline-dark firstSection" onclick='javascript:probar.goto(50);'>
+						probar.goto(50)
+					</button>
+				</div>
+				<div class="col-lg-4">
+					<button type="button" class="btn btn-outline-dark firstSection" onclick='javascript:probar.goto(75);'>
+						probar.goto(75)
+					</button>
+				</div>
+				<div class="col-lg-4">
+					<button type="button" class="btn btn-outline-dark firstSection" onclick='javascript:probar.goto(100);'>
+						probar.goto(100)
+					</button>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-12 wrapper">
+			<div class="row">
+				<div class="offset-lg-2 col-lg-8">
+					<h4 class="title">
+						Customize your Probar
+					</h4>
+				</div>
+				<div class="offset-lg-2 col-lg-8" style="text-align: left;margin-top: 35px;">
+					<h6>Configuration with time ( in seconds ) : </h6>
+				</div>
+				<div class="offset-lg-2 col-lg-8" style="padding: 15px 0px 35px 0px;">
+					<div class="wrapperTimer"></div>
+				</div>
+			</div>
+			<div class="row" >
+				<div class="offset-lg-2 col-lg-2">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="timebar.goto(30,1)">
+						.goto(30,1)
+					</button>
+				</div>
+				<div class="col-lg-2">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="timebar.goto(75,2)">
+						.goto(75,2)
+					</button>
+				</div>
+				<div class="col-lg-2">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="timebar.goto(100,3)">
+						.goto(100,3)
+					</button>
+				</div>
+				<div class="col-lg-2">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="timebar.goto(0,10)">
+						.goto(0,10)
+					</button>
+				</div>
+			</div>
+			
+
+			<!-- second -->
+			<div class="row" style="margin-top: 80px;">
+				<div class="offset-lg-2 col-lg-8" style="text-align: left;">
+					<h6>Configuration colors : </h6>
+				</div>
+				<div class="offset-lg-2 col-lg-8" style="padding: 15px 0px 35px 0px;">
+					<div class="wrapperSetBar"></div>
+				</div>
+			</div>
+			<div class="row" style="margin-top: 25px;margin-bottom: 50px;">
+				<div class="offset-lg-2 col-lg-3">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="setbar.setColor('#2c3e50')">
+						.setColor("#2c3e50")
+					</button>
+				</div>
+				<div class="col-lg-3">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="setbar.setWrapperColor('#7f8c8d')">
+						.setWrapperColor("#7f8c8d")
+					</button>
+				</div>
+				<div class="col-lg-2">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="setbar.setColor('#f1c40f');setbar.setWrapperColor('#efefef');">
+						reset
+					</button>
+				</div>
+			</div>
+
+			<div class="row" style="margin-top: 80px;">
+				<div class="offset-lg-2 col-lg-8" style="text-align: left;">
+					<h6>Configure a Height of Probar : </h6>
+				</div>
+				<div class="offset-lg-2 col-lg-8" style="padding: 15px 0px 35px 0px;">
+					<div class="wrapperSetBarHeight"></div>
+				</div>
+			</div>
+			<div class="row" style="margin-top: 25px;margin-bottom: 50px;">
+				<div class="offset-lg-2 col-lg-2">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="setbarHeight.setHeight(5)">
+						.setHeight(5)
+					</button>
+				</div>
+				<div class="col-lg-2">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="setbarHeight.setHeight(10)">
+						.setHeight(10)
+					</button>
+				</div>
+				<div class="col-lg-2">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="setbarHeight.setHeight(3);">
+						.setHeight(3)
+					</button>
+				</div>
+				<div class="col-lg-2">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="setbarHeight.setHeight(7);">
+						.setHeight(7)
+					</button>
+				</div>
+			</div>
+
+			<!-- foorth -->
+			<!-- second -->
+			<div class="row" style="margin-top: 80px;">
+				<div class="offset-lg-2 col-lg-8" style="text-align: left;">
+					<h6>Configuration With rounded Corners : </h6>
+				</div>
+				<div class="offset-lg-2 col-lg-8" style="padding: 15px 0px 35px 0px;">
+					<div class="wrapperSetBarRounded"></div>
+				</div>
+			</div>
+			<div class="row" style="margin-top: 25px;margin-bottom: 50px;">
+				<div class="col-lg-3">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="setbarRounded.setRounded(50)">
+						.setRounded(50)
+					</button>
+				</div>
+				<div class="col-lg-3">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="setbarRounded.setRounded(5,5)">
+						.setRounded(5,5)
+					</button>
+				</div>
+				<div class="col-lg-3">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="setbarRounded.setRounded(5,5,5);">
+						.setRounded(5,5,5)
+					</button>
+				</div>
+				<div class="col-lg-3">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="setbarRounded.setRounded(5,5,5,5);">
+						.setRounded(5,5,5,5)
+					</button>
+				</div>
+			</div>
+			<!-- rounded internal -->
+			<!-- rounded internal -->
+			<!-- rounded internal -->
+			<div class="row" style="margin-top: 80px;">
+				<div class="offset-lg-2 col-lg-8" style="text-align: left;">
+					<h6>Configuration With rounded Corners ( Internal ) : </h6>
+				</div>
+				<div class="offset-lg-2 col-lg-8" style="padding: 15px 0px 35px 0px;">
+					<div class="wrapperSetBarRoundedInternal"></div>
+				</div>
+			</div>
+			<div class="row" style="margin-top: 25px;margin-bottom: 50px;">
+				<div class="col-lg-3">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="setbarRoundedInternal.setRoundedInternal(50)">
+						.setRoundedInternal(50)
+					</button>
+				</div>
+				<div class="col-lg-3">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="setbarRoundedInternal.setRoundedInternal(50,50)">
+						.setRoundedInternal(5,5)
+					</button>
+				</div>
+				<div class="col-lg-3">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="setbarRoundedInternal.setRoundedInternal(50,50,50);">
+						.setRoundedInternal(5,5,5)
+					</button>
+				</div>
+				<div class="col-lg-3">
+					<button type="button" class="btn btn-outline-dark secondSection" onclick="setbarRoundedInternal.setRoundedInternal(50,50,50,50);">
+						.setRoundedInternal(5,5,5,5)
+					</button>
+				</div>
+			</div>
+
+			<!-- third -->
+			<div class="row">
+				<div class="col-lg-12">
+					<h4 class="title" style="text-align: left;">
+						Exemple :
+					</h4>
+				</div>
+				<div class="col-lg-12">
+					<pre style="    text-align: left;">
+						<code class="javascript">
+// options
+var options = {
+    color   : "#09b1ba", // color of the Progress bar. 
+    bgColor : "#efefef", // color background of the Progress bar
+    speed   : 0.3, // speed of animation. ( unit in secondes )
+    wrapper : ".wrapper", // the wrapper who append ProBar. if use class => ".class" ,if use id => "#id" 
+    finishAnimation : false, // default "true", this option give you a animation at the end "100%".
+    classNameBar : "proBar", // change a class to a custom class ( for Css ).
+    wrapperId : "wrapperProBar", // change a wrapper id for a custom Css.
+    height:10, // give a height to Probar.
+    rounded : { // use it to round Corners of Probar.
+    	topLeft : 25,
+    	topRight : 25,
+    	bottomLeft : 25,
+    	bottomRight : 25 
+    },
+    roundedInternal : { // use it to round Corners of Probar Internaly.
+    	topLeft : 25,
+    	topRight : 25,
+    	bottomLeft : 25,
+    	bottomRight : 25 
+    }
+};
+
+// instantiate
+var probar = new ProBar(options);
+
+// use it.
+probar.goto(25);
+
+// all configuration.
+probar.setColor("#2980b9"); // change color of ProBar.
+probar.setWrapperColor("#ecf0f1"); // change background color of ProBar.
+probar.setSpeed(3000); // change Speed to 3 secondes.
+probar.goto(100); // reach 100%.
+probar.goto(100,2000); // reach 100% in 2 secondes
+probar.setFinishAnimation(false); // remove a finish animation.
+probar.setHeight(15); // set Height to 15px.
+probar.setRounded(15,15,15,15); // change Border radius of Probar. (topLeft, topRight, bottomLeft, bottomRight);
+probar.setRoundedInternal(15,15,15,15); // change Border radius of Probar Internel. (topLeft, topRight, bottomLeft, bottomRight);
+						</code>
+					</pre>
+				</div>
+			</div>
+
+			<!-- footer -->
+			<div class="row">
+				<div class="col-lg-12">
+					<h4 class="title">
+						Fork me on <a href="https://github.com/YanDevDz/ProBar"><i class="fab fa-github-alt"></i> Github</a>
+					</h4>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+
+
+<!-- Require Jquery -->
+<script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+<!-- highlighted -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.10/highlight.min.js"></script>
+
+<!-- Require ProBar.js -->
+<script src="ProBar.js"></script>
+
+<!-- script -->
+<script>
+	hljs.initHighlightingOnLoad();
+	// options
+	var options = {
+	    color   : "#44bd32", // color of the Progress bar. 
+	    bgColor : "#efefef", // color background of the Progress bar
+	    speed   : 0.3, // speed of animation. ( unit in secondes )
+	    wrapper : "body", // the wrapper who append ProBar. if use class => ".class" ,if use id => "#id" 
+	    finishAnimation : true // default "true", this option give you a animation at the end "100%".
+	};
+
+	// options
+	var optionsTimer = {
+	    color   : "#09b1ba", // color of the Progress bar. 
+	    bgColor : "#efefef", // color background of the Progress bar
+	    speed   : 0.3, // speed of animation. ( unit in secondes )
+	    wrapper : ".wrapperTimer", // the wrapper who append ProBar. if use class => ".class" ,if use id => "#id" 
+	    finishAnimation : false, // default "true", this option give you a animation at the end "100%".
+	    classNameBar : "timer",
+	    wrapperId : "wrapperTimerId"
+	};
+	// options
+	var optionsSetBar = {
+	    color   : "#f1c40f", // color of the Progress bar. 
+	    bgColor : "#efefef", // color background of the Progress bar
+	    speed   : 0.3, // speed of animation. ( unit in secondes )
+	    wrapper : ".wrapperSetBar", // the wrapper who append ProBar. if use class => ".class" ,if use id => "#id" 
+	    finishAnimation : false, // default "true", this option give you a animation at the end "100%".
+	    classNameBar : "setBar",
+	    wrapperId : "wrapperSetBar"
+	};
+	// options
+	var optionsSetBarHeight = {
+	    color   : "#8e44ad", // color of the Progress bar. 
+	    bgColor : "#efefef", // color background of the Progress bar
+	    speed   : 0.3, // speed of animation. ( unit in secondes )
+	    wrapper : ".wrapperSetBarHeight", // the wrapper who append ProBar. if use class => ".class" ,if use id => "#id" 
+	    finishAnimation : false, // default "true", this option give you a animation at the end "100%".
+	    classNameBar : "setBarHeight",
+	    wrapperId : "wrapperSetBarHeight",
+	    height:10 // give a height to Probar.
+	};
+	// options
+	var optionsSetBarRounded = {
+	    color   : "#d35400", // color of the Progress bar. 
+	    bgColor : "#efefef", // color background of the Progress bar
+	    speed   : 0.3, // speed of animation. ( unit in secondes )
+	    wrapper : ".wrapperSetBarRounded", // the wrapper who append ProBar. if use class => ".class" ,if use id => "#id" 
+	    finishAnimation : false, // default "true", this option give you a animation at the end "100%".
+	    classNameBar : "setBarRounded",
+	    wrapperId : "wrapperSetBarRounded",
+	    height:10, // give a height to Probar.
+	    
+	    rounded : {
+	    	topLeft : 25,
+	    	topRight : 25,
+	    	bottomLeft : 25,
+	    	bottomRight : 25 
+	    }
+
+	};
+	// options
+	var optionsSetBarRoundedInternal = {
+	    color   : "#273c75", // color of the Progress bar. 
+	    bgColor : "#718093", // color background of the Progress bar
+	    speed   : 0.3, // speed of animation. ( unit in secondes )
+	    wrapper : ".wrapperSetBarRoundedInternal", // the wrapper who append ProBar. if use class => ".class" ,if use id => "#id" 
+	    finishAnimation : false, // default "true", this option give you a animation at the end "100%".
+	    classNameBar : "setBarRoundedInternal",
+	    wrapperId : "wrapperSetBarRoundedInternal",
+	    height:10, // give a height to Probar.
+	    
+	    rounded : {
+	    	topLeft : 25,
+	    	topRight : 25,
+	    	bottomLeft : 25,
+	    	bottomRight : 25 
+	    },
+
+	    roundedInternal : {
+	    	topLeft : 25,
+	    	topRight : 25,
+	    	bottomLeft : 25,
+	    	bottomRight : 25 
+	    }
+
+	};
+	
+	// instantiate.
+	var probar = new ProBar(options);
+	var timebar = new ProBar(optionsTimer);
+	var setbar = new ProBar(optionsSetBar);
+	var setbarHeight = new ProBar(optionsSetBarHeight);
+	var setbarRounded = new ProBar(optionsSetBarRounded);
+	var setbarRoundedInternal = new ProBar(optionsSetBarRoundedInternal);
+
+	probar.goto(25);
+	timebar.goto(30);
+	setbar.goto(50);
+	setbarHeight.goto(35);
+	setbarRounded.goto(80);
+	setbarRoundedInternal.goto(75);
+
+	
+	///////////////////
+	// All functions //
+	///////////////////
+
+	// probar.setColor("#2980b9"); // change color of ProBar.
+	// probar.setWrapperColor("#ecf0f1"); // change background color of ProBar.
+	// probar.setSpeed(3000); // change Speed to 3 secondes.
+	// probar.goto(100); // reach 100%.
+	// probar.goto(100,2000); // reach 100% in 2 secondes
+	// probar.setFinishAnimation(false); // remove a finish animation.
+
+	$(window).scroll(function() {
+	  var y = $(this).scrollTop();
+
+	  let percent = (y * 100) / ($(document).height() - $(window).height());
+	  
+	  probar.goto(percent);
+	});
+
+
+</script>
+</body>
+</html>
