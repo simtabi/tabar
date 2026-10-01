@@ -21,26 +21,43 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
-      - run: npm ci
+          cache-dependency-path: package.json
+      - run: npm install --no-audit --no-fund
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
 
+  playwright:
+    # The library tracks no lock file, so the Playwright version is resolved here from the
+    # package.json range, and the visual job runs in the image built for exactly that version.
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: resolve
+        run: |
+          range=$(jq -r '.devDependencies["@playwright/test"]' package.json)
+          version=$(npm view "@playwright/test@$range" version --json | jq -r 'if type == "array" then .[-1] else . end')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
   visual:
+    needs: playwright
     runs-on: ubuntu-latest
     # Run inside the official Playwright image so rendering matches the committed
-    # Linux baselines (e2e/**/*-snapshots/*-linux.png). Pin to the @playwright/test
-    # version in package-lock.json; bump this tag when that dependency is updated.
+    # Linux baselines (e2e/**/*-snapshots/*-linux.png). The range in package.json is
+    # ~1.61.0 on purpose: a minor bump is a deliberate change that refreshes the baselines.
     container:
-      image: mcr.microsoft.com/playwright:v1.61.0-jammy
+      image: mcr.microsoft.com/playwright:v${{ needs.playwright.outputs.version }}-jammy
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+          cache-dependency-path: package.json
+      - run: npm install --no-audit --no-fund
       - name: Run Playwright visual & functional tests
         run: npm run test:e2e
       - uses: actions/upload-artifact@v7
