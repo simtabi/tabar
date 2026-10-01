@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tabar — multi-progress (segments & groups)</title>
+    <style>
+      body { font: 16px/1.5 system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; color: #1d1d1f; }
+      h1 { font-size: 1.5rem; }
+      h2 { font-size: 1.05rem; margin-top: 2rem; }
+      .track { min-height: 16px; background: #f0f0f3; border-radius: 8px; overflow: hidden; }
+      button { font: inherit; padding: 6px 14px; border: 1px solid #d2d2d7; border-radius: 8px; background: #fff; cursor: pointer; }
+      #downloads { margin-top: 12px; }
+    </style>
+    <link rel="stylesheet" href="../dist/tabar.css" />
+  </head>
+  <body>
+    <h1>Multi-progress</h1>
+
+    <h2>Stacked segments — one bar, many chunks</h2>
+    <div class="track" id="stacked"></div>
+    <p><button id="advance">Advance a chunk</button></p>
+
+    <h2>Overlay segments — buffered vs played</h2>
+    <div class="track" id="overlay"></div>
+
+    <h2>A group of parallel downloads</h2>
+    <div id="downloads"></div>
+    <p><button id="add">Add a download</button></p>
+
+    <script type="module">
+      import { Tabar } from '../src/tabar.js';
+      import { TabarGroup } from '../src/group.js';
+
+      // Stacked: three weighted chunks that fill independently.
+      const stacked = new Tabar({ position: 'inline', mountTo: '#stacked', height: 16 });
+      const chunks = [
+        { id: 'fonts', value: 1, color: '#0a84ff', weight: 1 },
+        { id: 'img', value: 0.4, color: '#30d158', weight: 3 },
+        { id: 'video', value: 0, color: '#ff9f0a', weight: 6 },
+      ];
+      stacked.setSegments(chunks);
+      let next = 1;
+      document.querySelector('#advance').onclick = () => {
+        const c = chunks[next % chunks.length];
+        stacked.updateSegment(c.id, { value: Math.min(1, (c.value += 0.25)) });
+        next += 1;
+      };
+
+      // Overlay: a player's buffered (back) and played (front) layers.
+      const player = new Tabar({ position: 'inline', mountTo: '#overlay', height: 16, segmentMode: 'overlay' });
+      player.setSegments([
+        { id: 'buffered', value: 0.8, color: '#c7c7cc' },
+        { id: 'played', value: 0.35, color: '#0a84ff' },
+      ]);
+
+      // Group: each download is its own bar; the overall aggregates them.
+      const group = new TabarGroup({ mountTo: '#downloads' });
+      let n = 0;
+      const addDownload = () => {
+        const bar = group.add({ label: `file-${++n}.zip`, height: 14 });
+        const total = 1_000_000 + Math.random() * 4_000_000;
+        let loaded = 0;
+        const t = setInterval(() => {
+          loaded = Math.min(total, loaded + total * (0.04 + Math.random() * 0.06));
+          bar.setProgress(loaded, total);
+          if (loaded >= total) { clearInterval(t); bar.done(true); }
+        }, 200);
+      };
+      document.querySelector('#add').onclick = addDownload;
+      addDownload();
+      addDownload();
+    </script>
+  </body>
+</html>

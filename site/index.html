@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Set the color mode before first paint to avoid a light→dark flash (FOUC). -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('tabar-theme')
+            || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          document.documentElement.setAttribute('data-bs-theme', t);
+        } catch (e) {}
+      })();
+    </script>
+    <title>Tabar — a dependency-free progress bar for web & CLI</title>
+    <meta
+      name="description"
+      content="Tabar is a zero-dependency progress bar for the web and the terminal: linear & circular shapes, multi-progress segments, uploads with ETA, theming, events, and i18n."
+    />
+    <meta name="theme-color" content="#2299dd" />
+    <link rel="icon" href="./assets/img/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./assets/img/favicon.svg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Tabar — a dependency-free progress bar for web & CLI" />
+    <meta property="og:description" content="Linear & circular shapes, multi-progress, uploads with ETA, theming, events, and i18n. Zero dependencies." />
+    <meta property="og:image" content="./assets/img/og.svg" />
+    <meta property="og:url" content="https://opensource.simtabi.com/products/tabar" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Tabar — a dependency-free progress bar" />
+    <meta name="twitter:description" content="Zero-dependency progress bar for web & CLI — accessible by default." />
+    <!-- Demo presentation only — Webpixels CSS (Bootstrap-based). Tabar itself ships no CSS framework. -->
+    <link rel="stylesheet" href="./assets/css/webpixels.css" />
+    <link rel="stylesheet" href="./assets/css/styles.css" />
+  </head>
+  <body>
+    <header class="navbar navbar-expand bg-body border-bottom sticky-top">
+      <div class="container">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="./index.html">
+          <span class="brand-dot"></span> Tabar
+        </a>
+        <nav class="navbar-nav flex-row align-items-center gap-3 ms-auto" aria-label="Primary">
+          <a class="nav-link d-none d-md-inline" href="#features">Features</a>
+          <a class="nav-link d-none d-md-inline" href="#shapes">Shapes</a>
+          <a class="nav-link d-none d-md-inline" href="#code">Code</a>
+          <a class="nav-link" href="./playground.html">Playground</a>
+          <a class="nav-link" href="https://github.com/simtabi/tabar">GitHub</a>
+          <button type="button" class="btn btn-sm btn-neutral" id="theme" aria-label="Toggle dark mode" aria-pressed="false">◐</button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <!-- HERO -->
+      <section class="py-8 py-lg-12 text-center">
+        <div class="container">
+          <span class="badge bg-primary-subtle text-primary mb-4">v<span id="ver">0.6.0</span> · zero dependencies</span>
+          <h1 class="display-3 fw-bold mb-4">Progress, <span class="text-gradient">everywhere</span>.</h1>
+          <p class="lead text-muted mx-auto mb-6" style="max-width: 40rem">
+            One small ES module for a polished progress bar — in the browser <em>and</em> the
+            terminal. Linear &amp; circular, multi-progress, uploads with ETA, fully themeable,
+            accessible by default.
+          </p>
+          <div class="d-flex flex-wrap gap-3 justify-content-center mb-3">
+            <a class="btn btn-lg btn-primary" href="./playground.html">Try the playground →</a>
+            <a class="btn btn-lg btn-neutral" href="https://github.com/simtabi/tabar">View on GitHub</a>
+          </div>
+          <p class="text-muted small"><code class="text-body">npm install @simtabi/tabar</code></p>
+
+          <div class="card shadow-lg mt-6 mx-auto" style="max-width: 48rem">
+            <div class="card-body">
+              <div class="demo-track" id="hero-bar" style="min-height: 16px"></div>
+              <div class="d-flex align-items-center gap-4 flex-wrap mt-5">
+                <div id="hero-ring" style="width: 92px; height: 92px"></div>
+                <div class="demo-track flex-fill" id="hero-seg" style="min-width: 200px; min-height: 16px"></div>
+              </div>
+              <p class="text-muted small text-center mt-4 mb-0" id="hero-caption">A live bar, a circular ring, and a segmented transfer — all Tabar.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURES -->
+      <section id="features" class="py-7">
+        <div class="container">
+          <div class="text-center mx-auto mb-6" style="max-width: 40rem">
+            <p class="text-primary text-uppercase fw-bold small mb-2">Why Tabar</p>
+            <h2 class="fw-bold mb-2">Everything a progress bar needs</h2>
+            <p class="text-muted mb-0">No framework, no build step, no runtime dependencies — under 13&nbsp;KB gzipped.</p>
+          </div>
+          <div class="row g-4">
+            <div class="col-12 col-md-6 col-lg-4"><article class="card h-100"><div class="card-body"><div class="h2 mb-3">📦</div><h3 class="h5">Zero dependencies</h3><p class="text-muted mb-0">Pure DOM &amp; SVG. ESM, CJS and a drop-in <code>&lt;script&gt;</code> build. Safe to run many bars at once.</p></div></article></div>
+            <div class="col-12 col-md-6 col-lg-4"><article class="card h-100"><div class="card-body"><div class="h2 mb-3">🖥️</div><h3 class="h5">Web &amp; CLI</h3><p class="text-muted mb-0">The same API renders in the browser and as a live ANSI bar in the terminal, plus a <code>tabar</code> CLI.</p></div></article></div>
+            <div class="col-12 col-md-6 col-lg-4"><article class="card h-100"><div class="card-body"><div class="h2 mb-3">⭕</div><h3 class="h5">Shapes</h3><p class="text-muted mb-0">Linear bars (top/bottom/left/right/inline) and circular SVG rings — all themeable.</p></div></article></div>
+            <div class="col-12 col-md-6 col-lg-4"><article class="card h-100"><div class="card-body"><div class="h2 mb-3">🧩</div><h3 class="h5">Multi-progress</h3><p class="text-muted mb-0">Segmented bars (stacked chunks or overlay layers) and groups of child bars with an aggregated overall.</p></div></article></div>
+            <div class="col-12 col-md-6 col-lg-4"><article class="card h-100"><div class="card-body"><div class="h2 mb-3">⏱️</div><h3 class="h5">Uploads &amp; ETA</h3><p class="text-muted mb-0"><code>trackXHR</code>/<code>trackResponse</code> with smoothed speed &amp; ETA; retry, stall detection &amp; states.</p></div></article></div>
+            <div class="col-12 col-md-6 col-lg-4"><article class="card h-100"><div class="card-body"><div class="h2 mb-3">🎨</div><h3 class="h5">Themeable</h3><p class="text-muted mb-0">Every visual is a CSS variable. Gradients, glow, stripes, tooltips — works with any framework.</p></div></article></div>
+            <div class="col-12 col-md-6 col-lg-4"><article class="card h-100"><div class="card-body"><div class="h2 mb-3">🔌</div><h3 class="h5">Events &amp; API</h3><p class="text-muted mb-0">Instance + global bus + DOM events, a registry, JSON/API config, a Web Component &amp; a React hook.</p></div></article></div>
+            <div class="col-12 col-md-6 col-lg-4"><article class="card h-100"><div class="card-body"><div class="h2 mb-3">🌍</div><h3 class="h5">i18n &amp; a11y</h3><p class="text-muted mb-0">Ten built-in locales incl. RTL Arabic, real <code>role="progressbar"</code>, reduced-motion aware.</p></div></article></div>
+            <div class="col-12 col-md-6 col-lg-4"><article class="card h-100"><div class="card-body"><div class="h2 mb-3">💾</div><h3 class="h5">Persistence</h3><p class="text-muted mb-0">Opt-in <code>persist</code> saves progress to local/session storage and restores it on reload.</p></div></article></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SHAPES SHOWCASE -->
+      <section id="shapes" class="py-7 bg-body-secondary">
+        <div class="container">
+          <div class="text-center mx-auto mb-6" style="max-width: 40rem">
+            <p class="text-primary text-uppercase fw-bold small mb-2">Live</p>
+            <h2 class="fw-bold mb-2">See it move</h2>
+            <p class="text-muted mb-0">Every demo below is a real Tabar instance running on this page.</p>
+          </div>
+          <div class="row g-4">
+            <div class="col-12 col-md-6 col-lg-4"><div class="card h-100"><div class="card-body">
+              <h3 class="h6">Linear &amp; themes</h3>
+              <div class="demo-track my-3" id="sc-linear" style="min-height: 14px"></div>
+              <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-sm btn-primary" data-sc="linear-go">Animate</button>
+                <button class="btn btn-sm btn-neutral" data-sc="linear-grad">Gradient</button>
+                <button class="btn btn-sm btn-neutral" data-sc="linear-stripe">Stripes</button>
+              </div>
+            </div></div></div>
+            <div class="col-12 col-md-6 col-lg-4"><div class="card h-100"><div class="card-body">
+              <h3 class="h6">Circular ring</h3>
+              <div class="d-grid justify-content-center my-3" id="sc-ring" style="min-height: 120px"></div>
+              <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-sm btn-primary" data-sc="ring-go">Animate</button>
+                <button class="btn btn-sm btn-neutral" data-sc="ring-ind">Indeterminate</button>
+              </div>
+            </div></div></div>
+            <div class="col-12 col-md-6 col-lg-4"><div class="card h-100"><div class="card-body">
+              <h3 class="h6">Segments — chunks</h3>
+              <div class="demo-track my-3" id="sc-seg" style="min-height: 16px"></div>
+              <p class="text-muted small">Stacked, weighted chunks fill independently.</p>
+              <div class="d-flex flex-wrap gap-2"><button class="btn btn-sm btn-primary" data-sc="seg-advance">Advance a chunk</button></div>
+            </div></div></div>
+            <div class="col-12 col-md-6 col-lg-4"><div class="card h-100"><div class="card-body">
+              <h3 class="h6">Group — parallel</h3>
+              <div class="my-3" id="sc-group"></div>
+              <div class="d-flex flex-wrap gap-2"><button class="btn btn-sm btn-primary" data-sc="group-add">Add a download</button></div>
+            </div></div></div>
+            <div class="col-12 col-md-6 col-lg-4"><div class="card h-100"><div class="card-body">
+              <h3 class="h6">Upload with ETA</h3>
+              <div class="demo-track my-3" id="sc-xfer" style="min-height: 16px"></div>
+              <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-sm btn-primary" data-sc="xfer-go">Download</button>
+                <button class="btn btn-sm btn-neutral" data-sc="xfer-fail">Fail</button>
+              </div>
+            </div></div></div>
+            <div class="col-12 col-md-6 col-lg-4"><div class="card h-100"><div class="card-body">
+              <h3 class="h6">States &amp; retry</h3>
+              <div class="demo-track my-3" id="sc-state" style="min-height: 16px"></div>
+              <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-sm btn-neutral" data-sc="st-warn">Warn</button>
+                <button class="btn btn-sm btn-neutral" data-sc="st-error">Error</button>
+                <button class="btn btn-sm btn-primary" data-sc="st-retry">Retry</button>
+                <button class="btn btn-sm btn-neutral" data-sc="st-ok">Succeed</button>
+              </div>
+            </div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CODE -->
+      <section id="code" class="py-7">
+        <div class="container">
+          <div class="text-center mx-auto mb-6" style="max-width: 40rem">
+            <p class="text-primary text-uppercase fw-bold small mb-2">Five lines</p>
+            <h2 class="fw-bold mb-2">Get started</h2>
+            <p class="text-muted mb-0">Install, import, and drive a bar around your async work.</p>
+          </div>
+          <div class="row g-4">
+            <div class="col-12 col-lg-4"><div class="card h-100">
+              <div class="card-header py-2 small text-muted fw-semibold">Browser</div>
+              <div class="card-body"><pre class="code-snippet mb-0"><code><span class="tok-k">import</span> { Tabar } <span class="tok-k">from</span> <span class="tok-s">'@simtabi/tabar'</span>;
+
+<span class="tok-k">const</span> bar = <span class="tok-k">new</span> Tabar({ color: <span class="tok-s">'#29d'</span> });
+bar.start();
+<span class="tok-k">await</span> fetchData();
+bar.done();</code></pre></div>
+            </div></div>
+            <div class="col-12 col-lg-4"><div class="card h-100">
+              <div class="card-header py-2 small text-muted fw-semibold">Uploads &amp; segments</div>
+              <div class="card-body"><pre class="code-snippet mb-0"><code><span class="tok-c">// live speed + ETA from a fetch download</span>
+bar.trackResponse(<span class="tok-k">await</span> fetch(url));
+
+<span class="tok-c">// one bar, many chunks</span>
+bar.setSegments([
+  { id: <span class="tok-s">'a'</span>, value: 1, weight: 1 },
+  { id: <span class="tok-s">'b'</span>, value: 0.4, weight: 3 },
+]);</code></pre></div>
+            </div></div>
+            <div class="col-12 col-lg-4"><div class="card h-100">
+              <div class="card-header py-2 small text-muted fw-semibold">Terminal / CLI</div>
+              <div class="card-body"><pre class="code-snippet mb-0"><code><span class="tok-k">import</span> { terminalBar } <span class="tok-k">from</span> <span class="tok-s">'@simtabi/tabar/node'</span>;
+<span class="tok-k">const</span> bar = terminalBar({ label: <span class="tok-s">'Downloading'</span> });
+bar.setProgress(loaded, total);
+
+<span class="tok-c"># or pipe progress into the CLI</span>
+some-job | npx tabar --total 1000</code></pre></div>
+            </div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- EXAMPLES -->
+      <section id="examples" class="py-7 bg-body-secondary">
+        <div class="container">
+          <div class="text-center mx-auto mb-6" style="max-width: 40rem">
+            <p class="text-primary text-uppercase fw-bold small mb-2">Recipes</p>
+            <h2 class="fw-bold mb-2">Examples</h2>
+            <p class="text-muted mb-0">Copy-pasteable starting points for any framework — or none.</p>
+          </div>
+          <div class="row g-3">
+            <div class="col-12 col-sm-6 col-lg-4"><a class="card h-100 text-body text-decoration-none" href="../examples/no-framework.html"><div class="card-body"><div class="h4 mb-1">🌐</div><h3 class="h6 mb-1">No framework</h3><p class="text-muted small mb-0">Plain HTML + the drop-in script.</p></div></a></div>
+            <div class="col-12 col-sm-6 col-lg-4"><a class="card h-100 text-body text-decoration-none" href="../examples/multi-progress.html"><div class="card-body"><div class="h4 mb-1">🧩</div><h3 class="h6 mb-1">Multi-progress</h3><p class="text-muted small mb-0">Segments &amp; a group of downloads.</p></div></a></div>
+            <div class="col-12 col-sm-6 col-lg-4"><a class="card h-100 text-body text-decoration-none" href="../examples/tailwind.html"><div class="card-body"><div class="h4 mb-1">💨</div><h3 class="h6 mb-1">Tailwind</h3><p class="text-muted small mb-0">Themed with utility classes.</p></div></a></div>
+            <div class="col-12 col-sm-6 col-lg-4"><a class="card h-100 text-body text-decoration-none" href="../examples/bootstrap.html"><div class="card-body"><div class="h4 mb-1">🅱️</div><h3 class="h6 mb-1">Bootstrap</h3><p class="text-muted small mb-0">Drop into a Bootstrap layout.</p></div></a></div>
+            <div class="col-12 col-sm-6 col-lg-4"><a class="card h-100 text-body text-decoration-none" href="../examples/webpixels.html"><div class="card-body"><div class="h4 mb-1">🧱</div><h3 class="h6 mb-1">Webpixels</h3><p class="text-muted small mb-0">Inside a Webpixels/Bootstrap UI.</p></div></a></div>
+            <div class="col-12 col-sm-6 col-lg-4"><a class="card h-100 text-body text-decoration-none" href="https://opensource.simtabi.com/documentation/tabar"><div class="card-body"><div class="h4 mb-1">📚</div><h3 class="h6 mb-1">Documentation</h3><p class="text-muted small mb-0">Full guides &amp; the API reference.</p></div></a></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="py-7">
+        <div class="container">
+          <div class="card cta-band border-0 text-center">
+            <div class="card-body py-7">
+              <h2 class="fw-bold mb-2">Ship a better progress bar today</h2>
+              <p class="text-muted mb-4">Zero dependencies. Web &amp; CLI. Accessible by default.</p>
+              <div class="d-flex flex-wrap gap-3 justify-content-center">
+                <a class="btn btn-lg btn-primary" href="./playground.html">Open the playground →</a>
+                <a class="btn btn-lg btn-neutral" href="https://github.com/simtabi/tabar">Star on GitHub</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-top py-5 text-muted small">
+      <div class="container d-flex flex-wrap gap-3 align-items-center justify-content-between">
+        <span>Tabar v<span id="ver-foot">0.6.0</span> · <a class="link-secondary" href="https://github.com/simtabi/tabar/blob/main/LICENSE">MIT</a> © Simtabi LLC</span>
+        <span class="d-flex flex-wrap gap-3">
+          <a class="link-secondary" href="https://opensource.simtabi.com/products/tabar">Product</a>
+          <a class="link-secondary" href="https://opensource.simtabi.com/documentation/tabar">Docs</a>
+          <a class="link-secondary" href="https://github.com/simtabi/tabar">GitHub</a>
+          <a class="link-secondary" href="https://github.com/simtabi/tabar/issues">Issues</a>
+        </span>
+      </div>
+    </footer>
+
+    <script type="module" src="./assets/js/landing.js"></script>
+  </body>
+</html>

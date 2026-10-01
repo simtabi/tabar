@@ -1,0 +1,441 @@
+// =============================================================================
+// Tabar — style source of truth (SCSS).
+//
+// Compiled by `npm run styles` into:
+//   • dist/tabar.css   — the optional standalone stylesheet (expanded)
+//   • src/styles.js    — the minified string Tabar injects at runtime
+//
+// Edit THIS file, never the generated output. Every visual is a CSS custom
+// property so instances stay isolated and themeable without overrides. Every
+// hook carries the identifying `-tabar` suffix so it can't collide with
+// generic data-* attributes.
+// =============================================================================
+
+// --- Fallback defaults (mirror the JS DEFAULTS; only used as var() fallbacks) -
+$height: 6px !default;
+$color: #29d !default;
+$color2: #7c4dff !default;
+$speed: 300ms !default;
+$z: 1031 !default;
+$rainbow: #ff004c, #ff8a00, #ffe600, #00e676, #00b0ff, #aa00ff, #ff004c !default;
+
+// Glow color resolves to --tabar-glow, then the bar color, then the scheme default,
+// so glow can be applied to any theme/style with an independent color.
+$glow-color: var(--tabar-glow, var(--tabar-color, var(--tabar-default-color, #{$color}))) !default;
+
+// --- Mixins -----------------------------------------------------------------
+@mixin fixed-overlay {
+  position: fixed;
+  z-index: var(--tabar-z, #{$z});
+}
+
+.tabar {
+  position: relative;
+  width: 100%;
+  // Scheme-aware defaults (overridden by inline styles when the user sets them).
+  --tabar-default-color: #{$color};
+  --tabar-track: transparent;
+  height: var(--tabar-height, #{$height});
+  background: var(--tabar-bg, var(--tabar-track));
+  border-radius: var(--tabar-radius, 0);
+  // Optional outline around the track (width 0 = none). box-sizing keeps it inside.
+  border: var(--tabar-border-width, 0) var(--tabar-border-style, solid) var(--tabar-border-color, rgba(127, 127, 127, 0.35));
+  overflow: hidden;
+  pointer-events: none;
+  box-sizing: border-box;
+
+  // Inline bars get a visible track by default so they always render on load.
+  &[data-position-tabar="inline"] { --tabar-track: rgba(127, 127, 127, 0.16); }
+
+  // --- Horizontal fixed overlays --------------------------------------------
+  // `--tabar-length` runs along the docked edge (default 100%); `--tabar-offset`
+  // insets from that edge. `*-center` variants center the bar along the edge.
+  // Anchoring only one end (right:auto) is what lets a <100% length take effect.
+  &[data-position-tabar="top"],
+  &[data-position-tabar="bottom"],
+  &[data-position-tabar="top-center"],
+  &[data-position-tabar="bottom-center"] {
+    @include fixed-overlay;
+    width: var(--tabar-length, 100%);
+    right: auto;
+  }
+  &[data-position-tabar="top"],
+  &[data-position-tabar="bottom"] { left: 0; }
+  &[data-position-tabar="top-center"],
+  &[data-position-tabar="bottom-center"] { left: 50%; transform: translateX(-50%); }
+  &[data-position-tabar="top"],
+  &[data-position-tabar="top-center"] { top: var(--tabar-offset, 0); }
+  &[data-position-tabar="bottom"],
+  &[data-position-tabar="bottom-center"] { bottom: var(--tabar-offset, 0); }
+
+  // --- Vertical bars (thickness = --tabar-height, fill from the bottom up) ---
+  &[data-orientation-tabar="vertical"] {
+    width: var(--tabar-height, #{$height});
+    height: var(--tabar-length, 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  &[data-position-tabar="left"],
+  &[data-position-tabar="right"],
+  &[data-position-tabar="left-center"],
+  &[data-position-tabar="right-center"] {
+    @include fixed-overlay;
+    bottom: auto;
+  }
+  &[data-position-tabar="left"],
+  &[data-position-tabar="right"] { top: 0; }
+  &[data-position-tabar="left-center"],
+  &[data-position-tabar="right-center"] { top: 50%; transform: translateY(-50%); }
+  &[data-position-tabar="left"],
+  &[data-position-tabar="left-center"] { left: var(--tabar-offset, 0); }
+  &[data-position-tabar="right"],
+  &[data-position-tabar="right-center"] { right: var(--tabar-offset, 0); }
+
+  &[hidden] { display: none; }
+
+  // --- The fill -------------------------------------------------------------
+  &__bar {
+    position: relative;
+    height: 100%;
+    width: 0;
+    background: var(--tabar-fill, var(--tabar-color, var(--tabar-default-color, #{$color})));
+    // Anchor a gradient fill to the full track: size the background to the
+    // inverse of the fill fraction so colors stay put as the bar grows. Solid
+    // colors ignore background-size, so this is a no-op for them.
+    background-size: calc(100% / max(var(--tabar-fill-scale, 1), 0.0001)) 100%;
+    background-position: left center;
+    background-repeat: no-repeat;
+    border-radius: var(--tabar-inner-radius, 0);
+    transition:
+      width var(--tabar-speed, #{$speed}) ease,
+      height var(--tabar-speed, #{$speed}) ease;
+    will-change: width, height;
+  }
+  &[data-orientation-tabar="vertical"] &__bar {
+    width: 100%;
+    height: 0;
+    background-size: 100% calc(100% / max(var(--tabar-fill-scale, 1), 0.0001));
+    background-position: center bottom;
+  }
+  &[data-rtl-tabar="true"] &__bar { margin-left: auto; background-position: right center; }
+
+  // --- Optional label -------------------------------------------------------
+  &__label {
+    position: absolute;
+    top: 100%;
+    right: 0.5em;
+    font: 600 11px/1.6 system-ui, sans-serif;
+    color: var(--tabar-color, var(--tabar-default-color, #{$color}));
+    pointer-events: none;
+  }
+  &[data-orientation-tabar="vertical"] &__label {
+    top: 0.25em;
+    right: auto;
+    left: 0.5em;
+    writing-mode: vertical-rl;
+  }
+
+  // --- Inline status message (overlays the bar) -----------------------------
+  &__message {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: var(--tabar-message-align, center);
+    gap: 6px;
+    padding: 0 10px;
+    font: 600 12px/1 system-ui, sans-serif;
+    color: var(--tabar-message-color, #fff);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45); // legibility over colored fills
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+    z-index: 2;
+  }
+  &__message[hidden] { display: none; }
+  // Circular: center the message in the ring's grid cell.
+  &[data-shape-tabar="circular"] &__message {
+    position: static;
+    grid-area: 1 / 1;
+    inset: auto;
+    justify-content: center;
+  }
+
+  // --- Tooltip (rides the leading edge of the fill) -------------------------
+  // The wrapper opts into pointer events only when a tooltip is enabled, and
+  // opens its overflow so the tip (which sits above/beside the bar) isn't
+  // clipped by the wrapper. (A host container must not clip it either.)
+  &[data-tooltip-tabar-on] { pointer-events: auto; overflow: visible; }
+  &__tooltip {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 6px);
+    transform: translateX(50%);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font: 600 12px/1.4 system-ui, sans-serif;
+    white-space: nowrap;
+    color: #fff;
+    background: var(--tabar-tooltip-bg, rgba(20, 20, 24, 0.92));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+  }
+  &__tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    right: 50%;
+    transform: translateX(50%);
+    border: 4px solid transparent;
+    border-top-color: var(--tabar-tooltip-bg, rgba(20, 20, 24, 0.92));
+  }
+  &[data-tooltip-tabar-on="always"] &__tooltip,
+  &[data-tooltip-tabar-on="hover"]:hover &__tooltip,
+  &[data-tooltip-tabar-on="hover"]:focus-within &__tooltip { opacity: 1; }
+  &[data-orientation-tabar="vertical"] &__tooltip {
+    right: auto;
+    bottom: auto;
+    left: calc(100% + 6px);
+    top: 0;
+    transform: none;
+  }
+  &[data-orientation-tabar="vertical"] &__tooltip::after { display: none; }
+
+  // --- Glow (composes with ANY theme; also a standalone 'glow' preset) ------
+  // A layered drop-shadow halo that follows the filled shape and bleeds onto
+  // surroundings. `--tabar-glow-size` scales the bleed; overflow is opened so
+  // the wrapper doesn't clip it (a host container must not clip it either).
+  &[data-glow-tabar="true"],
+  &[data-theme-tabar="glow"] { overflow: visible; }
+  &[data-glow-tabar="true"] &__bar,
+  &[data-theme-tabar="glow"] &__bar {
+    // The halo follows the fill's shape — round it to the bar's radius (and any
+    // border) so the glow hugs the bar instead of being a hard rectangle.
+    border-radius: var(--tabar-radius, 0);
+    filter:
+      drop-shadow(0 0 calc(var(--tabar-glow-size, 8px) * 0.4) #{$glow-color})
+      drop-shadow(0 0 var(--tabar-glow-size, 8px) #{$glow-color})
+      drop-shadow(0 0 calc(var(--tabar-glow-size, 8px) * 2) #{$glow-color});
+  }
+
+  // --- Segments (one bar, many progresses) ----------------------------------
+  &__segments {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    border-radius: inherit;
+    overflow: hidden;
+  }
+  &__segment {
+    position: relative;
+    height: 100%;
+    min-width: 0;
+  }
+  &__segment-fill {
+    height: 100%;
+    background: var(--tabar-seg-color, var(--tabar-color, var(--tabar-default-color, #{$color})));
+    transition: width var(--tabar-speed, #{$speed}) ease;
+  }
+  &[data-segmented-tabar="overlay"] &__segments { display: block; }
+  &[data-segmented-tabar="overlay"] &__segment { position: absolute; top: 0; left: 0; }
+  &[data-rtl-tabar="true"][data-segmented-tabar="stacked"] &__segments { flex-direction: row-reverse; }
+  &[data-rtl-tabar="true"][data-segmented-tabar="overlay"] &__segment { left: auto; right: 0; }
+
+  // --- Gradient theme -------------------------------------------------------
+  // The 'gradient' theme's fill is computed in JS into --tabar-fill (so the
+  // gradient type/shape/position/angle all apply); the base &__bar rule paints
+  // it and keeps the track anchoring. No extra rule needed here.
+
+  // --- Animated rainbow / multicolor ---------------------------------------
+  &[data-theme-tabar="rainbow"] &__bar {
+    background: linear-gradient(var(--tabar-angle, 90deg), $rainbow);
+    background-size: 300% 100%;
+    background-repeat: repeat; // seamless scroll (overrides the base no-repeat)
+    animation: tabar-rainbow 3s linear infinite;
+  }
+
+  // Animate ANY multicolor fill (user `colors`/`gradient`) by scrolling it.
+  &[data-multicolor-anim-tabar="true"] &__bar {
+    background-size: 300% 100%;
+    background-repeat: repeat;
+    animation: tabar-rainbow 3s linear infinite;
+  }
+
+  // 'minimal' is a flat solid bar — identical to 'default' now that the bar
+  // carries no leading-edge embellishment. Kept as a recognized theme value.
+
+  // --- Stripe overlay (option or theme) ------------------------------------
+  &[data-striped-tabar="true"] &__bar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.28) 0 8px,
+      rgba(255, 255, 255, 0) 8px 16px
+    );
+    background-size: 22px 22px;
+  }
+  &[data-stripe-anim-tabar="true"] &__bar::after {
+    animation: tabar-stripes 0.6s linear infinite;
+  }
+
+  // --- Status states (visual feedback) --------------------------------------
+  &[data-state-tabar="error"] &__bar {
+    background: var(--tabar-error, #e5484d); // linear fill
+    stroke: var(--tabar-error, #e5484d); // circular ring
+    animation: none;
+  }
+  &[data-state-tabar="error"] &__label { color: var(--tabar-error, #e5484d); }
+  &[data-state-tabar="warning"] &__bar {
+    background: var(--tabar-warning, #f5a623);
+    stroke: var(--tabar-warning, #f5a623);
+    animation: none;
+  }
+  &[data-state-tabar="warning"] &__label { color: var(--tabar-warning, #f5a623); }
+  &[data-state-tabar="success"] &__bar {
+    background: var(--tabar-success, #30a46c);
+    stroke: var(--tabar-success, #30a46c);
+    animation: none;
+  }
+  &[data-state-tabar="success"] &__label { color: var(--tabar-success, #30a46c); }
+
+  // --- Indeterminate --------------------------------------------------------
+  &[data-state-tabar="indeterminate"] &__bar {
+    width: 40%;
+    animation: tabar-indeterminate 1.1s infinite ease-in-out;
+  }
+  &[data-orientation-tabar="vertical"][data-state-tabar="indeterminate"] &__bar {
+    width: 100%;
+    height: 40%;
+    animation: tabar-indeterminate-v 1.1s infinite ease-in-out;
+  }
+
+  // --- Circular (SVG ring) --------------------------------------------------
+  &[data-shape-tabar="circular"] {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: auto;
+    height: auto;
+    background: none;
+    border: 0; // a box border around a ring is wrong; the border is linear-only
+    overflow: visible;
+  }
+  &__svg {
+    display: block;
+    // Start at `--tabar-start-angle` (default 12 o'clock); `--tabar-flip` mirrors
+    // the sweep for counter-clockwise / RTL (computed in JS as clockwise XOR rtl).
+    transform: rotate(var(--tabar-start-angle, -90deg)) scaleX(var(--tabar-flip, 1));
+    grid-area: 1 / 1;
+  }
+  &__track {
+    stroke: var(--tabar-track-color, var(--tabar-bg, rgba(127, 127, 127, 0.2)));
+    stroke-width: var(--tabar-height, 6px);
+  }
+  &[data-shape-tabar="circular"] &__bar {
+    width: auto;
+    height: auto;
+    background: none;
+    stroke: var(--tabar-color, var(--tabar-default-color, #{$color}));
+    stroke-width: var(--tabar-height, 6px); // honors setHeight() live
+    transition: stroke-dashoffset var(--tabar-speed, #{$speed}) ease;
+    will-change: stroke-dashoffset;
+  }
+  &[data-shape-tabar="circular"] &__label {
+    position: static;
+    grid-area: 1 / 1;
+    top: auto;
+    right: auto;
+    color: inherit;
+    font-weight: 700;
+  }
+  &[data-shape-tabar="circular"][data-glow-tabar="true"] &__bar,
+  &[data-shape-tabar="circular"][data-theme-tabar="glow"] &__bar {
+    filter:
+      drop-shadow(0 0 calc(var(--tabar-glow-size, 8px) * 0.5) #{$glow-color})
+      drop-shadow(0 0 var(--tabar-glow-size, 8px) #{$glow-color});
+  }
+  &[data-shape-tabar="circular"][data-state-tabar="indeterminate"] &__svg {
+    animation: tabar-spin 0.9s linear infinite;
+  }
+  &[data-shape-tabar="circular"][data-state-tabar="indeterminate"] &__bar {
+    stroke-dasharray: 80 200;
+    animation: none;
+  }
+}
+
+@keyframes tabar-indeterminate {
+  0% { transform: translateX(-110%); }
+  100% { transform: translateX(260%); }
+}
+@keyframes tabar-indeterminate-v {
+  0% { transform: translateY(110%); }
+  100% { transform: translateY(-260%); }
+}
+@keyframes tabar-rainbow {
+  0% { background-position: 0 50%; }
+  100% { background-position: 300% 50%; }
+}
+@keyframes tabar-stripes {
+  0% { background-position: 0 0; }
+  100% { background-position: 22px 0; }
+}
+@keyframes tabar-spin {
+  to { transform: rotate(270deg); }
+}
+
+// --- Responsive: keep thin bars tappable/visible on small or coarse screens -
+@media (max-width: 600px) {
+  .tabar__label { font-size: 10px; }
+}
+@media (pointer: coarse) {
+  .tabar:not([data-orientation-tabar="vertical"]) { min-height: 4px; }
+  .tabar[data-orientation-tabar="vertical"] { min-width: 4px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabar__bar { transition-duration: 0ms !important; }
+  .tabar__svg { animation: none !important; }
+  .tabar[data-state-tabar="indeterminate"] .tabar__bar { animation: none; width: 100%; }
+  .tabar[data-orientation-tabar="vertical"][data-state-tabar="indeterminate"] .tabar__bar { height: 100%; }
+  .tabar[data-theme-tabar="rainbow"] .tabar__bar { animation: none; }
+  .tabar[data-multicolor-anim-tabar="true"] .tabar__bar { animation: none; }
+  .tabar__bar::after { animation: none !important; }
+}
+
+// --- Scheme-aware default palette ------------------------------------------
+// Only affects bars that did NOT set an explicit color/background; bars given a
+// `color`/`background` option keep it on both schemes.
+@media (prefers-color-scheme: dark) {
+  .tabar {
+    --tabar-default-color: #4ab3ff;
+  }
+  .tabar[data-position-tabar="inline"] { --tabar-track: rgba(255, 255, 255, 0.14); }
+}
+
+@media (prefers-color-scheme: light) {
+  .tabar {
+    --tabar-default-color: #1f8fe0;
+  }
+}
+
+// --- TabarGroup (parent task + child bars) ----------------------------------
+.tabar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.tabar-group__children {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tabar-group__overall,
+.tabar-group__child {
+  min-height: 14px;
+}

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tabar — Webpixels CSS</title>
+  <!-- Webpixels CSS (Bootstrap-based). Tabar itself ships no CSS framework, so it
+       drops into a Webpixels UI exactly like plain Bootstrap — just CSS variables. -->
+  <link href="https://cdn.jsdelivr.net/npm/@webpixels/css@3.0.5/dist/all.css" rel="stylesheet" />
+</head>
+<body class="container py-5" style="max-width: 720px">
+  <h1 class="h3 mb-2">Inside a Webpixels UI</h1>
+  <p class="text-muted mb-4">Tabar uses its own <code>data-*-tabar</code> hooks and CSS variables,
+    so it coexists with Webpixels/Bootstrap components with zero class conflicts. Theme it from
+    Webpixels' design tokens (<code>--x-*</code>) or any CSS color.</p>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <!-- Themed straight from Webpixels tokens. -->
+      <div id="host" class="my-2" style="--tabar-color: var(--x-primary); --tabar-height: 10px;"></div>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <button id="go" class="btn btn-sm btn-primary">Animate</button>
+        <button id="indet" class="btn btn-sm btn-neutral">Indeterminate</button>
+        <button id="done" class="btn btn-sm btn-neutral">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <h2 class="h6">Multi-color bands + glow</h2>
+      <div id="bands" class="my-2"
+           data-tabar-colors="#5c60f5,#00d97e,#f5a623"
+           data-tabar-color-mode="bands"
+           data-tabar-height="16"
+           data-tabar-radius="9999"
+           data-tabar-glow="true"
+           data-tabar-value="0.8"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { Tabar } from '../src/tabar.js';
+
+    const bar = new Tabar({ position: 'inline', mountTo: '#host', radius: 5, innerRadius: 5 });
+    bar.show();
+
+    document.getElementById('go').addEventListener('click', () => bar.set(0.7));
+    document.getElementById('indet').addEventListener('click', () => bar.indeterminate(true));
+    document.getElementById('done').addEventListener('click', () => bar.done());
+
+    // The second bar reads its whole config from data-tabar-* attributes.
+    new Tabar({ position: 'inline', mountTo: '#bands', trickle: false });
+  </script>
+</body>
+</html>

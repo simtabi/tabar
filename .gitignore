@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+site/dist/
+
+# Generated from src/tabar.scss by `npm run styles`
+src/styles.js
+
+# Logs
+*.log
+npm-debug.log*
+
+# Caches / tooling
+.eslintcache
+.vitest/
+coverage/
+
+# Playwright (keep the committed *-snapshots/ baselines; ignore run artifacts)
+test-results/
+playwright-report/
+/playwright/.cache/
+blob-report/
+
+# Local scratch / verification harnesses
+scratch-verify.mjs
+scratch-*.mjs
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp

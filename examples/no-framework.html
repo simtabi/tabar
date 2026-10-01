@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tabar — no framework</title>
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; max-width: 640px; margin: 60px auto; padding: 0 20px; }
+    button { font: inherit; padding: 8px 16px; margin-right: 8px; cursor: pointer; }
+    /* Theme this specific bar with CSS variables — no framework, no overrides. */
+    [data-id-tabar="demo"] { --tabar-color: #6c5ce7; --tabar-height: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Plain HTML &amp; CSS</h1>
+  <p>No framework, no build step — import the ES module and go.</p>
+
+  <div id="host" style="margin: 24px 0;"></div>
+  <button id="start">Start</button>
+  <button id="done">Done</button>
+
+  <script type="module">
+    import { Tabar } from '../src/tabar.js';
+
+    const bar = new Tabar({ id: 'demo', position: 'inline', mountTo: '#host', trickle: true });
+
+    document.getElementById('start').addEventListener('click', () => bar.start());
+    document.getElementById('done').addEventListener('click', () => bar.done());
+  </script>
+</body>
+</html>

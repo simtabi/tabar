@@ -1,0 +1,150 @@
+/* Tabar demo — presentation glue ONLY.
+ *
+ * The design system comes from Webpixels CSS (Bootstrap-based), loaded *before*
+ * this file. These rules cover just the handful of demo-specific bits Webpixels
+ * can't express. The library itself injects its own bar CSS (#tabar-base) and
+ * ships ZERO CSS-framework dependency — none of this leaks into `src/`.
+ *
+ * Colors reference Webpixels' `--x-*` tokens (so light/dark follow
+ * `data-bs-theme` automatically), each with a neutral fallback. */
+
+/* Theme Webpixels with Tabar's brand blue as the `primary` token (recolors
+   buttons/links/badges and keeps strong contrast in both light and dark). */
+:root,
+[data-bs-theme='dark'] {
+  --x-primary: #2299dd;
+  --x-primary-rgb: 34, 153, 221;
+  --x-purple: #7c4dff;
+}
+/* Webpixels' default primary button is near-black; map it to the brand blue
+   (component-scoped --x-btn-* vars) for on-brand color + dark-mode contrast. */
+.btn-primary {
+  --x-btn-bg: #2299dd;
+  --x-btn-border-color: #2299dd;
+  --x-btn-hover-bg: #1e8bc7;
+  --x-btn-hover-border-color: #1e8bc7;
+  --x-btn-active-bg: #1b87c9;
+  --x-btn-active-border-color: #1b87c9;
+  --x-btn-disabled-bg: #2299dd;
+  --x-btn-disabled-border-color: #2299dd;
+  --x-btn-focus-shadow-rgb: 34, 153, 221;
+}
+
+/* CTA band: a subtle brand tint that adapts to light/dark (translucent over the
+   page surface) — replaces a hardcoded light gradient that broke in dark mode. */
+.cta-band {
+  background: linear-gradient(135deg, rgba(34, 153, 221, 0.12), rgba(124, 77, 255, 0.12));
+}
+
+/* Frosted, translucent sticky navbar (Apple-style chrome). */
+.navbar.sticky-top {
+  background: color-mix(in srgb, var(--x-body-bg, #fff) 82%, transparent);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+/* Restrained lift on the clickable example cards (links). */
+a.card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+a.card:hover { transform: translateY(-3px); box-shadow: var(--x-box-shadow-lg, 0 1.5rem 4rem rgba(0, 0, 0, 0.1)); }
+@media (prefers-reduced-motion: reduce) {
+  a.card { transition: none; }
+  a.card:hover { transform: none; }
+}
+
+/* Brand mark + gradient wordmark. */
+.brand-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--x-primary, #2299dd), var(--x-purple, #7c4dff));
+}
+.text-gradient {
+  background: linear-gradient(120deg, var(--x-primary, #2299dd), var(--x-purple, #7c4dff));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* The demo track IS the bar's track: the bar fills it (height:'100%'), so its
+   own wrapper track is transparent and only this surface shows — no leftover
+   grey strip below a shorter bar. */
+.demo-track {
+  background: var(--x-secondary-bg, rgba(128, 128, 128, 0.14));
+  border-radius: 999px;
+  overflow: hidden;
+}
+.demo-track .tabar { --tabar-track: transparent; }
+.demo-track.bleed { overflow: visible; }
+
+/* Let glow halos / tooltips bleed past the stage instead of being clipped. */
+.stage--bleed { overflow: visible; padding: 1.25rem 1.5rem; }
+
+/* Circular configurator preview: drop the track box so the ring isn't clipped. */
+#cfg-host.cfg-host--ring {
+  background: transparent;
+  border-radius: 0;
+  overflow: visible;
+  height: auto !important;
+}
+
+/* Configurator schema grid. (Bootstrap's grid would need per-item col wrappers
+   and churn the generator — a CSS auto-fit grid keeps the JS simple.) */
+.cfg-grid { margin-top: 0.5rem; }
+.cfg-fieldset__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.75rem 1rem;
+  align-items: end;
+}
+.cfg-field { display: flex; flex-direction: column; }
+.cfg-field .form-label { display: flex; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.25rem; }
+.cfg-field .form-control-color { width: 100%; }
+
+/* Multi-color stop editor. */
+.cfg-colors { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.cfg-colors__item { display: inline-flex; align-items: center; gap: 0.25rem; }
+.cfg-colors__item .form-control-color { width: 44px; }
+
+/* Code snippets (marketing "Get started" + the configurator output). */
+.code-snippet {
+  font-family: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.65;
+  background: var(--x-secondary-bg, rgba(128, 128, 128, 0.1));
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-x: auto;
+}
+.cfg-codeblock .code-snippet { max-height: 320px; }
+.code-snippet__head { margin-bottom: 0.5rem; }
+.tok-k { color: var(--x-purple, #7c4dff); }
+.tok-s { color: var(--x-success, #2a9d4a); }
+.tok-c { color: var(--x-secondary-color, #8a8a8a); }
+
+/* Event log. */
+.log {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 12.5px;
+  background: var(--x-secondary-bg, rgba(128, 128, 128, 0.1));
+  border-radius: 0.75rem;
+  padding: 0.875rem;
+  height: 220px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+/* Color swatches (live recolor demo). */
+.swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--x-border-color, rgba(128, 128, 128, 0.3));
+  cursor: pointer;
+  padding: 0;
+}
+
+output { font-variant-numeric: tabular-nums; }
+
+/* Smooth in-page anchor scrolling with room under the sticky navbar. */
+html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

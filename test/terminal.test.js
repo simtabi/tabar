@@ -1,0 +1,86 @@
+// @vitest-environment node
+import { describe, expect, it } from 'vitest';
+import { Tabar } from '../src/tabar.js';
+import { renderTerminal, terminalBar } from '../src/node.js';
+
+/** A captured writable stream. */
+const makeStream = (isTTY) => {
+  const out = { text: '', isTTY, columns: 60, write(s) { this.text += s; } };
+  return out;
+};
+
+describe('terminal renderer (Node env)', () => {
+  it('auto-selects headless in Node and the value machinery still works', () => {
+    const bar = new Tabar({ trickle: false });
+    expect(bar._wrapper).toBeFalsy(); // no DOM in Node
+    bar.set(0.5, { animate: false });
+    expect(bar.value).toBe(50);
+  });
+
+  it('renders an ANSI bar to a TTY stream', () => {
+    const stream = makeStream(true);
+    const bar = new Tabar({ trickle: false });
+    renderTerminal(bar, { stream, label: 'DL' });
+    bar.setProgress(50, 100);
+    expect(stream.text).toContain('DL');
+    expect(stream.text).toContain('█');
+    expect(stream.text).toContain('50%');
+    expect(stream.text).toContain('\x1b['); // color codes on a TTY
+  });
+
+  it('emits plain, newline-terminated lines on a non-TTY stream', () => {
+    const stream = makeStream(false);
+    const bar = new Tabar({ trickle: false });
+    renderTerminal(bar, { stream });
+    bar.set(1, { animate: false });
+    bar.done();
+    expect(stream.text).not.toContain('\x1b[');
+    expect(stream.text).toContain('\n');
+  });
+
+  it('terminalBar drives a headless bar', () => {
+    const stream = makeStream(false);
+    const bar = terminalBar({ stream, label: 'x' });
+    bar.setProgress(25, 100);
+    expect(bar.value).toBe(25);
+  });
+
+  it('does not flood a non-TTY stream when indeterminate (no spinner loop)', async () => {
+    const stream = makeStream(false);
+    const bar = new Tabar({ trickle: false });
+    renderTerminal(bar, { stream });
+    bar.indeterminate(true);
+    await new Promise((r) => setTimeout(r, 120)); // a TTY would have spun several frames
+    const lines = stream.text.split('\n').filter(Boolean).length;
+    expect(lines).toBeLessThanOrEqual(2); // one paint, not a flood
+  });
+});
+
+describe('headless core (no DOM)', () => {
+  // These would throw in Node if a method touched a browser global unguarded.
+  it('runs every lifecycle method without a DOM', () => {
+    const bar = new Tabar({ trickle: false, mountTo: '#nope' });
+    expect(bar._wrapper).toBeFalsy();
+    bar.start();
+    bar.set(0.5, { animate: false });
+    bar.indeterminate(true); // regressed once: touched this._bar.style with no guard
+    bar.indeterminate(false);
+    bar.setProgress(50, 100);
+    bar.warn('x');
+    bar.succeed();
+    bar.error('x');
+    bar.setTheme('gradient').setGradientType('radial').setColor('#f00');
+    bar.setSegments([{ value: 0.3 }, { value: 0.6 }]);
+    expect(bar.value).toBeGreaterThan(0);
+    bar.destroy();
+  });
+
+  it('toJSON() works headless (guards the browser-only Element global)', () => {
+    const bar = new Tabar({ trickle: false, mountTo: '#nope', color: '#abc' });
+    bar.set(0.4, { animate: false });
+    const json = bar.toJSON(); // regressed once: `val instanceof Element` threw ReferenceError
+    expect(() => JSON.stringify(json)).not.toThrow();
+    expect(json.color).toBe('#abc');
+    expect(typeof json.mountTo).not.toBe('object');
+  });
+});

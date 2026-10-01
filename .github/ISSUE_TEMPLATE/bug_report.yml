@@ -1,0 +1,49 @@
+name: Bug report
+description: Report a problem with Tabar
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to file a bug! Please fill out the details below.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, including what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: A minimal code snippet or link (CodePen/StackBlitz) that reproduces it.
+      placeholder: |
+        const bar = new Tabar({ ... });
+        bar.start();
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Tabar version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser / environment
+      placeholder: Chrome 126, Firefox 128, Safari 17...
+    validations:
+      required: true
+  - type: dropdown
+    id: framework
+    attributes:
+      label: Framework
+      options:
+        - None (vanilla)
+        - Tailwind
+        - Bootstrap
+        - React/Vue/Svelte/other
+    validations:
+      required: false

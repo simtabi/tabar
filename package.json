@@ -1,0 +1,130 @@
+{
+  "name": "@simtabi/tabar",
+  "version": "0.6.0",
+  "description": "Dependency-free progress bar for web & CLI: linear/circular/segmented, multi-progress, uploads & ETA, themes, events/API, i18n. Zero dependencies.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Simtabi LLC <opensource@simtabi.com>",
+  "maintainers": [
+    "Imani Manyara <imani@simtabi.com>"
+  ],
+  "homepage": "https://opensource.simtabi.com/products/tabar",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/simtabi/tabar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/simtabi/tabar/issues"
+  },
+  "keywords": [
+    "progress",
+    "progress-bar",
+    "progressbar",
+    "loading",
+    "nprogress",
+    "vanilla-js",
+    "esm",
+    "no-dependencies",
+    "accessible",
+    "css-variables"
+  ],
+  "main": "./dist/tabar.umd.cjs",
+  "module": "./dist/tabar.esm.js",
+  "types": "./types/tabar.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/tabar.d.ts",
+      "import": "./dist/tabar.esm.js",
+      "require": "./dist/tabar.umd.cjs"
+    },
+    "./node": {
+      "types": "./types/node.d.ts",
+      "import": "./dist/tabar-node.js",
+      "default": "./src/node.js"
+    },
+    "./terminal": {
+      "types": "./types/terminal.d.ts",
+      "import": "./dist/tabar-terminal.js",
+      "default": "./src/terminal.js"
+    },
+    "./group": {
+      "types": "./types/group.d.ts",
+      "import": "./dist/tabar-group.js",
+      "default": "./src/group.js"
+    },
+    "./element": {
+      "types": "./types/element.d.ts",
+      "import": "./dist/tabar-element.js",
+      "default": "./src/element.js"
+    },
+    "./react": {
+      "types": "./types/react.d.ts",
+      "import": "./dist/tabar-react.js",
+      "default": "./src/react.js"
+    },
+    "./css": "./dist/tabar.css",
+    "./src": "./src/tabar.js",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "tabar": "bin/tabar.js"
+  },
+  "files": [
+    "dist",
+    "src",
+    "types/*.d.ts",
+    "bin",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": [
+    "*.css",
+    "./src/element.js"
+  ],
+  "scripts": {
+    "styles": "node scripts/build-css.js",
+    "build": "npm run styles && node scripts/build.js",
+    "build:site": "npm run build && node scripts/build-site.js",
+    "demo": "npm run build:site && node scripts/serve.js",
+    "pretest": "npm run styles",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:update": "playwright test --update-snapshots",
+    "lint": "eslint src test scripts bin site/assets/js",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=17"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.9.0",
+    "@playwright/test": "^1.61.0",
+    "@testing-library/react": "^16.3.2",
+    "@vitest/coverage-v8": "^2.1.9",
+    "@webpixels/css": "^3.0.5",
+    "esbuild": "^0.23.0",
+    "eslint": "^9.9.0",
+    "happy-dom": "^15.0.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "sass": "^1.101.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.5"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
