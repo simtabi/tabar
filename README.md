@@ -82,7 +82,19 @@ printf '30 100\n80 100\n100 100\n' | npx tabar --total 100 --label Build
 
 See [docs/installation.md](docs/installation.md) for ESM, CJS, CDN (pinning + SRI) and CSP setups.
 
-## Quick start
+## Quick start guide and usage
+
+### Getting started
+
+Nothing to configure: Tabar has zero runtime dependencies and injects its own small `<style>`
+element at runtime. Under a strict Content Security Policy (no `style-src 'unsafe-inline'`),
+include the standalone stylesheet instead:
+
+```html
+<link rel="stylesheet" href="https://unpkg.com/@simtabi/tabar/dist/tabar.css" />
+```
+
+### Usage
 
 ```js
 import { Tabar } from '@simtabi/tabar';
