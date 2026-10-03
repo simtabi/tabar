@@ -1,5 +1,7 @@
 # Security Policy
 
+Where this file is silent, the [Simtabi security policy](https://github.com/simtabi/.github/blob/HEAD/SECURITY.md) applies.
+
 ## Supported versions
 
 The latest published `0.x` release receives security fixes. Once `1.0.0` ships, the most
