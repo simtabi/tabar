@@ -1,8 +1,9 @@
 # Release
 
-Tabar is published to npm as [`@simtabi/tabar`](https://www.npmjs.com/package/@simtabi/tabar).
-Releases are tag-driven and use npm OIDC **trusted publishing** with provenance — no
-long-lived tokens.
+Tabar's releases are tag-driven. They publish `@simtabi/tabar` to the registry the repository
+variable `PUBLISH_REGISTRY` names, which is `github` (GitHub Packages) today: 0.5.0 and 0.6.0 are
+there, and nothing is on npm yet. The npm route uses OIDC **trusted publishing** with provenance
+once the npm trusted publisher is configured (see *First-release setup* below).
 
 ## Versioning
 
@@ -14,6 +15,10 @@ Semantic Versioning. There is a single source of version truth: `package.json::v
    section.
 2. Bump the version: `npm version X.Y.Z` (creates the commit and `vX.Y.Z` tag).
 3. Push: `git push && git push --tags`.
+
+A tag push runs `release.yml` **as it is at the tagged commit**. A tag cut before the
+`registry` input existed (0.5.0 and 0.6.0) therefore only knows npm; publish such a tag with
+`.dev/tools/npm-release github`, which starts the workflow as it is on `main`.
 
 Pushing the tag triggers `.github/workflows/release.yml`, which:
 
