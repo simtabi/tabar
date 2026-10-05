@@ -7,6 +7,11 @@ All notable changes to this project are documented here. The format is based on
 ## [Unreleased]
 
 ### Added
+- **Publish to npm or GitHub Packages.** `release.yml` takes a `workflow_dispatch` with `tag` and
+  `registry` inputs, publishes to GitHub Packages with the run's own `GITHUB_TOKEN`, follows the
+  `PUBLISH_REGISTRY` variable on a tag push (npm when unset), and reports a version a registry already
+  has instead of failing. `.dev/tools/npm-release github|npm` publishes every missing release; see
+  `docs/release.md`.
 - **Configurable border** — `borderWidth`/`borderStyle`/`borderColor` (and `setBorder`) outline
   the linear track; `--tabar-border-*` CSS vars; settable via `<tabar-bar>`/`data-tabar-*`.
 - **Broader, consistent API.** New chainable setters — `setSize`, `setShape`
