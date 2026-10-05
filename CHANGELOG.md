@@ -12,6 +12,9 @@ All notable changes to this project are documented here. The format is based on
   `PUBLISH_REGISTRY` variable on a tag push (npm when unset), and reports a version a registry already
   has instead of failing. `.dev/tools/npm-release github|npm` publishes every missing release; see
   `docs/release.md`.
+- **The install docs say where Tabar is published.** 0.5.0 and 0.6.0 are on GitHub Packages,
+  which needs a scoped `.npmrc` and a `read:packages` token; the README and
+  `docs/installation.md` show both, and note that the CDN links resolve only once Tabar is on npm.
 - **Configurable border** — `borderWidth`/`borderStyle`/`borderColor` (and `setBorder`) outline
   the linear track; `--tabar-border-*` CSS vars; settable via `<tabar-bar>`/`data-tabar-*`.
 - **Broader, consistent API.** New chainable setters — `setSize`, `setShape`

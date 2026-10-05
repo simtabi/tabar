@@ -51,6 +51,19 @@ bar.done();                 // glide to 100%, then hide
 npm install @simtabi/tabar
 ```
 
+`@simtabi/tabar` is published to GitHub Packages, not npm, for now. GitHub Packages asks for a
+token even for a public package, so before `npm install` add a GitHub token with `read:packages` to
+the project's `.npmrc`:
+
+```ini
+@simtabi:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
+
+> The CDN links below serve from npm (jsDelivr and unpkg read the npm registry), and Tabar is on
+> GitHub Packages only for now, so they resolve once it is published to npm. Until then, install it
+> as above and bundle it, or serve `dist/` from your own build.
+
 Or drop in the ready-to-use script from a CDN — exposes a global `Tabar`, no build step:
 
 ```html
