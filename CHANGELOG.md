@@ -10,7 +10,10 @@ All notable changes to this project are documented here. The format is based on
 - **esbuild `^0.23.0` → `^0.28.1`** (dev dependency, the bundler). Every release below 0.28.1 is
   covered by an esbuild advisory, and `^0.23` stops below 0.24, so Dependabot's security update could
   not reach the fix and failed on every run. The build, the 147 tests, lint and typecheck pass on 0.28.2.
-  Vite 5, inside Vitest 2, still bundles its own esbuild 0.21; that needs the Vitest upgrade.
+- **Vitest `^2` → `^3.2.6` and happy-dom `^15` → `^20.8.9`** (dev dependencies). Vitest below 3.2.6 lets its UI
+  server read and run arbitrary files; happy-dom below 20 allows a VM-context escape to code execution, and below
+  20.8.9 sends page-origin cookies on credentialed fetches. All 147 tests pass unchanged, and Vitest 3's Vite now
+  shares the patched esbuild instead of carrying 0.21.
 
 ### Added
 - **Publish to npm or GitHub Packages.** `release.yml` takes a `workflow_dispatch` with `tag` and
