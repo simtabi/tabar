@@ -20,7 +20,29 @@ Pushing the tag triggers `.github/workflows/release.yml`, which:
 - runs lint, tests and the build,
 - extracts the tagged version's `CHANGELOG.md` block as the GitHub release body (with
   `generate_release_notes: true` for the contributor/PR list),
-- publishes to npm with `npm publish --provenance --access public`.
+- publishes to the registry the repository variable `PUBLISH_REGISTRY` names: npm (the default) with
+  `npm publish --provenance --access public`, or GitHub Packages (`github`) with the run's own
+  `GITHUB_TOKEN`. A version the registry already has is reported, not failed.
+
+## npm or GitHub Packages
+
+One command publishes every release tag that is not out yet, oldest first, to either registry, by
+starting `release.yml` once per tag (a hand-started run never touches the tag's GitHub release):
+
+```bash
+.dev/tools/npm-release github        # GitHub Packages; needs no npm token
+.dev/tools/npm-release npm           # npm, with a granular token (npm_…) on the clipboard
+.dev/tools/npm-release               # npm if the clipboard holds a token npm accepts, GitHub Packages otherwise
+```
+
+`--dry-run` changes nothing, `--keep-token` uses the secret already set, and naming tags (`v0.6.0`)
+publishes only those; `--help` lists the rest. It needs `gh` signed in as a maintainer. The same
+command, byte for byte, publishes every Simtabi package; its canonical copy is in `laranail/emojis`.
+
+GitHub Packages signs no provenance and asks for authentication even to install a public package: a
+project installing from it adds `@simtabi:registry=https://npm.pkg.github.com` and
+`//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}` to its `.npmrc`, with a token that has
+`read:packages`.
 
 ## First-release setup (once)
 
