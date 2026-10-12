@@ -3,14 +3,21 @@ name: CI
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       matrix:
         # 18 is the engines floor; keep it tested while package.json promises it.
@@ -30,9 +37,11 @@ jobs:
       - run: npm run build
 
   playwright:
+    if: ${{ !github.event.pull_request.draft }}
     # The library tracks no lock file, so the Playwright version is resolved here from the
     # package.json range, and the visual job runs in the image built for exactly that version.
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       version: ${{ steps.resolve.outputs.version }}
     steps:
@@ -46,6 +55,7 @@ jobs:
   visual:
     needs: playwright
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # Run inside the official Playwright image so rendering matches the committed
     # Linux baselines (e2e/**/*-snapshots/*-linux.png). The range in package.json is
     # ~1.61.0 on purpose: a minor bump is a deliberate change that refreshes the baselines.
