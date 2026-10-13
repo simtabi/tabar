@@ -43,6 +43,8 @@ The package exposes several subpath exports, each with its own types:
 
 ## Node / terminal / CLI
 
+The Node entry points and the `tabar` CLI need Node.js 20 or later (`engines.node` is `>=20`).
+
 The same API drives a live bar in the terminal — no DOM required:
 
 ```js

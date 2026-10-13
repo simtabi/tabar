@@ -51,6 +51,9 @@ bar.done();                 // glide to 100%, then hide
 npm install @simtabi/tabar
 ```
 
+The Node entry points (`@simtabi/tabar/node`, `@simtabi/tabar/terminal`) and the `tabar` CLI need
+Node.js 20 or later.
+
 `@simtabi/tabar` is published to GitHub Packages, not npm, for now. GitHub Packages asks for a
 token even for a public package, so before `npm install` add a GitHub token with `read:packages` to
 the project's `.npmrc`:
