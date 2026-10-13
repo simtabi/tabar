@@ -30,6 +30,9 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: npm
           cache-dependency-path: package.json
+      # npm 10 (bundled with Node 20 and 22) crashes resolving Vitest 4's optional peer set with
+      # "Cannot read properties of null (reading 'edgesOut')" (npm/cli#9787); npm 11 resolves it.
+      - run: npm install -g npm@11 --no-audit --no-fund
       - run: npm install --no-audit --no-fund
       - run: npm run lint
       - run: npm run typecheck
@@ -68,6 +71,9 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: package.json
+      # npm 10 (bundled with Node 20 and 22) crashes resolving Vitest 4's optional peer set with
+      # "Cannot read properties of null (reading 'edgesOut')" (npm/cli#9787); npm 11 resolves it.
+      - run: npm install -g npm@11 --no-audit --no-fund
       - run: npm install --no-audit --no-fund
       - name: Run Playwright visual & functional tests
         run: npm run test:e2e
