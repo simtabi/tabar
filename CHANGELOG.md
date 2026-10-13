@@ -14,6 +14,9 @@ All notable changes to this project are documented here. The format is based on
   server read and run arbitrary files; happy-dom below 20 allows a VM-context escape to code execution, and below
   20.8.9 sends page-origin cookies on credentialed fetches. All 147 tests pass unchanged, and Vitest 3's Vite now
   shares the patched esbuild instead of carrying 0.21.
+- **Vitest `^3.2.6` → `^4.1.11`, with `@vitest/coverage-v8` to match** (dev dependencies).
+  GHSA-82fw-gwwq-j7x9: Vitest from 2.1.0 below 4.1.11 lets a redirected mock in `@vitest/mocker`
+  read arbitrary files. There is no patched 3.x release. All 147 tests pass unchanged on 4.1.11.
 
 ### Added
 - **Publish to npm or GitHub Packages.** `release.yml` takes a `workflow_dispatch` with `tag` and
@@ -57,6 +60,10 @@ All notable changes to this project are documented here. The format is based on
   demo JS is now linted.
 
 ### Changed
+- **Node.js 20 is now the minimum** (`engines.node` `>=18` → `>=20`), and CI no longer tests
+  Node 18, which reached end of life in April 2025. The patched Vitest supports only Node 20, 22
+  and 24 or later. This drops Node 18 support for the Node entry points and the `tabar` CLI; the
+  browser build is unaffected.
 - The default `height` is now **6px** (was 3px) for a more visible bar out of the box.
 - **Demo site rebuilt on [Webpixels CSS](https://webpixels.io)** (a Bootstrap-based
   framework) instead of a hand-rolled design system — the landing page, playground and
